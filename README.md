@@ -4,6 +4,18 @@ A clean, fast fix-and-flip deal analysis tool for property investors. Enter purc
 
 ---
 
+## Overview
+
+This project was built as a small test task to demonstrate:
+- Clean code structure
+- Separation of business logic from UI
+- Clear and professional documentation
+- A working web-based calculator using Next.js
+
+The focus is on simplicity, correctness, and extensibility rather than feature complexity.
+
+---
+
 ## Tech Stack
 
 - [Next.js 15](https://nextjs.org/) (App Router)
@@ -109,3 +121,11 @@ Vercel auto-detects Next.js. No configuration needed.
 
 - The 70% rule is a guide only, not financial advice.
 - Currency is GBP (£). To switch currency, update `lib/formatters.ts` only.
+
+---
+
+## Summary
+
+This implementation focuses on clarity, correctness, and clean architecture over complexity.
+
+The codebase is structured to be easily extended into a more advanced deal analysis tool (e.g. adding fees, ROI, or financing calculations) without requiring changes to UI components.
