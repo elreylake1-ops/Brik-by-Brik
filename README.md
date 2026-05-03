@@ -58,7 +58,25 @@ types/
 
 ### Logic Separation
 
-All calculation logic lives in `lib/calculations.ts`. Components are stateless receivers — they do not compute anything. `page.tsx` holds state, calls `analyzeDeal()`, and passes results down as props. This keeps business logic independently testable and UI components simple.
+All calculation logic lives in `lib/calculations.ts` as pure functions — no React imports, no side effects. Components are stateless receivers that only render what they receive as props.
+
+**How it works:**
+
+1. User types into `CalculatorForm` → values flow up to `page.tsx` via `onChange`
+2. `page.tsx` passes the three numbers into `analyzeDeal()` from `lib/calculations.ts`
+3. `analyzeDeal()` runs the formulas and returns a `DealResult` object
+4. `DealResult` is passed as props to `ResultsDisplay`, which renders the output
+
+**What each function calculates:**
+
+```ts
+calculateTotalCost(purchasePrice, refurbCost)  // purchasePrice + refurbCost
+calculateProfit(gdv, totalCost)                // gdv - totalCost
+calculateMaxOffer(gdv, refurbCost)             // (0.7 × gdv) - refurbCost
+getDealVerdict(purchasePrice, maxOffer)        // purchasePrice ≤ maxOffer ? "DEAL" : "NO DEAL"
+```
+
+Adding new calculations means editing `calculations.ts` and `types/deal.ts` only — no UI component needs to change.
 
 ---
 
