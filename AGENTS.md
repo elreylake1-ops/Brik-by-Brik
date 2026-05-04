@@ -47,12 +47,18 @@ Phase 1A Step 4 has been completed:
 
 Phase 1A Step 5 has been completed:
 - toggle added to page.tsx: "Use task-based refurb scope"
-- RefurbScopeForm component created — collects RefurbScopeInput, no logic
-- RefurbBreakdownSummary component created — displays refurb cost, labour/material split, timeline, warnings
+- RefurbScopeForm component created - collects RefurbScopeInput, no logic
+- RefurbBreakdownSummary component created - displays refurb cost, labour/material split, timeline, warnings
 - CalculatorForm updated: shows "overridden by scope" badge on refurb cost field when scope active
-- app/page.tsx calls analyzeDealWithRefurb() — scope path or manual fallback depending on toggle
-- ResultsDisplay.tsx unchanged — continues to accept DealResult
+- app/page.tsx calls analyzeDealWithRefurb() - scope path or manual fallback depending on toggle
+- ResultsDisplay.tsx unchanged - continues to accept DealResult
 - 53 tests passing (1 new regression test), build clean
+
+Phase 1A Step 6 has been completed:
+- acceptance test suite finalized for Phase 1A mandatory sample and fallback paths
+- QA report added: docs/PHASE_1A_QA_REPORT.md
+- README finalized with Phase 1A status and explicit phase boundaries
+- Phase 1A finalized for MVP QA/client review
 
 ---
 
@@ -101,10 +107,10 @@ Refurb cost must be generated from:
 - scaling rules
 
 Current Step:
-Step 5 complete — minimal UI wiring for Builder Scope Engine.
+Step 6 complete - Phase 1A finalized for MVP QA.
 
 Next Step:
-Step 6 — tests, QA, and README finalization.
+Await client confirmation before starting the next phase.
 
 Phase 1A planned steps:
 1. Foundation/config/data ✓
@@ -289,3 +295,5 @@ When uncertain, keep scope smaller, preserve the working calculator, and documen
 Prefer lean-ctx MCP tools over native equivalents for token savings.
 Full rules: @LEAN-CTX.md
 <!-- /lean-ctx -->
+
+

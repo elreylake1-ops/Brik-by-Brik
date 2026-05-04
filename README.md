@@ -248,3 +248,11 @@ When scope mode is active, a **Refurb Scope Breakdown** panel shows:
 The manual Refurb Cost field remains visible and is clearly labelled as overridden while scope mode is active.
 
 All Phase 1A calculations live in `lib/engine/` as pure functions. No calculation logic sits in UI components. PDF export and saved deals remain Phase 2.
+
+## Phase 1A Status
+
+Phase 1A Step 6 is complete and Phase 1A is now wired into the UI.
+
+- Manual refurb cost fallback still exists when scope mode is off.
+- Task-based refurb scope generates refurb cost, labour/material split, task count, timeline, and warnings.
+- Not included in this phase: PDF export, saved deals, CRM, AI, live scraping, or dashboard expansion.
