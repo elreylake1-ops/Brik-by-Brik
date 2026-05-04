@@ -227,3 +227,7 @@ Phase 1A adds the foundational type system and configurable data layer for the B
 - Three trades (carpenter, tiler, waste removal) are clearly marked as assumptions — confirm locally before use
 - Material baselines include `lastChecked` date so staleness is visible
 - Roof works template is explicitly marked as a placeholder — always requires live quotes
+
+**Phase 1A Step 2 — Scope-to-Task Generator:**
+
+`lib/engine/scope-to-tasks.ts` converts a `RefurbScopeInput` into a list of `GeneratedRefurbTask` objects using the config files above. Each generated task carries quantity, labour cost, total cost, assumptions used, and any warnings. No UI has been changed and no connection to the Phase 1 calculator exists yet. Final refurb totals are not computed yet.
