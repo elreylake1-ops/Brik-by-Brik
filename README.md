@@ -202,3 +202,28 @@ Open [http://localhost:3000](http://localhost:3000).
 Brik Engine v1 Phase 1 implements a clean, extensible deal analysis engine with full finance cost modelling, profit margin calculation, and True MAO at three profit targets.
 
 The codebase is structured so that Phase 2 additions such as PDF export and saved deals can be added cleanly without rewriting the core calculation logic.
+
+---
+
+## Phase 1A Foundation (Builder Scope Engine)
+
+Phase 1A adds the foundational type system and configurable data layer for the Builder Scope Engine. No UI has been changed and no calculations have been connected yet.
+
+**What was added:**
+
+| File | Purpose |
+|---|---|
+| `types/refurb.ts` | Core types: `Trade`, `ScalingRule`, `RefurbTaskTemplate`, `GeneratedRefurbTask` |
+| `types/scope.ts` | Input/output types: `RefurbScopeInput`, `RefurbCostResult`, scope enums |
+| `lib/data/trade-rates.ts` | Baseline day rates for all 11 trades — editable config |
+| `lib/data/material-baselines.ts` | Manual material cost dataset — kitchen, bathroom, flooring, boiler, electrical |
+| `lib/data/task-cost-library.ts` | Initial task templates: kitchen full replace, bathroom full refurb, bedroom cosmetic refresh, flooring, rewire, boiler, roof |
+
+**Key design decisions:**
+
+- All assumptions live in visible config files — not buried in calculation logic
+- Trade rates and material costs are plain TypeScript objects — easy to update without touching logic
+- Task templates reference `TRADE_RATES` directly so day rate changes propagate automatically
+- Three trades (carpenter, tiler, waste removal) are clearly marked as assumptions — confirm locally before use
+- Material baselines include `lastChecked` date so staleness is visible
+- Roof works template is explicitly marked as a placeholder — always requires live quotes
