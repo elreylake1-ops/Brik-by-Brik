@@ -65,6 +65,12 @@ Phase 1B Step 1 has been completed:
 - trade rates, material baselines, and task library hardened with validation coverage
 - existing Phase 1A engine behavior preserved
 
+Phase 1B Step 2 has been completed:
+- manual override layer added for labour day rate, labour days, material price, and task include/exclude
+- override application audit output added to generated refurb analysis result
+- assumptions reporting consolidated from tasks, timeline assumptions, and applied overrides
+- no UI changes; no Phase 2 features added
+
 ---
 
 ## Development Rule
@@ -137,10 +143,10 @@ Implement as local config/data files only.
 
 
 Current Step:
-Step 1 complete - cost data layer audit and schema hardening.
+Step 2 complete - manual overrides and assumptions reporting added (engine layer only).
 
 Next Step:
-Step 2 - overrides and assumptions reporting, only if client confirms.
+Await client confirmation before any further Phase 1B changes.
 
 Do not build:
 - database tables

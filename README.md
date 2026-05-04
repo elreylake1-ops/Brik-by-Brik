@@ -264,3 +264,11 @@ The cost data layer has been normalized toward the locked Phase 1B schema.
 - Labour rates, material baselines, and task templates remain configurable local data files.
 - No live scraping, database/admin UI, PDF, CRM, AI, or dashboard expansion has been added.
 - The existing Phase 1A task generation, refurb cost, and timeline engine behavior remains working.
+
+## Phase 1B Step 2 Status
+
+Manual override and assumptions reporting has been added to the engine layer (no UI changes).
+
+- Supports auditable overrides for labour day rate, labour days, material price, and task include/exclude.
+- Returns applied override audit entries and assumptions reporting in generated refurb analysis output.
+- Keeps Phase 1A baseline behavior unchanged when no overrides are provided.

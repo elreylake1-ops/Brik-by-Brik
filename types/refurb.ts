@@ -22,6 +22,12 @@ export type ScalingRule =
   | "per_bathroom"  // Multiply by bathroom count
   | "per_sqm"       // Multiply by floor area in sqm
 
+export type TaskMaterialItemReference = {
+  materialId: string
+  quantity?: number
+  notes?: string
+}
+
 // Base template - lives in the task-cost-library config file
 export type RefurbTaskTemplate = {
   id: string
@@ -35,6 +41,7 @@ export type RefurbTaskTemplate = {
   scalingRule: ScalingRule
   dependency?: string  // ID of a task that must run before this one
   notes?: string       // Assumption explanation - only added when non-obvious
+  materialItems?: TaskMaterialItemReference[]
 }
 
 // Phase 1B cost-data schema (kept local/config-only in this phase)
@@ -61,12 +68,6 @@ export type MaterialBaselineEntry = {
   selectedPrice: number
   notes: string
   lastUpdated: string // YYYY-MM-DD
-}
-
-export type TaskMaterialItemReference = {
-  materialId: string
-  quantity?: number
-  notes?: string
 }
 
 export type TaskCostLibraryEntry = {

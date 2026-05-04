@@ -21,6 +21,7 @@ function mapToRefurbTaskTemplate(task: TaskCostLibraryEntry): RefurbTaskTemplate
     scalingRule: task.scalingRule,
     dependency: task.dependencyTaskId,
     notes,
+    materialItems: task.materialItems,
   }
 }
 
