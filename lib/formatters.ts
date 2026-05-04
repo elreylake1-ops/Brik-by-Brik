@@ -19,3 +19,8 @@ export function formatProfit(value: number): string {
   if (value < 0) return `-${formatted}`
   return formatted
 }
+
+export function formatPercent(value: number): string {
+  if (!isFinite(value) || isNaN(value)) return "0.00%"
+  return `${value.toFixed(2)}%`
+}

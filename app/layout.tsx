@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Deal Analyzer — 70% Rule Calculator",
-  description: "Fix and flip deal analysis using the 70% rule. Calculate max offer, profit, and total cost.",
+  title: "Brik Engine v1 — Deal Analysis Calculator",
+  description: "Phase 1 deal analysis engine. Calculate finance cost, profit, profit margin, and true MAO.",
 };
 
 export default function RootLayout({

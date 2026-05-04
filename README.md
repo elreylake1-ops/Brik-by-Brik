@@ -1,18 +1,18 @@
-# Deal Analyzer — 70% Rule Calculator
+# Brik Engine v1 — Phase 1 Deal Analysis Calculator
 
-A clean, fast fix-and-flip deal analysis tool for property investors. Enter purchase price, GDV, and refurb cost — get instant results including max offer, profit, and a deal verdict.
+Built for Lake Views Property. Phase 1 of the Brik Engine calculation engine — a web-based tool for analysing fix-and-flip property deals with full finance cost modelling and True MAO at multiple profit targets.
 
 ---
 
 ## Overview
 
-This project was built as a small test task to demonstrate:
-- Clean code structure
-- Separation of business logic from UI
+This project was built as a paid MVP test task to demonstrate:
+- Clean code structure and separation of business logic from UI
+- Exact SOP formula implementation (Brik Engine v1 Phase 1)
 - Clear and professional documentation
-- A working web-based calculator using Next.js
+- A working, deployable Next.js calculator
 
-The focus is on simplicity, correctness, and extensibility rather than feature complexity.
+The focus is on correctness, simplicity, and extensibility. All formulas are implemented exactly as specified in the SOP — no reinterpretation.
 
 ---
 
@@ -25,30 +25,69 @@ The focus is on simplicity, correctness, and extensibility rather than feature c
 
 ---
 
-## Features
+## Inputs
 
-- Real-time calculations — updates on every keystroke
-- 70% Rule max offer calculation
-- Profit display (green/red based on value)
-- DEAL / NO DEAL verdict badge
-- Mobile-first, responsive layout
-- GBP (£) currency formatting
+| Field | Description |
+|---|---|
+| Purchase Price (£) | Agreed purchase price of the property |
+| GDV (£) | Gross Development Value — estimated post-refurb value |
+| Refurb Cost (£) | Total cost to renovate the property |
+| Stamp Duty (£) | Stamp Duty Land Tax payable on purchase |
+| Legal Costs (£) | Solicitor and conveyancing fees |
+| Sale Costs (£) | Agent fees and costs incurred on sale |
+| Bridge Term (months) | Duration of bridging loan used for finance cost calculation |
 
 ---
 
-## Formulas
+## Outputs
+
+| Output | Description |
+|---|---|
+| Interest | Bridging loan interest charge |
+| Arrangement Fee | Lender arrangement fee |
+| Exit Fee | Lender exit fee |
+| Total Finance Cost | Sum of all finance charges |
+| Total Cost | All-in project cost |
+| Profit | GDV minus Total Cost |
+| Profit Margin | Profit as a percentage of GDV |
+| True MAO at 15% | Max offer price to achieve 15% profit on GDV |
+| True MAO at 20% | Max offer price to achieve 20% profit on GDV |
+| True MAO at 25% | Max offer price to achieve 25% profit on GDV |
+
+---
+
+## Formulas (exact SOP — Brik Engine v1 Phase 1)
+
+### Finance Cost
 
 ```
-Total Cost  = Purchase Price + Refurb Cost
-
-Profit      = GDV - Total Cost
-
-Max Offer   = (0.7 × GDV) - Refurb Cost
+Interest         = Purchase Price × 0.15 × (Bridge Term ÷ 12)
+Arrangement Fee  = Purchase Price × 0.02
+Exit Fee         = Purchase Price × 0.01
+Total Finance    = Interest + Arrangement Fee + Exit Fee
 ```
 
-**Deal Verdict:**
-- `Purchase Price ≤ Max Offer` → DEAL
-- `Purchase Price > Max Offer` → NO DEAL
+### Total Project Cost
+
+```
+Total Cost = Purchase Price + Refurb Cost + Stamp Duty + Legal Costs + Finance Cost + Sale Costs
+```
+
+### Profit & Margin
+
+```
+Profit         = GDV − Total Cost
+Profit Margin  = (Profit ÷ GDV) × 100
+```
+
+### True MAO
+
+```
+Desired Profit  = GDV × Desired Profit Rate  (0.15 / 0.20 / 0.25)
+True MAO        = GDV − Desired Profit − Refurb Cost − Stamp Duty − Legal Costs − Finance Cost − Sale Costs
+```
+
+> Note: Finance Cost in the True MAO formula is calculated from the entered Purchase Price, as specified in the SOP.
 
 ---
 
@@ -61,34 +100,66 @@ app/
 components/
   CalculatorForm.tsx    # Input form — no logic, emits values only
   ResultsDisplay.tsx    # Output display — no logic, renders props only
+  Tooltip.tsx           # Reusable hover tooltip component
 lib/
-  calculations.ts       # All business logic — pure functions
-  formatters.ts         # Currency formatting utility
+  calculations.ts       # All business logic — pure functions (SOP formulas)
+  formatters.ts         # Currency and percentage formatting utilities
 types/
-  deal.ts               # Shared TypeScript types (DealInputs, DealResult)
+  deal.ts               # Shared TypeScript types
 ```
 
 ### Logic Separation
 
 All calculation logic lives in `lib/calculations.ts` as pure functions — no React imports, no side effects. Components are stateless receivers that only render what they receive as props.
 
-**How it works:**
+**Data flow:**
 
 1. User types into `CalculatorForm` → values flow up to `page.tsx` via `onChange`
-2. `page.tsx` passes the three numbers into `analyzeDeal()` from `lib/calculations.ts`
-3. `analyzeDeal()` runs the formulas and returns a `DealResult` object
+2. `page.tsx` calls `analyzeDeal()` from `lib/calculations.ts` on every change
+3. `analyzeDeal()` runs all SOP formulas and returns a `DealResult` object
 4. `DealResult` is passed as props to `ResultsDisplay`, which renders the output
 
 **What each function calculates:**
 
 ```ts
-calculateTotalCost(purchasePrice, refurbCost)  // purchasePrice + refurbCost
-calculateProfit(gdv, totalCost)                // gdv - totalCost
-calculateMaxOffer(gdv, refurbCost)             // (0.7 × gdv) - refurbCost
-getDealVerdict(purchasePrice, maxOffer)        // purchasePrice ≤ maxOffer ? "DEAL" : "NO DEAL"
+calculateFinanceCost(purchasePrice, bridgeTermMonths)  // Interest + Arrangement Fee + Exit Fee
+calculateTotalCost(purchasePrice, refurbCost, stampDuty, legalCosts, financeCost, saleCosts)
+calculateProfit(gdv, totalCost)                        // GDV - Total Cost
+calculateProfitMargin(profit, gdv)                     // (Profit / GDV) × 100
+calculateTrueMao(gdv, rate, refurbCost, ...)           // GDV - DesiredProfit - all costs
+analyzeDeal(inputs)                                    // Runs all above, returns DealResult
 ```
 
-Adding new calculations means editing `calculations.ts` and `types/deal.ts` only — no UI component needs to change.
+---
+
+## Sample Deal Validation
+
+Use these values to verify the calculator is working correctly:
+
+| Input | Value |
+|---|---|
+| Purchase Price | £120,000 |
+| GDV | £200,000 |
+| Refurb Cost | £25,000 |
+| Stamp Duty | £3,600 |
+| Legal Costs | £2,000 |
+| Sale Costs | £3,000 |
+| Bridge Term | 6 months |
+
+**Expected outputs:**
+
+| Output | Expected |
+|---|---|
+| Interest | £9,000.00 |
+| Arrangement Fee | £2,400.00 |
+| Exit Fee | £1,200.00 |
+| Total Finance Cost | £12,600.00 |
+| Total Cost | £166,200.00 |
+| Profit | +£33,800.00 |
+| Profit Margin | 16.90% |
+| True MAO at 15% | £123,800.00 |
+| True MAO at 20% | £113,800.00 |
+| True MAO at 25% | £103,800.00 |
 
 ---
 
@@ -96,7 +167,7 @@ Adding new calculations means editing `calculations.ts` and `types/deal.ts` only
 
 ```bash
 git clone <repo-url>
-cd deal-analyzer
+cd lakeviewsproperty
 npm install
 npm run dev
 ```
@@ -109,23 +180,25 @@ Open [http://localhost:3000](http://localhost:3000).
 
 1. Push repo to GitHub
 2. Go to [vercel.com/new](https://vercel.com/new)
-3. Import the repo
+3. Import the repo — select root directory
 4. No environment variables required
 5. Click **Deploy**
-
-Vercel auto-detects Next.js. No configuration needed.
 
 ---
 
 ## Notes
 
-- The 70% rule is a guide only, not financial advice.
-- Currency is GBP (£). To switch currency, update `lib/formatters.ts` only.
+- All formulas implemented exactly as specified in the Brik Engine v1 Phase 1 SOP.
+- Finance Cost in the True MAO calculation uses the finance cost derived from the entered Purchase Price (per SOP).
+- Currency formatted as GBP with comma separators and 2 decimal places (e.g. £166,200.00).
+- Profit Margin formatted to 2 decimal places (e.g. 16.90%).
+- For guidance only. Not financial advice.
+- Phase 2 will add PDF export. The calculation layer is already structured to support this.
 
 ---
 
 ## Summary
 
-This implementation focuses on clarity, correctness, and clean architecture over complexity.
+Brik Engine v1 Phase 1 implements a clean, extensible deal analysis engine with full finance cost modelling, profit margin calculation, and True MAO at three profit targets.
 
-The codebase is structured to be easily extended into a more advanced deal analysis tool (e.g. adding fees, ROI, or financing calculations) without requiring changes to UI components.
+The codebase is structured so that Phase 2 additions (PDF export, saved deals, additional fee types) require changes only to `lib/calculations.ts` and `types/deal.ts` — UI components do not need to change.
