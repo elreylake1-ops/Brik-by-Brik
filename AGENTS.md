@@ -60,6 +60,11 @@ Phase 1A Step 6 has been completed:
 - README finalized with Phase 1A status and explicit phase boundaries
 - Phase 1A finalized for MVP QA/client review
 
+Phase 1B Step 1 has been completed:
+- cost data layer audited and normalized toward Phase 1B schema objects
+- trade rates, material baselines, and task library hardened with validation coverage
+- existing Phase 1A engine behavior preserved
+
 ---
 
 ## Development Rule
@@ -129,6 +134,13 @@ Provide configurable labour, material, task-cost, confidence, and override data.
 
 For now:
 Implement as local config/data files only.
+
+
+Current Step:
+Step 1 complete - cost data layer audit and schema hardening.
+
+Next Step:
+Step 2 - overrides and assumptions reporting, only if client confirms.
 
 Do not build:
 - database tables

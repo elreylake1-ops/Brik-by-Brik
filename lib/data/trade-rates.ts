@@ -1,68 +1,133 @@
-import type { Trade } from "@/types/refurb"
+import type { Trade, TradeRateEntry } from "@/types/refurb"
 
-export type TradeRateEntry = {
-  trade: Trade
-  dayRate: number // £ per day
-  notes: string
-}
+const LAST_UPDATED = "2026-05-05"
 
-// Baseline day rates — London/South East assumption, 2024/2025 market.
-// Adjust per region before generating quotes.
+// Required Phase 1B trade list in engine Trade-key format
+export const REQUIRED_TRADES: Trade[] = [
+  "builder",
+  "labourer",
+  "electrician",
+  "plumber",
+  "plasterer",
+  "decorator",
+  "roofer",
+  "carpenter",
+  "tiler",
+  "gas_engineer",
+  "waste_removal",
+]
+
+// Baseline day rates - London/South East assumption, manually maintained.
+// No live scraping; update via periodic manual review.
 export const TRADE_RATES: Record<Trade, TradeRateEntry> = {
   builder: {
     trade: "builder",
-    dayRate: 400,
-    notes: "General builder. London/SE rate. Covers structural, groundwork, general construction.",
+    dayRateLow: 350,
+    dayRateMid: 400,
+    dayRateHigh: 450,
+    defaultDayRate: 400,
+    notes: "General builder rate for structural and general works. Manual baseline for London/SE.",
+    lastUpdated: LAST_UPDATED,
+    isActive: true,
   },
   labourer: {
     trade: "labourer",
-    dayRate: 200,
-    notes: "General labourer. Strip-out, skip loading, site prep.",
+    dayRateLow: 170,
+    dayRateMid: 200,
+    dayRateHigh: 230,
+    defaultDayRate: 200,
+    notes: "General labourer for strip-out, site prep, and loading.",
+    lastUpdated: LAST_UPDATED,
+    isActive: true,
   },
   electrician: {
     trade: "electrician",
-    dayRate: 400,
-    notes: "NICEIC qualified. Day rate excludes materials. Full rewire priced as fixed job.",
+    dayRateLow: 350,
+    dayRateMid: 400,
+    dayRateHigh: 450,
+    defaultDayRate: 400,
+    notes: "NICEIC qualified day rate baseline. Full rewire often quoted as package price.",
+    lastUpdated: LAST_UPDATED,
+    isActive: true,
   },
   plumber: {
     trade: "plumber",
-    dayRate: 400,
-    notes: "Residential plumbing. Excludes gas work. First and second fix.",
+    dayRateLow: 350,
+    dayRateMid: 400,
+    dayRateHigh: 450,
+    defaultDayRate: 400,
+    notes: "Residential plumbing baseline excluding specialist gas works.",
+    lastUpdated: LAST_UPDATED,
+    isActive: true,
   },
   plasterer: {
     trade: "plasterer",
-    dayRate: 250,
-    notes: "Skim or board-and-skim. Rate per day. Coverage: approx 20-25 sqm/day for skim.",
+    dayRateLow: 220,
+    dayRateMid: 250,
+    dayRateHigh: 280,
+    defaultDayRate: 250,
+    notes: "Skim or board-and-skim baseline rate.",
+    lastUpdated: LAST_UPDATED,
+    isActive: true,
   },
   decorator: {
     trade: "decorator",
-    dayRate: 220,
-    notes: "Paint and prep. Rate excludes materials. Includes caulking and light sanding.",
+    dayRateLow: 190,
+    dayRateMid: 220,
+    dayRateHigh: 250,
+    defaultDayRate: 220,
+    notes: "Paint and prep baseline excluding paint materials.",
+    lastUpdated: LAST_UPDATED,
+    isActive: true,
   },
   roofer: {
     trade: "roofer",
-    dayRate: 320,
-    notes: "Day rate for labour. Major roof replacements typically priced as fixed quote.",
+    dayRateLow: 280,
+    dayRateMid: 320,
+    dayRateHigh: 380,
+    defaultDayRate: 320,
+    notes: "Day-rate baseline for roof labour; major works still require fixed live quotes.",
+    lastUpdated: LAST_UPDATED,
+    isActive: true,
   },
-  gas_engineer: {
-    trade: "gas_engineer",
-    dayRate: 400,
-    notes: "Gas Safe registered. Boiler swap typically £800-1,200 labour fixed. Day rate for additional gas work.",
-  },
-  // Assumption-based rates — confirm with local quotes before using in live deals
   carpenter: {
     trade: "carpenter",
-    dayRate: 280,
-    notes: "ASSUMPTION: £280/day. Covers first-fix framing, second-fix joinery, door hanging, skirting. Confirm locally.",
+    dayRateLow: 240,
+    dayRateMid: 280,
+    dayRateHigh: 320,
+    defaultDayRate: 280,
+    notes: "ASSUMPTION: baseline carpenter rate for first/second-fix joinery. Confirm with local quotes.",
+    lastUpdated: LAST_UPDATED,
+    isActive: true,
   },
   tiler: {
     trade: "tiler",
-    dayRate: 250,
-    notes: "ASSUMPTION: £250/day. Rate varies with tile size and pattern complexity. Large format tiles slower. Confirm locally.",
+    dayRateLow: 220,
+    dayRateMid: 250,
+    dayRateHigh: 300,
+    defaultDayRate: 250,
+    notes: "ASSUMPTION: tiler rate varies with tile size/pattern complexity. Confirm locally.",
+    lastUpdated: LAST_UPDATED,
+    isActive: true,
+  },
+  gas_engineer: {
+    trade: "gas_engineer",
+    dayRateLow: 350,
+    dayRateMid: 400,
+    dayRateHigh: 500,
+    defaultDayRate: 400,
+    notes: "Gas Safe engineer baseline. Boiler swaps commonly quoted as package rates.",
+    lastUpdated: LAST_UPDATED,
+    isActive: true,
   },
   waste_removal: {
     trade: "waste_removal",
-    dayRate: 150,
-    notes: "ASSUMPTION: £150/load equivalent (skip hire or man-and-van). Full refurb typically needs 2-4 loads. Confirm locally.",
+    dayRateLow: 120,
+    dayRateMid: 150,
+    dayRateHigh: 220,
+    defaultDayRate: 150,
+    notes: "ASSUMPTION: skip/man-and-van equivalent baseline. Confirm against local disposal rates.",
+    lastUpdated: LAST_UPDATED,
+    isActive: true,
   },
 }

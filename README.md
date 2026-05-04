@@ -256,3 +256,11 @@ Phase 1A Step 6 is complete and Phase 1A is now wired into the UI.
 - Manual refurb cost fallback still exists when scope mode is off.
 - Task-based refurb scope generates refurb cost, labour/material split, task count, timeline, and warnings.
 - Not included in this phase: PDF export, saved deals, CRM, AI, live scraping, or dashboard expansion.
+
+## Phase 1B Step 1 Status
+
+The cost data layer has been normalized toward the locked Phase 1B schema.
+
+- Labour rates, material baselines, and task templates remain configurable local data files.
+- No live scraping, database/admin UI, PDF, CRM, AI, or dashboard expansion has been added.
+- The existing Phase 1A task generation, refurb cost, and timeline engine behavior remains working.
