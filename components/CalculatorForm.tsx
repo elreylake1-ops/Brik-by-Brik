@@ -8,6 +8,7 @@ import { formatCurrency, formatWithCommas } from "@/lib/formatters"
 type Props = {
   values: DealInputs
   onChange: (field: keyof DealInputs, value: string) => void
+  refurbScopeActive?: boolean
 }
 
 type FieldConfig = {
@@ -64,7 +65,7 @@ const fields: FieldConfig[] = [
   },
 ]
 
-export default function CalculatorForm({ values, onChange }: Props) {
+export default function CalculatorForm({ values, onChange, refurbScopeActive = false }: Props) {
   const [focused, setFocused] = useState<keyof DealInputs | null>(null)
 
   function getDisplayValue(key: keyof DealInputs, isCurrency: boolean, unit?: string): string {
@@ -86,6 +87,11 @@ export default function CalculatorForm({ values, onChange }: Props) {
           <div key={key}>
             <label className="mb-1 flex items-center gap-1 text-sm font-medium text-gray-600">
               {label}
+              {key === "refurbCost" && refurbScopeActive && (
+                <span className="ml-1 rounded bg-blue-100 px-1.5 py-0.5 text-xs font-normal text-blue-600">
+                  overridden by scope
+                </span>
+              )}
               <Tooltip text={tooltip}>
                 <span className="cursor-default text-gray-400 hover:text-gray-600">ⓘ</span>
               </Tooltip>

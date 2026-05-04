@@ -138,4 +138,15 @@ describe("analyzeDealWithRefurb — with scope (generated refurb)", () => {
     expect(result.deal.trueMao.twentyFivePercent).toBeCloseTo(expectedDeal.trueMao.twentyFivePercent)
   })
 
+  it("missing floorAreaSqm warning is surfaced in result.warnings", () => {
+    const flooringScope: RefurbScopeInput = {
+      ...minimalScope,
+      flooring: { replaceWholeProperty: true },
+      // floorAreaSqm deliberately omitted
+    }
+    const result = analyzeDealWithRefurb(baseDealInputs, flooringScope)
+    expect(result.warnings.length).toBeGreaterThan(0)
+    expect(result.warnings.some((w) => w.includes("floorAreaSqm not provided"))).toBe(true)
+  })
+
 })

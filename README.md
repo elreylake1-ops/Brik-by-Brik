@@ -231,3 +231,20 @@ Phase 1A adds the foundational type system and configurable data layer for the B
 **Phase 1A Step 2 — Scope-to-Task Generator:**
 
 `lib/engine/scope-to-tasks.ts` converts a `RefurbScopeInput` into a list of `GeneratedRefurbTask` objects using the config files above. Each generated task carries quantity, labour cost, total cost, assumptions used, and any warnings. No UI has been changed and no connection to the Phase 1 calculator exists yet. Final refurb totals are not computed yet.
+
+**Phase 1A Steps 3–5 — Cost Engine, Timeline, and UI Wiring:**
+
+The Builder Scope Engine is now wired into the calculator UI. A toggle — "Use task-based refurb scope" — switches the app between:
+
+- **Manual mode (toggle off):** existing Phase 1 behavior unchanged. Refurb Cost input drives the deal analysis directly.
+- **Scope mode (toggle on):** a `RefurbScopeForm` collects room counts, scope selections, and major works. The engine generates a task list, sums labour and material costs, and passes `totalRefurbCost` into the Phase 1 deal calculator automatically.
+
+When scope mode is active, a **Refurb Scope Breakdown** panel shows:
+- Generated refurb cost (labour + material split)
+- Estimated timeline in weeks (with 20% contingency buffer)
+- Task count
+- Warnings and confidence flags (e.g. missing floor area, roof placeholder)
+
+The manual Refurb Cost field remains visible and is clearly labelled as overridden while scope mode is active.
+
+All Phase 1A calculations live in `lib/engine/` as pure functions. No calculation logic sits in UI components. PDF export and saved deals remain Phase 2.

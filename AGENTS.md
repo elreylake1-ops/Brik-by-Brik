@@ -45,6 +45,15 @@ Phase 1A Step 4 has been completed:
 - existing analyzeDeal() and lib/calculations.ts untouched
 - 52 tests passing (15 new), build clean, UI unchanged
 
+Phase 1A Step 5 has been completed:
+- toggle added to page.tsx: "Use task-based refurb scope"
+- RefurbScopeForm component created — collects RefurbScopeInput, no logic
+- RefurbBreakdownSummary component created — displays refurb cost, labour/material split, timeline, warnings
+- CalculatorForm updated: shows "overridden by scope" badge on refurb cost field when scope active
+- app/page.tsx calls analyzeDealWithRefurb() — scope path or manual fallback depending on toggle
+- ResultsDisplay.tsx unchanged — continues to accept DealResult
+- 53 tests passing (1 new regression test), build clean
+
 ---
 
 ## Development Rule
@@ -92,17 +101,17 @@ Refurb cost must be generated from:
 - scaling rules
 
 Current Step:
-Step 4 complete — orchestrator connects Phase 1A refurb cost to Phase 1 deal engine.
+Step 5 complete — minimal UI wiring for Builder Scope Engine.
 
 Next Step:
-Step 5 — minimal UI wiring.
+Step 6 — tests, QA, and README finalization.
 
 Phase 1A planned steps:
 1. Foundation/config/data ✓
 2. Scope-to-task generator ✓
 3. Refurb cost + timeline engine ✓
 4. Connect generated refurb cost to Phase 1 ✓
-5. Minimal UI wiring
+5. Minimal UI wiring ✓
 6. Tests + README finalization
 
 ---
