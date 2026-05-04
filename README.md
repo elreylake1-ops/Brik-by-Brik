@@ -201,4 +201,4 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Brik Engine v1 Phase 1 implements a clean, extensible deal analysis engine with full finance cost modelling, profit margin calculation, and True MAO at three profit targets.
 
-The codebase is structured so that Phase 2 additions (PDF export, saved deals, additional fee types) require changes only to `lib/calculations.ts` and `types/deal.ts` — UI components do not need to change.
+The codebase is structured so that Phase 2 additions such as PDF export and saved deals can be added cleanly without rewriting the core calculation logic.
