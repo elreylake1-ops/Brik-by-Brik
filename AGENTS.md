@@ -37,6 +37,14 @@ Phase 1A Step 3 has been completed:
 - UI unchanged
 - Phase 1 connection not yet made
 
+Phase 1A Step 4 has been completed:
+- analyzeDealWithRefurb() orchestrator created in lib/engine/analyze-deal-with-refurb.ts
+- DealWithRefurbResult type defined in same file
+- when RefurbScopeInput provided: totalRefurbCost from Phase 1A overrides manual refurbCost
+- when no scope provided: manual refurbCost passthrough (fallback unchanged)
+- existing analyzeDeal() and lib/calculations.ts untouched
+- 52 tests passing (15 new), build clean, UI unchanged
+
 ---
 
 ## Development Rule
@@ -84,16 +92,16 @@ Refurb cost must be generated from:
 - scaling rules
 
 Current Step:
-Step 3 complete — refurb cost + timeline engine.
+Step 4 complete — orchestrator connects Phase 1A refurb cost to Phase 1 deal engine.
 
 Next Step:
-Step 4 — connect generated refurb cost to Phase 1 calculator.
+Step 5 — minimal UI wiring.
 
 Phase 1A planned steps:
 1. Foundation/config/data ✓
 2. Scope-to-task generator ✓
 3. Refurb cost + timeline engine ✓
-4. Connect generated refurb cost to Phase 1
+4. Connect generated refurb cost to Phase 1 ✓
 5. Minimal UI wiring
 6. Tests + README finalization
 
