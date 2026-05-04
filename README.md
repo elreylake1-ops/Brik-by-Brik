@@ -18,7 +18,7 @@ The focus is on correctness, simplicity, and extensibility. All formulas are imp
 
 ## Tech Stack
 
-- [Next.js 15](https://nextjs.org/) (App Router)
+- [Next.js 16](https://nextjs.org/) (App Router)
 - TypeScript (strict mode)
 - Tailwind CSS
 - Deployed on [Vercel](https://vercel.com/)
