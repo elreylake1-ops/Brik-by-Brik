@@ -29,6 +29,14 @@ Phase 1A Step 2 has been completed:
 - UI unchanged
 - Phase 1 connection not yet made
 
+Phase 1A Step 3 has been completed:
+- refurb cost engine created (calculateRefurbCost)
+- timeline engine created (calculateTimeline)
+- RefurbTimeline, RefurbPhase, TradeSchedule types added to types/refurb.ts
+- 37 tests passing (25 new across 2 test files)
+- UI unchanged
+- Phase 1 connection not yet made
+
 ---
 
 ## Development Rule
@@ -76,15 +84,15 @@ Refurb cost must be generated from:
 - scaling rules
 
 Current Step:
-Step 2 complete — scope-to-task generator.
+Step 3 complete — refurb cost + timeline engine.
 
 Next Step:
-Step 3 — refurb cost + timeline engine.
+Step 4 — connect generated refurb cost to Phase 1 calculator.
 
 Phase 1A planned steps:
 1. Foundation/config/data ✓
 2. Scope-to-task generator ✓
-3. Refurb cost + timeline engine
+3. Refurb cost + timeline engine ✓
 4. Connect generated refurb cost to Phase 1
 5. Minimal UI wiring
 6. Tests + README finalization
@@ -257,3 +265,10 @@ Prefer clear commits:
 ## Final Instruction
 
 When uncertain, keep scope smaller, preserve the working calculator, and document assumptions clearly.
+
+<!-- lean-ctx -->
+## lean-ctx
+
+Prefer lean-ctx MCP tools over native equivalents for token savings.
+Full rules: @LEAN-CTX.md
+<!-- /lean-ctx -->

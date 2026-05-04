@@ -42,3 +42,29 @@ export type GeneratedRefurbTask = RefurbTaskTemplate & {
   assumptionsUsed: string[] // Human-readable list of assumptions applied
   warnings: string[]        // Flags for anything that needs user verification
 }
+
+// Timeline types — output of the timeline engine
+
+export type TradeSchedule = {
+  trade: Trade
+  totalLabourDays: number
+  phase: 1 | 2 | 3
+}
+
+export type RefurbPhase = {
+  phase: 1 | 2 | 3
+  label: string
+  trades: Trade[]
+  workingDays: number  // max labour days among trades in this phase (parallel working)
+}
+
+export type RefurbTimeline = {
+  totalCalendarWeeks: number
+  totalWorkingDays: number
+  totalWorkingDaysWithContingency: number
+  phases: RefurbPhase[]
+  tradeSchedule: TradeSchedule[]
+  contingencyFactor: number
+  assumptions: string[]
+  warnings: string[]
+}
