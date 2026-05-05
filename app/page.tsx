@@ -69,6 +69,11 @@ export default function Home() {
 
   const result = analyzeDealWithRefurb(inputs, useScope ? scope : undefined)
 
+  const hasDealInput =
+    inputs.purchasePrice > 0 ||
+    inputs.gdv > 0 ||
+    inputs.refurbCost > 0
+
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-4xl">
@@ -127,7 +132,14 @@ export default function Home() {
             onChange={handleChange}
             refurbScopeActive={useScope}
           />
-          <ResultsDisplay result={result.deal} />
+          {hasDealInput ? (
+            <ResultsDisplay result={result.deal} />
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-8 shadow-sm text-center">
+              <p className="text-base font-semibold text-gray-500">No analysis yet</p>
+              <p className="mt-2 text-sm text-gray-400">Enter deal inputs or load the demo scenario to generate results.</p>
+            </div>
+          )}
         </div>
 
         {useScope && (
@@ -140,7 +152,7 @@ export default function Home() {
           </div>
         )}
 
-        <EngineAnalysisPanel inputs={inputs} result={result} />
+        {hasDealInput && <EngineAnalysisPanel inputs={inputs} result={result} />}
 
         <div className="mt-10 border-t border-gray-200 pt-6 text-center">
           <p className="text-xs text-gray-400">(c) Lake Views Property</p>
