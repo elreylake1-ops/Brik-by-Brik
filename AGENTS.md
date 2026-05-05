@@ -71,6 +71,14 @@ Phase 1B Step 2 has been completed:
 - assumptions reporting consolidated from tasks, timeline assumptions, and applied overrides
 - no UI changes; no Phase 2 features added
 
+Phase 1C has been completed:
+- engine fully wired to minimal browser-testable UI (implemented across Phase 1A Step 5, Phase 1B, and Phase 1D commits)
+- RefurbScopeForm collects: bedrooms, bathrooms, floorAreaSqm, kitchen scope/size, bathroom scope, bedroom scope, flooring whole-property toggle, rewire/boiler/roof checkboxes
+- analyzeDealWithRefurb() called from page.tsx — scope path when toggle on, manual refurb cost fallback when toggle off
+- EngineAnalysisPanel displays: verdict, confidence, MAO targets, total investment, refurb cost, labour/material split, finance cost, fees, timeline, warnings, assumptions, overrides applied, room breakdown, trade breakdown, task list
+- empty state shown when no deal inputs entered (hasDealInput guard)
+- 90 tests passing, build clean; no Phase 2 features added
+
 Phase 1D has been completed:
 - verdict and confidence moved from UI heuristics to dedicated engine outputs
 - UI now renders engine verdict/confidence directly
@@ -105,6 +113,11 @@ Calculate the main deal outputs:
 
 Status:
 Initial calculator exists. Future revisions may align it more closely with the locked Brik by Brik Phase 1 spec.
+
+Finance model alignment note:
+- Current MVP finance model is purchase-price-based, matching current implemented README/app behavior.
+- Do not introduce loanToValue or LTV-based finance cost unless client explicitly approves a finance model change.
+- Any future switch to LTV-based finance must be treated as a separate spec/model change with updated inputs, formulas, tests, and UI copy.
 
 ---
 
