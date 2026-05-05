@@ -1,6 +1,6 @@
 "use client"
 
-import { formatCurrency, formatPercent, formatProfit } from "@/lib/formatters"
+import { formatCurrency, formatPercent, formatProfit, formatLabel } from "@/lib/formatters"
 import type { DealInputs } from "@/types/deal"
 import type { DealWithRefurbResult } from "@/lib/engine/analyze-deal-with-refurb"
 
@@ -207,7 +207,7 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
             </thead>
             <tbody>
               {Object.entries(result.refurb.roomBreakdown).map(([room, cost]) => (
-                <tr key={room} className="border-t border-gray-100"><td className="px-3 py-2">{room}</td><td className="px-3 py-2">{formatCurrency(cost)}</td></tr>
+                <tr key={room} className="border-t border-gray-100"><td className="px-3 py-2">{formatLabel(room)}</td><td className="px-3 py-2">{formatCurrency(cost)}</td></tr>
               ))}
             </tbody>
           </table>
@@ -225,7 +225,7 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
             </thead>
             <tbody>
               {Object.entries(result.refurb.tradeBreakdown).map(([trade, cost]) => (
-                <tr key={trade} className="border-t border-gray-100"><td className="px-3 py-2">{trade}</td><td className="px-3 py-2">{formatCurrency(cost ?? 0)}</td></tr>
+                <tr key={trade} className="border-t border-gray-100"><td className="px-3 py-2">{formatLabel(trade)}</td><td className="px-3 py-2">{formatCurrency(cost ?? 0)}</td></tr>
               ))}
             </tbody>
           </table>
@@ -252,7 +252,7 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
                 <tr key={task.id} className="border-t border-gray-100">
                   <td className="px-3 py-2">{task.id}</td>
                   <td className="px-3 py-2">{task.taskName}</td>
-                  <td className="px-3 py-2">{task.trade}</td>
+                  <td className="px-3 py-2">{formatLabel(task.trade)}</td>
                   <td className="px-3 py-2">{task.quantity}</td>
                   <td className="px-3 py-2">{formatCurrency(task.totalCost)}</td>
                 </tr>

@@ -117,7 +117,7 @@ export default function Home() {
             </span>
           </div>
           <p className="mt-3 text-xs text-gray-500">
-            Manual mode uses Refurb Cost input directly. Scope mode uses generated refurb cost, timeline, warnings, and assumptions.
+            Manual mode uses your entered refurb cost. Scope mode calculates refurb cost from selected rooms, tasks, timeline, warnings, and assumptions.
           </p>
         </div>
 

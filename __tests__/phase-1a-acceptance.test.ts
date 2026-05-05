@@ -116,7 +116,7 @@ describe("Phase 1A acceptance - mandatory sample scope", () => {
 
     expect(result.warnings.length).toBeGreaterThan(0)
     expect(result.refurb?.confidenceFlags.length).toBeGreaterThan(0)
-    expect(result.warnings.some((warning) => warning.includes("floorAreaSqm not provided"))).toBe(true)
+    expect(result.warnings.some((warning) => warning.includes("Floor area was not provided"))).toBe(true)
     expect(result.warnings.some((warning) => warning.toLowerCase().includes("roof"))).toBe(true)
   })
 })

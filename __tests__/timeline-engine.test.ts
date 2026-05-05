@@ -128,12 +128,12 @@ describe("calculateTimeline", () => {
     const tasks = [
       makeTask({ warnings: ["Roof is placeholder"] }),
       makeTask({ warnings: ["Roof is placeholder"] }),
-      makeTask({ warnings: ["floorAreaSqm not provided"] }),
+      makeTask({ warnings: ["Floor area was not provided"] }),
     ]
     const result = calculateTimeline(tasks)
     expect(result.warnings).toHaveLength(2)
     expect(result.warnings).toContain("Roof is placeholder")
-    expect(result.warnings).toContain("floorAreaSqm not provided")
+    expect(result.warnings).toContain("Floor area was not provided")
   })
 
   it("assumptions list is non-empty", () => {

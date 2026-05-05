@@ -30,7 +30,7 @@ export default function RefurbBreakdownSummary({ refurb, timeline }: Props) {
   return (
     <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6 shadow-sm">
       <h2 className="mb-2 text-lg font-semibold text-gray-800">Refurb Scope Breakdown</h2>
-      <p className="mb-1 text-xs text-gray-500">Generated from task-based scope. Not a quote.</p>
+      <p className="mb-1 text-xs text-gray-500">Generated from task-based refurb scope. This is an estimate, not a contractor quote.</p>
 
       <SectionHeading>Cost Summary</SectionHeading>
       <div className="flex flex-col gap-3">

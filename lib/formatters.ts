@@ -1,3 +1,32 @@
+const LABEL_MAP: Record<string, string> = {
+  full_replace: "Full Replacement",
+  cosmetic_refresh: "Cosmetic Refresh",
+  whole_property: "Whole Property",
+  gas_engineer: "Gas Engineer",
+  waste_removal: "Waste Removal",
+  labourer: "Labourer",
+  full_refurb: "Full Refurb",
+  partial: "Partial Refurb",
+  cosmetic: "Cosmetic",
+  keep: "Keep as-is",
+  refresh: "Refresh",
+  upgrade: "Upgrade",
+  rewire: "Rewire",
+  boiler: "Boiler",
+  roof: "Roof",
+  paint: "Paint",
+  flooring: "Flooring",
+  none: "None",
+}
+
+export function formatLabel(value: string): string {
+  if (LABEL_MAP[value]) return LABEL_MAP[value]
+  return value
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ")
+}
+
 export function formatWithCommas(value: number): string {
   if (!isFinite(value) || isNaN(value) || value === 0) return ""
   return new Intl.NumberFormat("en-GB").format(value)

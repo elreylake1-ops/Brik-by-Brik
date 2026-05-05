@@ -91,7 +91,7 @@ export default function RefurbScopeForm({ value, onChange }: Props) {
             <option value="keep">Keep as-is</option>
             <option value="refresh">Refresh</option>
             <option value="upgrade">Upgrade</option>
-            <option value="full_replace">Full Replace</option>
+            <option value="full_replace">Full Replacement</option>
           </select>
         </div>
         <div>
@@ -121,7 +121,7 @@ export default function RefurbScopeForm({ value, onChange }: Props) {
         >
           <option value="cosmetic">Cosmetic (no cost estimate)</option>
           <option value="partial">Partial Refurb</option>
-          <option value="full_replace">Full Replace</option>
+          <option value="full_replace">Full Replacement</option>
         </select>
       </div>
 
@@ -152,7 +152,7 @@ export default function RefurbScopeForm({ value, onChange }: Props) {
             onChange={(e) => set("flooring", { replaceWholeProperty: e.target.checked })}
             className="h-4 w-4 rounded border-gray-300"
           />
-          Replace flooring whole property
+          Replace Flooring — Whole Property
         </label>
       </div>
 

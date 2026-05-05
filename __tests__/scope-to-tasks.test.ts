@@ -104,7 +104,7 @@ describe("generateTasksFromScope", () => {
     expect(flooringTasks.length).toBeGreaterThan(0)
     flooringTasks.forEach((t) => {
       expect(t.warnings.length).toBeGreaterThan(0)
-      expect(t.warnings[0]).toContain("floorAreaSqm not provided")
+      expect(t.warnings[0]).toContain("Floor area was not provided")
       // Room count = 3 bed + 1 bath + 2 extra = 6
       expect(t.quantity).toBe(6)
     })

@@ -136,8 +136,8 @@ describe("Phase 1A/1B scope and output regression", () => {
       flooring: { replaceWholeProperty: true },
     })
 
-    expect(result.warnings.some((warning) => warning.includes("floorAreaSqm not provided"))).toBe(true)
-    expect(result.assumptionsReport.some((item) => item.includes("floorAreaSqm not provided"))).toBe(true)
+    expect(result.warnings.some((warning) => warning.includes("Floor area was not provided"))).toBe(true)
+    expect(result.assumptionsReport.some((item) => item.includes("Floor area not provided"))).toBe(true)
   })
 
   it("refurb room/trade/task outputs reconcile with totals", () => {

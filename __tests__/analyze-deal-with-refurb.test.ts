@@ -154,7 +154,7 @@ describe("analyzeDealWithRefurb — with scope (generated refurb)", () => {
     }
     const result = analyzeDealWithRefurb(baseDealInputs, flooringScope)
     expect(result.warnings.length).toBeGreaterThan(0)
-    expect(result.warnings.some((w) => w.includes("floorAreaSqm not provided"))).toBe(true)
+    expect(result.warnings.some((w) => w.includes("Floor area was not provided"))).toBe(true)
   })
 
   it("scope mode uses generated refurb cost and preserves assumptions visibility", () => {

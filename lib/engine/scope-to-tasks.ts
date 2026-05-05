@@ -154,10 +154,10 @@ export function generateTasksFromScope(scopeInput: RefurbScopeInput): GeneratedR
       for (const tpl of templates) {
         tasks.push(
           generateTask(tpl, roomCount, [
-            `floorAreaSqm not provided — using room count: ${roomCount} rooms`,
+            `Floor area not provided — using room count: ${roomCount} rooms`,
             `Breakdown: ${bedrooms} bed + ${bathrooms} bath + ${DEFAULTS.FLOORING_EXTRA_ROOMS} other (kitchen/living)`,
           ], [
-            `floorAreaSqm not provided. Floor costs estimated at ${roomCount} rooms. Provide floorAreaSqm for a more accurate figure.`,
+            `Floor area was not provided. Floor costs estimated using ${roomCount} rooms. Provide floor area for a more accurate figure.`,
           ])
         )
       }
