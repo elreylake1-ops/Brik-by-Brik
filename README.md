@@ -272,3 +272,27 @@ Manual override and assumptions reporting has been added to the engine layer (no
 - Supports auditable overrides for labour day rate, labour days, material price, and task include/exclude.
 - Returns applied override audit entries and assumptions reporting in generated refurb analysis output.
 - Keeps Phase 1A baseline behavior unchanged when no overrides are provided.
+
+## Phase 1C Status
+
+The completed engine is now wired into a minimal browser-testable UI.
+
+- Scope inputs feed the existing `analyzeDealWithRefurb` engine flow.
+- Manual refurb cost remains the fallback path when scope mode is not used.
+- Phase 2 has not started. PDF export, CRM, AI, and live scraping remain out of scope.
+
+## Phase 1D Status
+
+Verdict and confidence are now calculated as dedicated engine outputs.
+
+- Verdict is no longer a UI-only heuristic and is returned from the refurb analysis engine.
+- Confidence score/band/factors are now returned from the engine and rendered directly in UI.
+- Phase 2 remains out of scope (no PDF, CRM, AI, or live scraping work added).
+
+## Phase 1E Status
+
+UI is now tuned for client-demo readability while keeping engine behavior unchanged.
+
+- Verdict and confidence are presented more clearly for review.
+- Demo helper includes a one-click mandatory sample scenario load.
+- Phase 2 has not started. PDF, CRM, AI, and live scraping remain out of scope.

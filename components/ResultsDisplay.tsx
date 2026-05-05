@@ -33,6 +33,9 @@ export default function ResultsDisplay({ result }: Props) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
       <h2 className="mb-2 text-lg font-semibold text-gray-800">Results</h2>
+      <p className="mb-2 text-xs text-gray-500">
+        Core deal outputs. Detailed refurb/timeline assumptions shown in engine analysis section below.
+      </p>
 
       <SectionHeading>Finance Cost Breakdown</SectionHeading>
       <div className="flex flex-col gap-3">

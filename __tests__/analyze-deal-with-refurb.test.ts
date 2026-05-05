@@ -36,6 +36,8 @@ describe("analyzeDealWithRefurb — no scope (manual fallback)", () => {
   it("refurbSource is 'manual'", () => {
     const result = analyzeDealWithRefurb(baseDealInputs)
     expect(result.refurbSource).toBe("manual")
+    expect(result.verdict).toBeDefined()
+    expect(result.confidence).toBeDefined()
   })
 
   it("deal matches analyzeDeal with same inputs", () => {
@@ -48,6 +50,8 @@ describe("analyzeDealWithRefurb — no scope (manual fallback)", () => {
     const result = analyzeDealWithRefurb(baseDealInputs)
     expect(result.refurb).toBeUndefined()
     expect(result.timeline).toBeUndefined()
+    expect(result.assumptionsReport).toEqual([])
+    expect(result.overridesApplied).toEqual([])
   })
 
   it("warnings is empty", () => {
@@ -68,12 +72,16 @@ describe("analyzeDealWithRefurb — with scope (generated refurb)", () => {
   it("refurbSource is 'generated'", () => {
     const result = analyzeDealWithRefurb(baseDealInputs, kitchenScope)
     expect(result.refurbSource).toBe("generated")
+    expect(result.verdict).toBeDefined()
+    expect(result.confidence).toBeDefined()
   })
 
   it("refurb and timeline are present", () => {
     const result = analyzeDealWithRefurb(baseDealInputs, kitchenScope)
     expect(result.refurb).toBeDefined()
     expect(result.timeline).toBeDefined()
+    expect(result.assumptionsReport.length).toBeGreaterThan(0)
+    expect(result.overridesApplied).toEqual([])
   })
 
   it("generated totalRefurbCost replaces manual refurbCost in deal", () => {
@@ -147,6 +155,24 @@ describe("analyzeDealWithRefurb — with scope (generated refurb)", () => {
     const result = analyzeDealWithRefurb(baseDealInputs, flooringScope)
     expect(result.warnings.length).toBeGreaterThan(0)
     expect(result.warnings.some((w) => w.includes("floorAreaSqm not provided"))).toBe(true)
+  })
+
+  it("scope mode uses generated refurb cost and preserves assumptions visibility", () => {
+    const fullScope: RefurbScopeInput = {
+      ...minimalScope,
+      floorAreaSqm: 80,
+      kitchen: { scope: "full_replace", size: "medium" },
+      bathroom: { scope: "full_replace" },
+      bedroom: { scope: "cosmetic_refresh" },
+      flooring: { replaceWholeProperty: true },
+      majorWorks: { rewire: true, boiler: false, roof: false },
+    }
+
+    const result = analyzeDealWithRefurb(baseDealInputs, fullScope)
+    expect(result.refurbSource).toBe("generated")
+    expect(result.refurb!.totalRefurbCost).toBeCloseTo(18175, 0)
+    expect(result.assumptionsReport.length).toBeGreaterThan(0)
+    expect(result.overridesApplied).toEqual([])
   })
 
 })

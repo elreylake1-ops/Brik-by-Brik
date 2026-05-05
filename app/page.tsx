@@ -5,6 +5,7 @@ import CalculatorForm from "@/components/CalculatorForm"
 import ResultsDisplay from "@/components/ResultsDisplay"
 import RefurbScopeForm from "@/components/RefurbScopeForm"
 import RefurbBreakdownSummary from "@/components/RefurbBreakdownSummary"
+import EngineAnalysisPanel from "@/components/EngineAnalysisPanel"
 import { analyzeDealWithRefurb } from "@/lib/engine/analyze-deal-with-refurb"
 import type { DealInputs } from "@/types/deal"
 import type { RefurbScopeInput } from "@/types/scope"
@@ -29,6 +30,27 @@ const defaultScope: RefurbScopeInput = {
   majorWorks: { rewire: false, boiler: false, roof: false },
 }
 
+const sampleDemoInputs: DealInputs = {
+  purchasePrice: 120000,
+  gdv: 200000,
+  refurbCost: 25000,
+  stampDuty: 3600,
+  legalCosts: 2000,
+  saleCosts: 3000,
+  bridgeTermMonths: 6,
+}
+
+const sampleDemoScope: RefurbScopeInput = {
+  bedrooms: 3,
+  bathrooms: 1,
+  floorAreaSqm: 80,
+  kitchen: { scope: "full_replace", size: "medium" },
+  bathroom: { scope: "full_replace" },
+  bedroom: { scope: "cosmetic_refresh" },
+  flooring: { replaceWholeProperty: true },
+  majorWorks: { rewire: true, boiler: false, roof: false },
+}
+
 export default function Home() {
   const [inputs, setInputs] = useState<DealInputs>(defaultInputs)
   const [useScope, setUseScope] = useState(false)
@@ -39,6 +61,12 @@ export default function Home() {
     setInputs((prev) => ({ ...prev, [field]: value }))
   }
 
+  function loadSampleScenario() {
+    setInputs(sampleDemoInputs)
+    setScope(sampleDemoScope)
+    setUseScope(true)
+  }
+
   const result = analyzeDealWithRefurb(inputs, useScope ? scope : undefined)
 
   return (
@@ -46,11 +74,10 @@ export default function Home() {
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-gray-900">Brik Engine v1</h1>
-          <p className="mt-1 text-sm text-gray-500">Phase 1 — Deal Analysis Calculator</p>
+          <p className="mt-1 text-sm text-gray-500">Phase 1 - Deal Analysis Calculator</p>
           <p className="mt-2 text-sm text-gray-400">by Lake Views Property</p>
         </div>
 
-        {/* Toggle */}
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm">
           <button
             role="switch"
@@ -71,12 +98,29 @@ export default function Home() {
           </span>
           {useScope && (
             <span className="ml-auto rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-600">
-              Active — refurb cost generated from scope
+              Active - refurb cost generated from scope
             </span>
           )}
         </div>
 
-        {/* Phase 1 calculator */}
+        <div className="mb-6 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={loadSampleScenario}
+              className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Load sample 3-bed terrace
+            </button>
+            <span className="text-xs text-gray-500">
+              Demo preset uses mandatory Phase 1B sample scenario for quick client walkthrough.
+            </span>
+          </div>
+          <p className="mt-3 text-xs text-gray-500">
+            Manual mode uses Refurb Cost input directly. Scope mode uses generated refurb cost, timeline, warnings, and assumptions.
+          </p>
+        </div>
+
         <div className="grid gap-6 lg:grid-cols-2">
           <CalculatorForm
             values={inputs}
@@ -86,7 +130,6 @@ export default function Home() {
           <ResultsDisplay result={result.deal} />
         </div>
 
-        {/* Phase 1A scope form + breakdown */}
         {useScope && (
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <RefurbScopeForm value={scope} onChange={setScope} />
@@ -97,8 +140,10 @@ export default function Home() {
           </div>
         )}
 
+        <EngineAnalysisPanel inputs={inputs} result={result} />
+
         <div className="mt-10 border-t border-gray-200 pt-6 text-center">
-          <p className="text-xs text-gray-400">© Lake Views Property</p>
+          <p className="text-xs text-gray-400">(c) Lake Views Property</p>
           <p className="mt-1 text-xs text-gray-400">For guidance only. Not financial advice.</p>
         </div>
       </div>

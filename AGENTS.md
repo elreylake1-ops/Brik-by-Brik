@@ -71,6 +71,11 @@ Phase 1B Step 2 has been completed:
 - assumptions reporting consolidated from tasks, timeline assumptions, and applied overrides
 - no UI changes; no Phase 2 features added
 
+Phase 1D has been completed:
+- verdict and confidence moved from UI heuristics to dedicated engine outputs
+- UI now renders engine verdict/confidence directly
+- no Phase 2 features added
+
 ---
 
 ## Development Rule
