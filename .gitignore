@@ -42,3 +42,7 @@ next-env.d.ts
 
 # claude code internals
 CLAUDE.md
+
+# Local AI/tooling config
+.claude/
+.cursorrules
