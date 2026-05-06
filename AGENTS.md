@@ -84,6 +84,14 @@ Post-Phase 1B engine verdict hardening has been completed:
 - UI now renders engine verdict/confidence directly
 - no Phase 2 features added
 
+Official Phase 1C implementation is now in progress:
+- Phase 1C-A complete: documentation and type-contract alignment added
+- Phase 1C-B complete: standalone deep due diligence engine added
+- Phase 1C-C complete: dueDiligence attached to analyzeDealWithRefurb() as an additive nested field
+- Phase 1C-D complete: dueDiligence now visible in EngineAnalysisPanel
+- no new inputs added; downside/strong GDV remain auto-generated in current UI
+- 111 tests passing, build clean; no Phase 2 features added
+
 ---
 
 ## Development Rule
@@ -192,7 +200,9 @@ Capital protection is a core safety rule.
 Existing design and current Phase 1 / 1A / 1B engine behavior must be preserved.
 
 Current Step:
-Documentation and type-contract alignment only. No runtime logic changes yet.
+Phase 1C logic layer, engine-result attachment, and minimal analysis-panel visibility are complete.
+
+No new inputs have been added in this phase. Downside and strong GDV remain auto-generated from realistic GDV.
 
 Update:
 - Phase 1C due diligence engine is now attached to the existing engine result as an additive nested field.
@@ -242,11 +252,15 @@ app/
 
 components/
   CalculatorForm.tsx
+  EngineAnalysisPanel.tsx
+  RefurbBreakdownSummary.tsx
+  RefurbScopeForm.tsx
   ResultsDisplay.tsx
   Tooltip.tsx
 
 types/
   deal.ts
+  due-diligence.ts
   refurb.ts
   scope.ts
   overrides.ts
@@ -255,19 +269,17 @@ lib/
   calculations.ts
   formatters.ts
   data/
+    validate-cost-data.ts
     trade-rates.ts
     material-baselines.ts
     task-cost-library.ts
   engine/
+    analyze-deal-with-refurb.ts
+    due-diligence-engine.ts
     scope-to-tasks.ts
     refurb-cost-engine.ts
     timeline-engine.ts
-    confidence-engine.ts
     apply-overrides.ts
-  config/
-    deal-defaults.ts
-    sdlt-rates.ts
-  validators/
 ```
 
 ---
