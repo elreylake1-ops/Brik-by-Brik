@@ -1,18 +1,35 @@
-# Brik Engine v1 — Phase 1 Deal Analysis Calculator
+# Brik Engine v1 - Deal Analysis & Refurb Scope Engine
 
-Built for Lake Views Property. Phase 1 of the Brik Engine calculation engine — a web-based tool for analysing fix-and-flip property deals with full finance cost modelling and True MAO at multiple profit targets.
+Built for Lake Views Property. Brik Engine v1 is a UK fix-and-flip analysis tool that combines core deal math with manual refurb input, task-based refurb scope analysis, configurable cost data, override/assumptions reporting, verdict/confidence outputs, and visible Phase 1C due diligence output.
 
 ---
 
 ## Overview
 
-This project was built as a paid MVP test task to demonstrate:
-- Clean code structure and separation of business logic from UI
-- Exact SOP formula implementation (Brik Engine v1 Phase 1)
-- Clear and professional documentation
-- A working, deployable Next.js calculator
+The current product supports:
 
-The focus is on correctness, simplicity, and extensibility. All formulas are implemented exactly as specified in the SOP — no reinterpretation.
+- core fix-and-flip deal analysis
+- manual refurb mode using an entered refurb cost
+- task-based refurb scope mode using room/scope selections
+- configurable labour, material, and task-cost data
+- override and assumptions reporting for auditability
+- engine-driven verdict and confidence outputs
+- visible Phase 1C deep due diligence output in the analysis panel
+
+The focus remains correctness, auditability, and separation of business logic from UI.
+
+---
+
+## Current Status
+
+| Area | Status |
+|---|---|
+| Phase 1 Core Deal Calculator | Complete |
+| Phase 1A Builder Scope Engine | Complete |
+| Phase 1B Cost Data + Overrides | Complete |
+| Post-Phase 1B Demo Hardening | Complete |
+| Phase 1C Due Diligence | In Progress - engine attached and visible in analysis panel |
+| Phase 2 | Not Started |
 
 ---
 
@@ -27,19 +44,40 @@ The focus is on correctness, simplicity, and extensibility. All formulas are imp
 
 ## Inputs
 
+### Core Deal Inputs
+
 | Field | Description |
 |---|---|
-| Purchase Price (£) | Agreed purchase price of the property |
-| GDV (£) | Gross Development Value — estimated post-refurb value |
-| Refurb Cost (£) | Total cost to renovate the property |
-| Stamp Duty (£) | Stamp Duty Land Tax payable on purchase |
-| Legal Costs (£) | Solicitor and conveyancing fees |
-| Sale Costs (£) | Agent fees and costs incurred on sale |
+| Purchase Price (GBP) | Agreed purchase price of the property |
+| GDV (GBP) | Gross Development Value, estimated post-refurb value |
+| Stamp Duty (GBP) | Stamp Duty Land Tax payable on purchase |
+| Legal Costs (GBP) | Solicitor and conveyancing fees |
+| Sale Costs (GBP) | Agent fees and costs incurred on sale |
 | Bridge Term (months) | Duration of bridging loan used for finance cost calculation |
+
+### Manual Refurb Mode
+
+| Field | Description |
+|---|---|
+| Refurb Cost (GBP) | Manual refurb estimate used directly in deal analysis when scope mode is off |
+
+### Task-Based Refurb Scope Mode
+
+| Field Group | Description |
+|---|---|
+| Bedrooms / Bathrooms | Room-count scaling inputs |
+| Floor Area (sqm) | Used for whole-property flooring calculations when provided |
+| Kitchen Scope + Size | Kitchen task generation inputs |
+| Bathroom Scope | Bathroom task generation input |
+| Bedroom Scope | Bedroom task generation input |
+| Flooring Toggle | Whole-property flooring replacement toggle |
+| Major Works | Rewire, boiler, and roof toggles |
 
 ---
 
 ## Outputs
+
+### Core Deal Outputs
 
 | Output | Description |
 |---|---|
@@ -53,82 +91,80 @@ The focus is on correctness, simplicity, and extensibility. All formulas are imp
 | True MAO at 15% | Max offer price to achieve 15% profit on GDV |
 | True MAO at 20% | Max offer price to achieve 20% profit on GDV |
 | True MAO at 25% | Max offer price to achieve 25% profit on GDV |
+| Verdict | Engine output: GO / CONDITIONAL / NO-GO / ANALYSIS ONLY |
+| Confidence | Engine output summarizing warning level, overrides, and input completeness |
+
+### Refurb Scope Outputs
+
+| Output | Description |
+|---|---|
+| Generated Refurb Cost | Task-based refurb total used in scope mode |
+| Labour Cost | Labour subtotal from generated tasks |
+| Material Cost | Material subtotal from generated tasks |
+| Room Breakdown | Cost breakdown by room |
+| Trade Breakdown | Cost breakdown by trade |
+| Task List | Generated tasks with quantity and cost |
+| Timeline | Working days, contingency-adjusted days, and estimated weeks |
+| Warnings | Visible low-confidence or verification flags |
+| Assumptions Report | Audit trail of assumptions and override effects |
+| Overrides Applied | Audit entries for manual override usage |
+
+### Due Diligence Outputs
+
+| Output | Description |
+|---|---|
+| GDV Range | Downside, realistic, and strong GDV views |
+| Profit Scenarios | Downside, realistic, and strong profit outputs |
+| Capital Protection | Capital used percentage and risk status |
+| Deal Classification | Strong Deal / Marginal / No Deal |
+| Recommended Strategy | BRRR or Flip / Flip Only or Renegotiate / No Deal |
+| Risk Flags | Client-readable caution flags |
+| Due Diligence True MAO | Phase 1C MAO targets based on realistic GDV |
 
 ---
 
-## Formulas (exact SOP — Brik Engine v1 Phase 1)
+## Formulas (Current MVP Core Deal Engine)
 
 ### Finance Cost
 
-```
-Interest         = Purchase Price × 0.15 × (Bridge Term ÷ 12)
-Arrangement Fee  = Purchase Price × 0.02
-Exit Fee         = Purchase Price × 0.01
+```text
+Interest         = Purchase Price x 0.15 x (Bridge Term / 12)
+Arrangement Fee  = Purchase Price x 0.02
+Exit Fee         = Purchase Price x 0.01
 Total Finance    = Interest + Arrangement Fee + Exit Fee
 ```
 
 ### Total Project Cost
 
-```
+```text
 Total Cost = Purchase Price + Refurb Cost + Stamp Duty + Legal Costs + Finance Cost + Sale Costs
 ```
 
-### Profit & Margin
+### Profit and Margin
 
-```
-Profit         = GDV − Total Cost
-Profit Margin  = (Profit ÷ GDV) × 100
+```text
+Profit         = GDV - Total Cost
+Profit Margin  = (Profit / GDV) x 100
 ```
 
 ### True MAO
 
-```
-Desired Profit  = GDV × Desired Profit Rate  (0.15 / 0.20 / 0.25)
-True MAO        = GDV − Desired Profit − Refurb Cost − Stamp Duty − Legal Costs − Finance Cost − Sale Costs
+```text
+Desired Profit  = GDV x Desired Profit Rate  (0.15 / 0.20 / 0.25)
+True MAO        = GDV - Desired Profit - Refurb Cost - Stamp Duty - Legal Costs - Finance Cost - Sale Costs
 ```
 
 > Note: Finance Cost in the True MAO formula is calculated from the entered Purchase Price, as specified in the SOP.
 
----
+### Current Finance Model
 
-## Project Structure
+Finance cost is currently derived from the entered Purchase Price. This is intentional MVP behavior and matches the current implemented app and engine behavior.
 
-```
-app/
-  page.tsx              # Main page — holds state, wires components
-  layout.tsx            # Root layout and metadata
-components/
-  CalculatorForm.tsx    # Input form — no logic, emits values only
-  ResultsDisplay.tsx    # Output display — no logic, renders props only
-  Tooltip.tsx           # Reusable hover tooltip component
-lib/
-  calculations.ts       # All business logic — pure functions (SOP formulas)
-  formatters.ts         # Currency and percentage formatting utilities
-types/
-  deal.ts               # Shared TypeScript types
-```
+LTV-based finance is not implemented.
 
-### Logic Separation
+Do not add loan-to-value or LTV-based finance without explicit approval as a separate spec/model change.
 
-All calculation logic lives in `lib/calculations.ts` as pure functions — no React imports, no side effects. Components are stateless receivers that only render what they receive as props.
-
-**Data flow:**
-
-1. User types into `CalculatorForm` → values flow up to `page.tsx` via `onChange`
-2. `page.tsx` calls `analyzeDeal()` from `lib/calculations.ts` on every change
-3. `analyzeDeal()` runs all SOP formulas and returns a `DealResult` object
-4. `DealResult` is passed as props to `ResultsDisplay`, which renders the output
-
-**What each function calculates:**
-
-```ts
-calculateFinanceCost(purchasePrice, bridgeTermMonths)  // Interest + Arrangement Fee + Exit Fee
-calculateTotalCost(purchasePrice, refurbCost, stampDuty, legalCosts, financeCost, saleCosts)
-calculateProfit(gdv, totalCost)                        // GDV - Total Cost
-calculateProfitMargin(profit, gdv)                     // (Profit / GDV) × 100
-calculateTrueMao(gdv, rate, refurbCost, ...)           // GDV - DesiredProfit - all costs
-analyzeDeal(inputs)                                    // Runs all above, returns DealResult
-```
+Any future LTV switch must include updated inputs, formulas, tests, and UI copy.
 
 ---
 
@@ -163,6 +199,67 @@ Use these values to verify the calculator is working correctly:
 
 ---
 
+## Project Structure
+
+```text
+app/
+  page.tsx
+  layout.tsx
+components/
+  CalculatorForm.tsx
+  EngineAnalysisPanel.tsx
+  RefurbBreakdownSummary.tsx
+  RefurbScopeForm.tsx
+  ResultsDisplay.tsx
+  Tooltip.tsx
+lib/
+  calculations.ts
+  formatters.ts
+  data/
+    trade-rates.ts
+    material-baselines.ts
+    task-cost-library.ts
+  engine/
+    analyze-deal-with-refurb.ts
+    apply-overrides.ts
+    due-diligence-engine.ts
+    refurb-cost-engine.ts
+    scope-to-tasks.ts
+    timeline-engine.ts
+types/
+  deal.ts
+  due-diligence.ts
+  overrides.ts
+  refurb.ts
+  scope.ts
+__tests__/
+  *.test.ts
+```
+
+---
+
+## Logic Separation
+
+- Core formulas live in `lib/calculations.ts`.
+- Orchestration lives in `lib/engine/analyze-deal-with-refurb.ts`.
+- Configurable assumptions and cost data live in `lib/data/`.
+- React components remain render-focused and consume engine output.
+
+---
+
+## Explicitly Out of Scope
+
+The following remain out of scope in the current product:
+
+- PDF export
+- Saved deals
+- CRM
+- AI
+- Live scraping
+- Dashboard expansion
+
+---
+
 ## Run Locally
 
 ```bash
@@ -180,133 +277,26 @@ Open [http://localhost:3000](http://localhost:3000).
 
 1. Push repo to GitHub
 2. Go to [vercel.com/new](https://vercel.com/new)
-3. Import the repo — select root directory
-4. No environment variables required
+3. Import the repo and select the root directory
+4. No environment variables are required
 5. Click **Deploy**
+
+---
+
+## Testing
+
+Run the current validation steps with:
+
+```bash
+npm run test
+npm run build
+```
 
 ---
 
 ## Notes
 
-- All formulas implemented exactly as specified in the Brik Engine v1 Phase 1 SOP.
-- Finance Cost in the True MAO calculation uses the finance cost derived from the entered Purchase Price (per SOP).
-- Finance model alignment (MVP): purchase-price-based finance cost is the current implemented app/README behavior.
-- Do not add loanToValue/LTV-based finance cost unless client explicitly approves a finance model change.
-- Any future LTV-based switch must be treated as a separate spec/model change with updated inputs, formulas, tests, and UI copy.
-- Currency formatted as GBP with comma separators and 2 decimal places (e.g. £166,200.00).
-- Profit Margin formatted to 2 decimal places (e.g. 16.90%).
+- Core deal formulas remain implemented exactly as specified in the current Brik Engine v1 Phase 1 SOP.
+- Manual refurb mode and task-based refurb mode intentionally coexist.
+- Downside and strong GDV are currently auto-generated in the visible Phase 1C due diligence output.
 - For guidance only. Not financial advice.
-- Phase 2 will add PDF export. The calculation layer is already structured to support this.
-
----
-
-## Summary
-
-Brik Engine v1 Phase 1 implements a clean, extensible deal analysis engine with full finance cost modelling, profit margin calculation, and True MAO at three profit targets.
-
-The codebase is structured so that Phase 2 additions such as PDF export and saved deals can be added cleanly without rewriting the core calculation logic.
-
----
-
-## Phase 1A Foundation (Builder Scope Engine)
-
-Phase 1A adds the foundational type system and configurable data layer for the Builder Scope Engine. No UI has been changed and no calculations have been connected yet.
-
-**What was added:**
-
-| File | Purpose |
-|---|---|
-| `types/refurb.ts` | Core types: `Trade`, `ScalingRule`, `RefurbTaskTemplate`, `GeneratedRefurbTask` |
-| `types/scope.ts` | Input/output types: `RefurbScopeInput`, `RefurbCostResult`, scope enums |
-| `lib/data/trade-rates.ts` | Baseline day rates for all 11 trades — editable config |
-| `lib/data/material-baselines.ts` | Manual material cost dataset — kitchen, bathroom, flooring, boiler, electrical |
-| `lib/data/task-cost-library.ts` | Initial task templates: kitchen full replace, bathroom full refurb, bedroom cosmetic refresh, flooring, rewire, boiler, roof |
-
-**Key design decisions:**
-
-- All assumptions live in visible config files — not buried in calculation logic
-- Trade rates and material costs are plain TypeScript objects — easy to update without touching logic
-- Task templates reference `TRADE_RATES` directly so day rate changes propagate automatically
-- Three trades (carpenter, tiler, waste removal) are clearly marked as assumptions — confirm locally before use
-- Material baselines include `lastChecked` date so staleness is visible
-- Roof works template is explicitly marked as a placeholder — always requires live quotes
-
-**Phase 1A Step 2 — Scope-to-Task Generator:**
-
-`lib/engine/scope-to-tasks.ts` converts a `RefurbScopeInput` into a list of `GeneratedRefurbTask` objects using the config files above. Each generated task carries quantity, labour cost, total cost, assumptions used, and any warnings. No UI has been changed and no connection to the Phase 1 calculator exists yet. Final refurb totals are not computed yet.
-
-**Phase 1A Steps 3–5 — Cost Engine, Timeline, and UI Wiring:**
-
-The Builder Scope Engine is now wired into the calculator UI. A toggle — "Use task-based refurb scope" — switches the app between:
-
-- **Manual mode (toggle off):** existing Phase 1 behavior unchanged. Refurb Cost input drives the deal analysis directly.
-- **Scope mode (toggle on):** a `RefurbScopeForm` collects room counts, scope selections, and major works. The engine generates a task list, sums labour and material costs, and passes `totalRefurbCost` into the Phase 1 deal calculator automatically.
-
-When scope mode is active, a **Refurb Scope Breakdown** panel shows:
-- Generated refurb cost (labour + material split)
-- Estimated timeline in weeks (with 20% contingency buffer)
-- Task count
-- Warnings and confidence flags (e.g. missing floor area, roof placeholder)
-
-The manual Refurb Cost field remains visible and is clearly labelled as overridden while scope mode is active.
-
-All Phase 1A calculations live in `lib/engine/` as pure functions. No calculation logic sits in UI components. PDF export and saved deals remain Phase 2.
-
-## Phase 1A Status
-
-Phase 1A Step 6 is complete and Phase 1A is now wired into the UI.
-
-- Manual refurb cost fallback still exists when scope mode is off.
-- Task-based refurb scope generates refurb cost, labour/material split, task count, timeline, and warnings.
-- Not included in this phase: PDF export, saved deals, CRM, AI, live scraping, or dashboard expansion.
-
-## Phase 1B Step 1 Status
-
-The cost data layer has been normalized toward the locked Phase 1B schema.
-
-- Labour rates, material baselines, and task templates remain configurable local data files.
-- No live scraping, database/admin UI, PDF, CRM, AI, or dashboard expansion has been added.
-- The existing Phase 1A task generation, refurb cost, and timeline engine behavior remains working.
-
-## Phase 1B Step 2 Status
-
-Manual override and assumptions reporting has been added to the engine layer (no UI changes).
-
-- Supports auditable overrides for labour day rate, labour days, material price, and task include/exclude.
-- Returns applied override audit entries and assumptions reporting in generated refurb analysis output.
-- Keeps Phase 1A baseline behavior unchanged when no overrides are provided.
-
-## Roadmap Status Note
-
-- Phase 1 / 1A / 1B MVP is complete.
-- Post-Phase 1B browser wiring/demo hardening is complete.
-- Official Phase 1C is next: GDV intelligence and deep due diligence logic.
-- No Phase 2 features have started.
-- Phase 1C due diligence engine is now attached to the existing engine result.
-- Phase 1C due diligence is now visible in the analysis panel.
-- No new inputs were added.
-- Downside and strong GDV are still auto-generated.
-
-## Post-Phase 1B Browser Wiring Status
-
-The completed engine is now wired into a minimal browser-testable UI.
-
-- Scope inputs feed the existing `analyzeDealWithRefurb` engine flow.
-- Manual refurb cost remains the fallback path when scope mode is not used.
-- Phase 2 has not started. PDF export, CRM, AI, and live scraping remain out of scope.
-
-## Post-Phase 1B Engine Verdict Hardening
-
-Verdict and confidence are now calculated as dedicated engine outputs.
-
-- Verdict is no longer a UI-only heuristic and is returned from the refurb analysis engine.
-- Confidence score/band/factors are now returned from the engine and rendered directly in UI.
-- Phase 2 remains out of scope (no PDF, CRM, AI, or live scraping work added).
-
-## Post-Phase 1B Demo Readability Status
-
-UI is now tuned for client-demo readability while keeping engine behavior unchanged.
-
-- Verdict and confidence are presented more clearly for review.
-- Demo helper includes a one-click mandatory sample scenario load.
-- Phase 2 has not started. PDF, CRM, AI, and live scraping remain out of scope.
