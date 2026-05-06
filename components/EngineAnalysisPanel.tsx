@@ -30,11 +30,22 @@ function dueDiligenceColourClasses(colour: "green" | "amber" | "red"): string {
   return "border-red-200 bg-red-50 text-red-800"
 }
 
+function formatDueDiligenceStrategy(strategyRecommendation: string): string {
+  if (strategyRecommendation.toLowerCase() === "no_deal") return "Reject Deal"
+  return formatLabel(strategyRecommendation.toLowerCase())
+}
+
 export default function EngineAnalysisPanel({ inputs, result }: Props) {
   const refurbTotal = result.refurbSource === "generated"
     ? formatCurrency(result.refurb?.totalRefurbCost ?? 0)
     : `${formatCurrency(inputs.refurbCost)} (manual)`
   const dueDiligence = result.dueDiligence
+  const dueDiligenceClassificationLabel = dueDiligence
+    ? formatLabel(dueDiligence.decision.dealClassification.toLowerCase())
+    : ""
+  const dueDiligenceStrategyLabel = dueDiligence
+    ? formatDueDiligenceStrategy(dueDiligence.decision.strategyRecommendation)
+    : ""
 
   return (
     <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -109,7 +120,7 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
         <>
           {sectionTitle("Deep Due Diligence")}
           <p className="mb-3 text-xs text-gray-500">
-            Official Phase 1C logic output. Downside and strong GDV are auto-generated from realistic GDV in this phase.
+            Official Phase 1C logic output grouped for quick client review. Downside and strong GDV are auto-generated from realistic GDV in this phase.
           </p>
 
           {subSectionTitle("GDV Range")}
@@ -176,13 +187,13 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className={`rounded border p-4 ${dueDiligenceColourClasses(dueDiligence.uiColours.dealClassification)}`}>
               <div className="text-xs font-medium uppercase tracking-wide">Strategy Decision</div>
-              <div className="mt-2 text-sm">Classification: {formatLabel(dueDiligence.decision.dealClassification.toLowerCase())}</div>
-              <div className="mt-1 text-base font-semibold">{formatLabel(dueDiligence.decision.strategyRecommendation.toLowerCase())}</div>
+              <div className="mt-2 text-sm">Classification: {dueDiligenceClassificationLabel}</div>
+              <div className="mt-1 text-base font-semibold">{dueDiligenceStrategyLabel}</div>
             </div>
             <div className="rounded border border-gray-200 p-4">
               <div className="text-xs text-gray-500">Decision Summary</div>
               <div className="mt-2 text-sm font-semibold text-gray-900">
-                {`${formatLabel(dueDiligence.decision.dealClassification.toLowerCase())} — ${formatLabel(dueDiligence.decision.strategyRecommendation.toLowerCase())}`}
+                {`${formatLabel(dueDiligence.decision.dealClassification.toLowerCase())} — ${dueDiligenceStrategyLabel}`}
               </div>
             </div>
           </div>
@@ -202,7 +213,7 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
             )}
           </div>
 
-          {subSectionTitle("True MAO")}
+          {subSectionTitle("Due Diligence MAO")}
           <div className="mt-3 overflow-x-auto rounded border border-gray-200">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
@@ -402,3 +413,4 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
     </div>
   )
 }
+
