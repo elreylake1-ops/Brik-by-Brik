@@ -36,6 +36,7 @@ describe("analyzeDealWithRefurb — no scope (manual fallback)", () => {
   it("refurbSource is 'manual'", () => {
     const result = analyzeDealWithRefurb(baseDealInputs)
     expect(result.refurbSource).toBe("manual")
+    expect(result.dueDiligence).toBeDefined()
     expect(result.verdict).toBeDefined()
     expect(result.confidence).toBeDefined()
   })
@@ -52,6 +53,14 @@ describe("analyzeDealWithRefurb — no scope (manual fallback)", () => {
     expect(result.timeline).toBeUndefined()
     expect(result.assumptionsReport).toEqual([])
     expect(result.overridesApplied).toEqual([])
+  })
+
+  it("dueDiligence uses manual refurb cost in manual mode", () => {
+    const result = analyzeDealWithRefurb(baseDealInputs)
+
+    expect(result.dueDiligence).toBeDefined()
+    expect(result.dueDiligence?.inputs.refurbCost).toBe(baseDealInputs.refurbCost)
+    expect(result.dueDiligence?.dealSummary.totalCost).toBeCloseTo(166200, 2)
   })
 
   it("warnings is empty", () => {
@@ -72,6 +81,7 @@ describe("analyzeDealWithRefurb — with scope (generated refurb)", () => {
   it("refurbSource is 'generated'", () => {
     const result = analyzeDealWithRefurb(baseDealInputs, kitchenScope)
     expect(result.refurbSource).toBe("generated")
+    expect(result.dueDiligence).toBeDefined()
     expect(result.verdict).toBeDefined()
     expect(result.confidence).toBeDefined()
   })
@@ -80,6 +90,7 @@ describe("analyzeDealWithRefurb — with scope (generated refurb)", () => {
     const result = analyzeDealWithRefurb(baseDealInputs, kitchenScope)
     expect(result.refurb).toBeDefined()
     expect(result.timeline).toBeDefined()
+    expect(result.dueDiligence).toBeDefined()
     expect(result.assumptionsReport.length).toBeGreaterThan(0)
     expect(result.overridesApplied).toEqual([])
   })
@@ -100,6 +111,14 @@ describe("analyzeDealWithRefurb — with scope (generated refurb)", () => {
 
     const expectedDeal = analyzeDeal({ ...withHighManual, refurbCost: generatedCost })
     expect(result.deal.totalCost).toBeCloseTo(expectedDeal.totalCost)
+  })
+
+  it("dueDiligence uses generated refurb cost in scope mode", () => {
+    const result = analyzeDealWithRefurb(baseDealInputs, kitchenScope)
+
+    expect(result.dueDiligence).toBeDefined()
+    expect(result.dueDiligence?.inputs.refurbCost).toBeCloseTo(result.refurb!.totalRefurbCost, 2)
+    expect(result.dueDiligence?.inputs.refurbCost).not.toBe(baseDealInputs.refurbCost)
   })
 
   it("deal.totalCost accounts for generated refurb cost", () => {
@@ -173,6 +192,22 @@ describe("analyzeDealWithRefurb — with scope (generated refurb)", () => {
     expect(result.refurb!.totalRefurbCost).toBeCloseTo(18175, 0)
     expect(result.assumptionsReport.length).toBeGreaterThan(0)
     expect(result.overridesApplied).toEqual([])
+  })
+
+  it("dueDiligence is omitted when purchase price is zero", () => {
+    const result = analyzeDealWithRefurb({ ...baseDealInputs, purchasePrice: 0 })
+
+    expect(result.dueDiligence).toBeUndefined()
+    expect(result.verdict).toBeDefined()
+    expect(result.confidence).toBeDefined()
+  })
+
+  it("dueDiligence is omitted when GDV is zero", () => {
+    const result = analyzeDealWithRefurb({ ...baseDealInputs, gdv: 0 }, kitchenScope)
+
+    expect(result.dueDiligence).toBeUndefined()
+    expect(result.verdict).toBeDefined()
+    expect(result.confidence).toBeDefined()
   })
 
 })

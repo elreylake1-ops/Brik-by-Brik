@@ -1,6 +1,6 @@
 import type { RefurbCostResult } from "@/types/scope"
 import type { RefurbTimeline } from "@/types/refurb"
-import { formatCurrency } from "@/lib/formatters"
+import { formatCurrency, formatNumber } from "@/lib/formatters"
 
 type Props = {
   refurb: RefurbCostResult
@@ -49,11 +49,11 @@ export default function RefurbBreakdownSummary({ refurb, timeline }: Props) {
       <div className="flex flex-col gap-3">
         <Row
           label="Estimated Duration"
-          value={`${timeline.totalCalendarWeeks} week${timeline.totalCalendarWeeks !== 1 ? "s" : ""}`}
+          value={`${formatNumber(timeline.totalCalendarWeeks)} week${timeline.totalCalendarWeeks !== 1 ? "s" : ""}`}
         />
         <Row
           label="Working Days (inc. contingency)"
-          value={`${timeline.totalWorkingDaysWithContingency} days`}
+          value={`${formatNumber(timeline.totalWorkingDaysWithContingency)} days`}
         />
         <p className="text-xs text-gray-400">
           Includes {((timeline.contingencyFactor - 1) * 100).toFixed(0)}% contingency. Trades working in parallel within phases.

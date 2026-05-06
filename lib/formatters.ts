@@ -2,6 +2,14 @@ const LABEL_MAP: Record<string, string> = {
   full_replace: "Full Replacement",
   cosmetic_refresh: "Cosmetic Refresh",
   whole_property: "Whole Property",
+  strong_deal: "Strong Deal",
+  high_risk: "High Risk",
+  no_deal: "No Deal",
+  brrr_or_flip: "BRRR or Flip",
+  flip_only_or_renegotiate: "Flip Only or Renegotiate",
+  safe: "Safe",
+  caution: "Caution",
+  marginal: "Marginal",
   gas_engineer: "Gas Engineer",
   waste_removal: "Waste Removal",
   labourer: "Labourer",
@@ -52,4 +60,17 @@ export function formatProfit(value: number): string {
 export function formatPercent(value: number): string {
   if (!isFinite(value) || isNaN(value)) return "0.00%"
   return `${value.toFixed(2)}%`
+}
+
+export function formatRatioPercent(value: number): string {
+  if (!isFinite(value) || isNaN(value)) return "0.00%"
+  return formatPercent(value * 100)
+}
+
+export function formatNumber(value: number, maxDecimals = 1): string {
+  if (!isFinite(value) || isNaN(value)) return "0"
+  return new Intl.NumberFormat("en-GB", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: maxDecimals,
+  }).format(value)
 }

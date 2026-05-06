@@ -1,9 +1,11 @@
 import { analyzeDeal } from "@/lib/calculations"
 import { applyCostOverrides } from "@/lib/engine/apply-overrides"
+import { calculateDueDiligence } from "@/lib/engine/due-diligence-engine"
 import { generateTasksFromScope } from "@/lib/engine/scope-to-tasks"
 import { calculateRefurbCost } from "@/lib/engine/refurb-cost-engine"
 import { calculateTimeline } from "@/lib/engine/timeline-engine"
 import type { DealInputs, DealResult } from "@/types/deal"
+import type { DueDiligenceInput, DueDiligenceResult } from "@/types/due-diligence"
 import type { OverrideApplied, CostOverride } from "@/types/overrides"
 import type { RefurbScopeInput, RefurbCostResult } from "@/types/scope"
 import type { RefurbTimeline } from "@/types/refurb"
@@ -27,6 +29,7 @@ export type DealWithRefurbResult = {
   refurbSource: "manual" | "generated"
   refurb?: RefurbCostResult
   timeline?: RefurbTimeline
+  dueDiligence?: DueDiligenceResult
   warnings: string[]
   overridesApplied: OverrideApplied[]
   assumptionsReport: string[]
@@ -124,6 +127,41 @@ function calculateConfidence(
   return { score, band, factors }
 }
 
+function buildDueDiligenceInput(
+  inputs: DealInputs,
+  refurbCost: number
+): DueDiligenceInput | undefined {
+  if (inputs.purchasePrice <= 0 || inputs.gdv <= 0) {
+    return undefined
+  }
+
+  return {
+    purchasePrice: inputs.purchasePrice,
+    gdvRealistic: inputs.gdv,
+    refurbCost,
+    stampDuty: inputs.stampDuty,
+    legalCosts: inputs.legalCosts,
+    saleCosts: inputs.saleCosts,
+    bridgeTermMonths: inputs.bridgeTermMonths,
+    bridgeInterestRateAnnual: 0.15,
+    arrangementFeePercent: 0.02,
+    exitFeePercent: 0.01,
+  }
+}
+
+function buildDueDiligence(
+  inputs: DealInputs,
+  refurbCost: number
+): DueDiligenceResult | undefined {
+  const dueDiligenceInput = buildDueDiligenceInput(inputs, refurbCost)
+
+  if (!dueDiligenceInput) {
+    return undefined
+  }
+
+  return calculateDueDiligence(dueDiligenceInput)
+}
+
 export function analyzeDealWithRefurb(
   inputs: DealInputs,
   refurbScope?: RefurbScopeInput,
@@ -158,6 +196,7 @@ export function analyzeDealWithRefurb(
     }
 
     const deal = analyzeDeal(dealInputs)
+    const dueDiligence = buildDueDiligence(inputs, refurb.totalRefurbCost)
     const verdict = calculateVerdict(inputs, deal)
     const confidence = calculateConfidence(inputs, "generated", warnings, overrideResult.applied)
 
@@ -166,6 +205,7 @@ export function analyzeDealWithRefurb(
       refurbSource: "generated",
       refurb,
       timeline,
+      dueDiligence,
       warnings,
       overridesApplied: overrideResult.applied,
       assumptionsReport,
@@ -177,12 +217,14 @@ export function analyzeDealWithRefurb(
   const deal = analyzeDeal(inputs)
   const warnings: string[] = []
   const overridesApplied: OverrideApplied[] = []
+  const dueDiligence = buildDueDiligence(inputs, inputs.refurbCost)
   const verdict = calculateVerdict(inputs, deal)
   const confidence = calculateConfidence(inputs, "manual", warnings, overridesApplied)
 
   return {
     deal,
     refurbSource: "manual",
+    dueDiligence,
     warnings,
     overridesApplied,
     assumptionsReport: [],

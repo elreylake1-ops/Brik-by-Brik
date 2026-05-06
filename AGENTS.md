@@ -71,7 +71,7 @@ Phase 1B Step 2 has been completed:
 - assumptions reporting consolidated from tasks, timeline assumptions, and applied overrides
 - no UI changes; no Phase 2 features added
 
-Phase 1C has been completed:
+Post-Phase 1B browser wiring/demo hardening has been completed:
 - engine fully wired to minimal browser-testable UI (implemented across Phase 1A Step 5, Phase 1B, and Phase 1D commits)
 - RefurbScopeForm collects: bedrooms, bathrooms, floorAreaSqm, kitchen scope/size, bathroom scope, bedroom scope, flooring whole-property toggle, rewire/boiler/roof checkboxes
 - analyzeDealWithRefurb() called from page.tsx — scope path when toggle on, manual refurb cost fallback when toggle off
@@ -79,7 +79,7 @@ Phase 1C has been completed:
 - empty state shown when no deal inputs entered (hasDealInput guard)
 - 90 tests passing, build clean; no Phase 2 features added
 
-Phase 1D has been completed:
+Post-Phase 1B engine verdict hardening has been completed:
 - verdict and confidence moved from UI heuristics to dedicated engine outputs
 - UI now renders engine verdict/confidence directly
 - no Phase 2 features added
@@ -171,6 +171,34 @@ Do not build:
 - admin UI
 - live supplier scraping
 - automatic pricing refresh
+
+---
+
+### Official Phase 1C — Deep Due Diligence & GDV Intelligence Logic Layer
+
+This is the official Phase 1C from the new blueprint.
+
+It must be implemented logic-first, not UI-first.
+
+It must return structured JSON for future PDF, AI, CRM, and investor-pack outputs.
+
+GDV must be treated as a range:
+- downside
+- realistic
+- strong
+
+Capital protection is a core safety rule.
+
+Existing design and current Phase 1 / 1A / 1B engine behavior must be preserved.
+
+Current Step:
+Documentation and type-contract alignment only. No runtime logic changes yet.
+
+Update:
+- Phase 1C due diligence engine is now attached to the existing engine result as an additive nested field.
+- Phase 1C due diligence is now visible in the analysis panel.
+- No new inputs were added.
+- Downside and strong GDV remain auto-generated in this phase.
 
 ---
 
@@ -331,5 +359,3 @@ When uncertain, keep scope smaller, preserve the working calculator, and documen
 Prefer lean-ctx MCP tools over native equivalents for token savings.
 Full rules: @LEAN-CTX.md
 <!-- /lean-ctx -->
-
-

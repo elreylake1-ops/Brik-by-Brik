@@ -1,6 +1,6 @@
 "use client"
 
-import { formatCurrency, formatPercent, formatProfit, formatLabel } from "@/lib/formatters"
+import { formatCurrency, formatPercent, formatProfit, formatLabel, formatRatioPercent, formatNumber } from "@/lib/formatters"
 import type { DealInputs } from "@/types/deal"
 import type { DealWithRefurbResult } from "@/lib/engine/analyze-deal-with-refurb"
 
@@ -13,6 +13,10 @@ function sectionTitle(label: string) {
   return <h3 className="mb-2 mt-5 text-xs font-semibold uppercase tracking-wider text-gray-400">{label}</h3>
 }
 
+function subSectionTitle(label: string) {
+  return <h4 className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wider text-gray-400">{label}</h4>
+}
+
 function verdictClasses(status: DealWithRefurbResult["verdict"]["status"]): string {
   if (status === "GO") return "border-green-200 bg-green-50 text-green-800"
   if (status === "CONDITIONAL") return "border-amber-200 bg-amber-50 text-amber-800"
@@ -20,10 +24,17 @@ function verdictClasses(status: DealWithRefurbResult["verdict"]["status"]): stri
   return "border-gray-200 bg-gray-50 text-gray-800"
 }
 
+function dueDiligenceColourClasses(colour: "green" | "amber" | "red"): string {
+  if (colour === "green") return "border-green-200 bg-green-50 text-green-800"
+  if (colour === "amber") return "border-amber-200 bg-amber-50 text-amber-800"
+  return "border-red-200 bg-red-50 text-red-800"
+}
+
 export default function EngineAnalysisPanel({ inputs, result }: Props) {
   const refurbTotal = result.refurbSource === "generated"
     ? formatCurrency(result.refurb?.totalRefurbCost ?? 0)
     : `${formatCurrency(inputs.refurbCost)} (manual)`
+  const dueDiligence = result.dueDiligence
 
   return (
     <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -94,6 +105,131 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
         </table>
       </div>
 
+      {dueDiligence && (
+        <>
+          {sectionTitle("Deep Due Diligence")}
+          <p className="mb-3 text-xs text-gray-500">
+            Official Phase 1C logic output. Downside and strong GDV are auto-generated from realistic GDV in this phase.
+          </p>
+
+          {subSectionTitle("GDV Range")}
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded border border-gray-200 p-3">
+              <div className="text-xs text-gray-500">GDV Downside</div>
+              <div className="mt-1 text-sm font-semibold text-gray-900">{formatCurrency(dueDiligence.gdvRange.downside)}</div>
+            </div>
+            <div className="rounded border border-gray-200 p-3">
+              <div className="text-xs text-gray-500">GDV Realistic</div>
+              <div className="mt-1 text-sm font-semibold text-gray-900">{formatCurrency(dueDiligence.gdvRange.realistic)}</div>
+            </div>
+            <div className="rounded border border-gray-200 p-3">
+              <div className="text-xs text-gray-500">GDV Strong</div>
+              <div className="mt-1 text-sm font-semibold text-gray-900">{formatCurrency(dueDiligence.gdvRange.strong)}</div>
+            </div>
+          </div>
+
+          {subSectionTitle("Profit Scenarios")}
+          <div className="mt-3 overflow-x-auto rounded border border-gray-200">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+                <tr>
+                  <th className="px-3 py-2">Profit Scenario</th>
+                  <th className="px-3 py-2">Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-t border-gray-100">
+                  <td className="px-3 py-2">Downside Profit</td>
+                  <td className="px-3 py-2">{formatProfit(dueDiligence.dealSummary.profitDownside)}</td>
+                </tr>
+                <tr className="border-t border-gray-100">
+                  <td className="px-3 py-2">Realistic Profit</td>
+                  <td className="px-3 py-2">{formatProfit(dueDiligence.dealSummary.profitRealistic)}</td>
+                </tr>
+                <tr className="border-t border-gray-100">
+                  <td className="px-3 py-2">Strong Profit</td>
+                  <td className="px-3 py-2">{formatProfit(dueDiligence.dealSummary.profitStrong)}</td>
+                </tr>
+                <tr className="border-t border-gray-100">
+                  <td className="px-3 py-2">Realistic Profit Margin</td>
+                  <td className="px-3 py-2">{formatRatioPercent(dueDiligence.dealSummary.profitMarginRealistic)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {subSectionTitle("Capital Protection")}
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className={`rounded border p-4 ${dueDiligenceColourClasses(dueDiligence.uiColours.capitalProtection)}`}>
+              <div className="text-xs font-medium uppercase tracking-wide">Capital Protection</div>
+              <div className="mt-2 text-sm">Capital Used: {formatRatioPercent(dueDiligence.dealSummary.capitalUsedPercent)}</div>
+              <div className="mt-1 text-base font-semibold">{formatLabel(dueDiligence.decision.capitalProtectionStatus.toLowerCase())}</div>
+            </div>
+            <div className={`rounded border p-4 ${dueDiligenceColourClasses(dueDiligence.uiColours.profit)}`}>
+              <div className="text-xs font-medium uppercase tracking-wide">Realistic Margin</div>
+              <div className="mt-2 text-base font-semibold">{formatRatioPercent(dueDiligence.dealSummary.profitMarginRealistic)}</div>
+              <div className="mt-1 text-sm">Profit: {formatProfit(dueDiligence.dealSummary.profitRealistic)}</div>
+            </div>
+          </div>
+
+          {subSectionTitle("Strategy Decision")}
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className={`rounded border p-4 ${dueDiligenceColourClasses(dueDiligence.uiColours.dealClassification)}`}>
+              <div className="text-xs font-medium uppercase tracking-wide">Strategy Decision</div>
+              <div className="mt-2 text-sm">Classification: {formatLabel(dueDiligence.decision.dealClassification.toLowerCase())}</div>
+              <div className="mt-1 text-base font-semibold">{formatLabel(dueDiligence.decision.strategyRecommendation.toLowerCase())}</div>
+            </div>
+            <div className="rounded border border-gray-200 p-4">
+              <div className="text-xs text-gray-500">Decision Summary</div>
+              <div className="mt-2 text-sm font-semibold text-gray-900">
+                {`${formatLabel(dueDiligence.decision.dealClassification.toLowerCase())} — ${formatLabel(dueDiligence.decision.strategyRecommendation.toLowerCase())}`}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 rounded border border-gray-200 p-3">
+            <div className="text-xs text-gray-500">Risk Flags</div>
+            {dueDiligence.decision.riskFlags.length > 0 ? (
+              <ul className="mt-2 space-y-2 text-sm text-amber-800">
+                {dueDiligence.decision.riskFlags.map((flag) => (
+                  <li key={flag} className="rounded border border-amber-200 bg-amber-50 px-3 py-2">
+                    {flag}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-gray-500">No risk flags.</p>
+            )}
+          </div>
+
+          {subSectionTitle("True MAO")}
+          <div className="mt-3 overflow-x-auto rounded border border-gray-200">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+                <tr>
+                  <th className="px-3 py-2">True MAO Target</th>
+                  <th className="px-3 py-2">Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-t border-gray-100">
+                  <td className="px-3 py-2">15% Target</td>
+                  <td className="px-3 py-2">{formatCurrency(dueDiligence.trueMAO.at15Percent)}</td>
+                </tr>
+                <tr className="border-t border-gray-100">
+                  <td className="px-3 py-2">20% Target</td>
+                  <td className="px-3 py-2">{formatCurrency(dueDiligence.trueMAO.at20Percent)}</td>
+                </tr>
+                <tr className="border-t border-gray-100">
+                  <td className="px-3 py-2">25% Target</td>
+                  <td className="px-3 py-2">{formatCurrency(dueDiligence.trueMAO.at25Percent)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
       {sectionTitle("Refurb Breakdown")}
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded border border-gray-200 p-3"><div className="text-xs text-gray-500">Refurb Cost</div><div className="mt-1 text-sm font-semibold text-gray-900">{refurbTotal}</div></div>
@@ -130,9 +266,9 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
               </tr>
             </thead>
             <tbody>
-              <tr className="border-t border-gray-100"><td className="px-3 py-2">Working Days</td><td className="px-3 py-2">{result.timeline.totalWorkingDays}</td></tr>
-              <tr className="border-t border-gray-100"><td className="px-3 py-2">With Contingency</td><td className="px-3 py-2">{result.timeline.totalWorkingDaysWithContingency}</td></tr>
-              <tr className="border-t border-gray-100"><td className="px-3 py-2">Estimated Weeks</td><td className="px-3 py-2">{result.timeline.totalCalendarWeeks}</td></tr>
+              <tr className="border-t border-gray-100"><td className="px-3 py-2">Working Days</td><td className="px-3 py-2">{formatNumber(result.timeline.totalWorkingDays)}</td></tr>
+              <tr className="border-t border-gray-100"><td className="px-3 py-2">With Contingency</td><td className="px-3 py-2">{formatNumber(result.timeline.totalWorkingDaysWithContingency)}</td></tr>
+              <tr className="border-t border-gray-100"><td className="px-3 py-2">Estimated Weeks</td><td className="px-3 py-2">{formatNumber(result.timeline.totalCalendarWeeks)}</td></tr>
             </tbody>
           </table>
         </div>

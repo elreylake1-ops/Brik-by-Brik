@@ -190,6 +190,9 @@ Open [http://localhost:3000](http://localhost:3000).
 
 - All formulas implemented exactly as specified in the Brik Engine v1 Phase 1 SOP.
 - Finance Cost in the True MAO calculation uses the finance cost derived from the entered Purchase Price (per SOP).
+- Finance model alignment (MVP): purchase-price-based finance cost is the current implemented app/README behavior.
+- Do not add loanToValue/LTV-based finance cost unless client explicitly approves a finance model change.
+- Any future LTV-based switch must be treated as a separate spec/model change with updated inputs, formulas, tests, and UI copy.
 - Currency formatted as GBP with comma separators and 2 decimal places (e.g. £166,200.00).
 - Profit Margin formatted to 2 decimal places (e.g. 16.90%).
 - For guidance only. Not financial advice.
@@ -273,7 +276,18 @@ Manual override and assumptions reporting has been added to the engine layer (no
 - Returns applied override audit entries and assumptions reporting in generated refurb analysis output.
 - Keeps Phase 1A baseline behavior unchanged when no overrides are provided.
 
-## Phase 1C Status
+## Roadmap Status Note
+
+- Phase 1 / 1A / 1B MVP is complete.
+- Post-Phase 1B browser wiring/demo hardening is complete.
+- Official Phase 1C is next: GDV intelligence and deep due diligence logic.
+- No Phase 2 features have started.
+- Phase 1C due diligence engine is now attached to the existing engine result.
+- Phase 1C due diligence is now visible in the analysis panel.
+- No new inputs were added.
+- Downside and strong GDV are still auto-generated.
+
+## Post-Phase 1B Browser Wiring Status
 
 The completed engine is now wired into a minimal browser-testable UI.
 
@@ -281,7 +295,7 @@ The completed engine is now wired into a minimal browser-testable UI.
 - Manual refurb cost remains the fallback path when scope mode is not used.
 - Phase 2 has not started. PDF export, CRM, AI, and live scraping remain out of scope.
 
-## Phase 1D Status
+## Post-Phase 1B Engine Verdict Hardening
 
 Verdict and confidence are now calculated as dedicated engine outputs.
 
@@ -289,7 +303,7 @@ Verdict and confidence are now calculated as dedicated engine outputs.
 - Confidence score/band/factors are now returned from the engine and rendered directly in UI.
 - Phase 2 remains out of scope (no PDF, CRM, AI, or live scraping work added).
 
-## Phase 1E Status
+## Post-Phase 1B Demo Readability Status
 
 UI is now tuned for client-demo readability while keeping engine behavior unchanged.
 
