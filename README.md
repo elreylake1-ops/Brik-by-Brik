@@ -205,6 +205,7 @@ Use these values to verify the calculator is working correctly:
 app/
   page.tsx
   layout.tsx
+public/
 components/
   CalculatorForm.tsx
   EngineAnalysisPanel.tsx
