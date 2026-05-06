@@ -216,6 +216,7 @@ lib/
   calculations.ts
   formatters.ts
   data/
+    validate-cost-data.ts
     trade-rates.ts
     material-baselines.ts
     task-cost-library.ts
@@ -234,6 +235,8 @@ types/
   scope.ts
 __tests__/
   *.test.ts
+docs/
+  PHASE_1A_QA_REPORT.md
 ```
 
 ---
