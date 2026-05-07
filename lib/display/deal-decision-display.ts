@@ -27,9 +27,24 @@ export type DealDecisionDisplay = {
 const THIN_MARGIN_WARNING =
   "Profit margin is below 5%. Renegotiate purchase price or verify GDV/refurb assumptions before proceeding."
 
+function normalizeProfitMarginPercent(value: number): number {
+  if (!isFinite(value) || isNaN(value)) return 0
+  if (Math.abs(value) <= 1) return value * 100
+  return value
+}
+
+export function getTechnicalVerdictDetail(
+  status: DealVerdictStatus,
+  reason: string
+): string {
+  return `Engine verdict: ${status}. ${reason}`
+}
+
 export function getDealDecisionDisplay(
   input: DealDecisionDisplayInput
 ): DealDecisionDisplay {
+  const profitMarginPercent = normalizeProfitMarginPercent(input.profitMargin)
+
   if (
     input.phase2GovernanceState === "BLOCKED" ||
     input.phase2FinalClassification === "NO_DEAL"
@@ -55,7 +70,7 @@ export function getDealDecisionDisplay(
     }
   }
 
-  if (input.profit < 0 || input.profitMargin < 0) {
+  if (input.profit < 0 || profitMarginPercent < 0) {
     return {
       statusLabel: "NO-GO",
       actionLabel: "Reject",
@@ -64,7 +79,7 @@ export function getDealDecisionDisplay(
     }
   }
 
-  if (input.profitMargin < 0.05) {
+  if (profitMarginPercent < 5) {
     return {
       statusLabel: "MARGINAL",
       actionLabel: "Renegotiate",
@@ -74,7 +89,7 @@ export function getDealDecisionDisplay(
     }
   }
 
-  if (input.profitMargin < 0.1) {
+  if (profitMarginPercent < 10) {
     return {
       statusLabel: "CAUTION",
       actionLabel: "Needs Stronger Buffer",

@@ -5,6 +5,7 @@ import {
   CALCULATION_CONFIDENCE_HELP,
   CALCULATION_CONFIDENCE_LABEL,
   getDealDecisionDisplay,
+  getTechnicalVerdictDetail,
 } from "@/lib/display/deal-decision-display"
 import type { DealInputs } from "@/types/deal"
 import type { DealWithRefurbResult } from "@/lib/engine/analyze-deal-with-refurb"
@@ -72,7 +73,9 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
           <div className="mt-1 text-xl font-bold">{displayDecision.statusLabel}</div>
           <div className="mt-1 text-sm font-semibold">{displayDecision.actionLabel}</div>
           <p className="mt-2 text-xs">{displayDecision.summary}</p>
-          <p className="mt-2 text-[11px] opacity-80">Underlying engine verdict: {result.verdict.status}</p>
+          <p className="mt-2 text-[11px] opacity-80">
+            {getTechnicalVerdictDetail(result.verdict.status, result.verdict.reason)}
+          </p>
         </div>
         <div className="rounded border border-gray-200 p-4">
           <div className="text-xs text-gray-500">{CALCULATION_CONFIDENCE_LABEL}</div>
