@@ -1,0 +1,177 @@
+{
+  "metadata": {
+    "analysisId": "phase2-sample-002",
+    "engineVersion": "2.0.0-contract",
+    "createdAt": "2026-05-07T09:50:00.000Z",
+    "deterministic": true,
+    "source": "PHASE_2_ENGINE",
+    "scenarioId": "phase2-009",
+    "notes": [
+      "Governance override sample.",
+      "Shows that scoring and final classification are intentionally decoupled."
+    ]
+  },
+  "dealHeatScore": {
+    "score": 84,
+    "band": "HOT",
+    "positiveSignals": [
+      "Margin profile appears attractive.",
+      "Entry price is favorable versus target GDV."
+    ],
+    "negativeSignals": [
+      "Structural survey risk is unresolved."
+    ],
+    "deductions": [
+      "Fatal structural issue invalidates the apparent heat score."
+    ],
+    "explanation": "This sample shows a hot pre-governance score that is later blocked by controls."
+  },
+  "riskRadar": {
+    "overallRisk": "FATAL",
+    "riskFlags": [
+      {
+        "code": "STRUCTURAL_FATAL",
+        "label": "Fatal structural risk",
+        "severity": "FATAL",
+        "explanation": "Survey findings indicate a structural issue that blocks safe progression.",
+        "source": "survey"
+      }
+    ],
+    "fatalRisks": [
+      "Structural survey indicates fatal risk."
+    ],
+    "reviewRisks": [],
+    "explanation": "A fatal risk exists, so governance must override the score."
+  },
+  "strategyMatch": {
+    "recommendedStrategy": "NO_DEAL",
+    "viableStrategies": [],
+    "rejectedStrategies": [
+      {
+        "strategy": "BRRR",
+        "reason": "Fatal structural risk blocks refinance viability."
+      },
+      {
+        "strategy": "FLIP",
+        "reason": "Fatal structural risk blocks exit safety."
+      },
+      {
+        "strategy": "BUY_TO_LET",
+        "reason": "Fatal structural risk blocks long-term hold viability."
+      }
+    ],
+    "explanation": "All strategies are rejected once governance identifies a fatal blocker."
+  },
+  "governance": {
+    "state": "BLOCKED",
+    "finalClassification": "NO_DEAL",
+    "scoreBeforeGovernance": 84,
+    "classificationBeforeGovernance": "HOT",
+    "governanceOverrideApplied": true,
+    "fatalRisk": true,
+    "fatalReasons": [
+      "Structural survey indicates fatal risk."
+    ],
+    "blockedBy": [
+      "STRUCTURAL_FATAL"
+    ],
+    "reviewRequired": false,
+    "reviewReasons": [],
+    "explanation": "Governance overrides scoring. A hot score cannot survive a fatal structural blocker."
+  },
+  "investorSummary": {
+    "headline": "Hot score blocked by fatal governance risk.",
+    "summary": "The numeric attractiveness is irrelevant because the structural survey creates an unacceptable downside.",
+    "decision": "Do not proceed.",
+    "keyReasons": [
+      "Pre-governance score was strong.",
+      "Governance identified a fatal structural blocker."
+    ],
+    "keyRisks": [
+      "Fatal structural issue."
+    ],
+    "recommendedNextStep": "Reject the deal or require full remediation evidence before reconsideration.",
+    "investorWarnings": [
+      "Do not rely on score alone when a fatal governance blocker exists."
+    ]
+  },
+  "decisionGates": [
+    {
+      "gateId": "heat-score",
+      "label": "Heat Score",
+      "status": "PASS",
+      "severity": "LOW",
+      "explanation": "Pre-governance scoring remains strong.",
+      "triggeredBy": [
+        "dealHeatScore.score"
+      ]
+    },
+    {
+      "gateId": "fatal-risk",
+      "label": "Fatal Risk Gate",
+      "status": "FAIL",
+      "severity": "FATAL",
+      "explanation": "Fatal structural survey finding blocks progression.",
+      "triggeredBy": [
+        "riskRadar.riskFlags",
+        "governance.fatalRisk"
+      ],
+      "requiredAction": "Reject deal unless fatal issue is independently cleared."
+    }
+  ],
+  "evidenceStatus": {
+    "overallStatus": "VERIFIED",
+    "fields": [
+      {
+        "field": "structuralSurvey",
+        "status": "VERIFIED",
+        "explanation": "Survey evidence confirms the blocker.",
+        "requiredForOffer": true
+      },
+      {
+        "field": "gdvRealistic",
+        "status": "VERIFIED",
+        "explanation": "Valuation support is adequate, but irrelevant once the fatal blocker exists.",
+        "requiredForOffer": true
+      }
+    ],
+    "missingCriticalEvidence": [],
+    "assumedFields": [],
+    "verifiedFields": [
+      "structuralSurvey",
+      "gdvRealistic",
+      "purchasePrice",
+      "refurbCost"
+    ]
+  },
+  "dataConfidence": {
+    "overallConfidence": "HIGH",
+    "listingConfidence": "HIGH",
+    "refurbConfidence": "MEDIUM",
+    "gdvConfidence": "HIGH",
+    "legalConfidence": "MEDIUM",
+    "financeConfidence": "HIGH",
+    "explanation": "Confidence is high because the fatal blocker is verified rather than assumed.",
+    "confidenceWarnings": []
+  },
+  "nextActions": [
+    {
+      "id": "reject-or-remediate",
+      "priority": "URGENT",
+      "action": "Reject the case or obtain independent remediation evidence.",
+      "owner": "decision-maker",
+      "reason": "Fatal structural blocker invalidates progression.",
+      "blocksOfferSubmission": true
+    }
+  ],
+  "assumptions": [],
+  "overrides": [],
+  "limitations": [
+    {
+      "code": "PHASE2B_CONTRACT_ONLY",
+      "limitation": "This fixture encodes the intended contract behavior before execution logic exists.",
+      "impact": "Validation can prove shape and override semantics, but not live governance calculations.",
+      "recommendedRefinement": "Implement Phase 2C governance execution using this blocked sample as a reference test."
+    }
+  ]
+}

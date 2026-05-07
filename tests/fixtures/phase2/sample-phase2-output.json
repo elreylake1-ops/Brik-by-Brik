@@ -1,0 +1,195 @@
+{
+  "metadata": {
+    "analysisId": "phase2-sample-001",
+    "engineVersion": "2.0.0-contract",
+    "createdAt": "2026-05-07T09:45:00.000Z",
+    "deterministic": true,
+    "source": "PHASE_2_ENGINE",
+    "scenarioId": "phase2-001",
+    "notes": [
+      "Phase 2B contract sample only.",
+      "No scoring or governance execution is implemented by this fixture."
+    ]
+  },
+  "dealHeatScore": {
+    "score": 72,
+    "band": "WARM",
+    "positiveSignals": [
+      "Capital use remains inside the target range.",
+      "Realistic margin supports a viable exit."
+    ],
+    "negativeSignals": [
+      "Finance cost still needs confirmation."
+    ],
+    "deductions": [
+      "Evidence quality not fully verified."
+    ],
+    "explanation": "This sample represents a positive but not fully cleared output contract."
+  },
+  "riskRadar": {
+    "overallRisk": "MEDIUM",
+    "riskFlags": [
+      {
+        "code": "FINANCE_ASSUMPTION",
+        "label": "Finance assumptions need confirmation",
+        "severity": "MEDIUM",
+        "explanation": "Bridge pricing is still based on assumed terms.",
+        "source": "finance"
+      }
+    ],
+    "fatalRisks": [],
+    "reviewRisks": [
+      "Finance assumptions need confirmation"
+    ],
+    "explanation": "No fatal risk is present, but review items remain open."
+  },
+  "strategyMatch": {
+    "recommendedStrategy": "FLIP",
+    "viableStrategies": [
+      "FLIP",
+      "BRRR"
+    ],
+    "rejectedStrategies": [
+      {
+        "strategy": "BUY_TO_LET",
+        "reason": "Rental viability is not yet modeled in this contract sample."
+      }
+    ],
+    "explanation": "The strategy section is contractual only and does not execute matching logic yet."
+  },
+  "governance": {
+    "state": "REVIEW_REQUIRED",
+    "finalClassification": "REVIEW_REQUIRED",
+    "scoreBeforeGovernance": 72,
+    "classificationBeforeGovernance": "WARM",
+    "governanceOverrideApplied": true,
+    "fatalRisk": false,
+    "fatalReasons": [],
+    "blockedBy": [],
+    "reviewRequired": true,
+    "reviewReasons": [
+      "Finance assumptions remain estimated."
+    ],
+    "explanation": "Governance can hold an otherwise promising deal for review before offer submission."
+  },
+  "investorSummary": {
+    "headline": "Promising deal, but controls are not fully cleared.",
+    "summary": "The economics are workable, though the package still relies on estimated finance inputs.",
+    "decision": "Review before progressing.",
+    "keyReasons": [
+      "Margin profile is workable.",
+      "Capital protection remains acceptable."
+    ],
+    "keyRisks": [
+      "Finance terms are not verified."
+    ],
+    "recommendedNextStep": "Confirm live bridge terms and rerun the package.",
+    "investorWarnings": [
+      "Do not submit an offer from this sample output alone."
+    ]
+  },
+  "decisionGates": [
+    {
+      "gateId": "capital-protection",
+      "label": "Capital Protection",
+      "status": "PASS",
+      "severity": "LOW",
+      "explanation": "Capital use is within the target operating range.",
+      "triggeredBy": [
+        "capitalUsedPercent"
+      ]
+    },
+    {
+      "gateId": "evidence-completeness",
+      "label": "Evidence Completeness",
+      "status": "REVIEW",
+      "severity": "MEDIUM",
+      "explanation": "Some supporting terms remain estimated.",
+      "triggeredBy": [
+        "bridgeInterestRateAnnual",
+        "arrangementFeePercent"
+      ],
+      "requiredAction": "Verify finance evidence."
+    }
+  ],
+  "evidenceStatus": {
+    "overallStatus": "ESTIMATED",
+    "fields": [
+      {
+        "field": "gdvRealistic",
+        "status": "VERIFIED",
+        "explanation": "Backed by a reviewed comparable pack.",
+        "requiredForOffer": true
+      },
+      {
+        "field": "bridgeInterestRateAnnual",
+        "status": "ASSUMED",
+        "explanation": "Using a standard bridge assumption pending lender terms.",
+        "requiredForOffer": true
+      }
+    ],
+    "missingCriticalEvidence": [],
+    "assumedFields": [
+      "bridgeInterestRateAnnual",
+      "arrangementFeePercent",
+      "exitFeePercent"
+    ],
+    "verifiedFields": [
+      "purchasePrice",
+      "gdvRealistic",
+      "refurbCost"
+    ]
+  },
+  "dataConfidence": {
+    "overallConfidence": "MEDIUM",
+    "listingConfidence": "HIGH",
+    "refurbConfidence": "MEDIUM",
+    "gdvConfidence": "HIGH",
+    "legalConfidence": "LOW",
+    "financeConfidence": "LOW",
+    "explanation": "Commercial inputs are clearer than legal and finance evidence in this sample.",
+    "confidenceWarnings": [
+      "Legal pack not yet reviewed.",
+      "Finance terms still assumed."
+    ]
+  },
+  "nextActions": [
+    {
+      "id": "verify-finance-terms",
+      "priority": "HIGH",
+      "action": "Obtain live lender terms for bridge pricing.",
+      "owner": "analyst",
+      "reason": "Finance evidence is still assumed.",
+      "blocksOfferSubmission": true
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "asm-finance-rate",
+      "field": "bridgeInterestRateAnnual",
+      "assumedValue": 0.15,
+      "reason": "Default bridge assumption used pending broker confirmation.",
+      "impact": "Could change finance cost materially.",
+      "confidence": "LOW"
+    }
+  ],
+  "overrides": [
+    {
+      "id": "ovr-sale-cost",
+      "field": "saleCosts",
+      "originalValue": 2500,
+      "overrideValue": 3000,
+      "reason": "Applied conservative disposal allowance.",
+      "impact": "Reduces margin slightly.",
+      "createdAt": "2026-05-07T09:46:00.000Z"
+    }
+  ],
+  "limitations": [
+    {
+      "code": "PHASE2B_CONTRACT_ONLY",
+      "limitation": "This sample demonstrates the output contract, not the governance engine.",
+      "impact": "No live scoring or control execution occurs from this fixture alone.",
+      "recommendedRefinement": "Implement Phase 2C execution against these fixed output shapes."
+    }
+  ]
+}

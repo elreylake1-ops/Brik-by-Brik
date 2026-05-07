@@ -12,7 +12,7 @@ import {
 function loadFixtures(): Phase2ScenarioFixture[] {
   const fixturesDir = path.resolve(process.cwd(), "tests", "fixtures", "phase2")
   const fixtureFiles = readdirSync(fixturesDir)
-    .filter((fileName) => fileName.endsWith(".json"))
+    .filter((fileName) => /^\d{2}-.*\.json$/.test(fileName))
     .sort()
 
   return fixtureFiles.map((fileName) => {
