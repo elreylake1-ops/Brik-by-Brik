@@ -1,6 +1,7 @@
 export * from "@/lib/engine/intelligence/build-phase2-analysis"
 export * from "@/lib/engine/intelligence/deal-heat-score-engine"
 export * from "@/lib/engine/intelligence/investor-summary-engine"
+export * from "@/lib/engine/intelligence/map-phase2-fixture-to-input"
 export * from "@/lib/engine/intelligence/negotiation-position-engine"
 export * from "@/lib/engine/intelligence/next-action-priority-engine"
 export * from "@/lib/engine/intelligence/risk-radar-engine"

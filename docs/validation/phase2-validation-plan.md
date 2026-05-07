@@ -39,3 +39,17 @@ Raw scoring is explainable and non-final. Governance remains final authority and
 No AI, scraping, UI, or Phase 3 work has been added in Phase 2D.
 
 Phase 2E will calibrate all 15 fixtures and produce the final pass/fail matrix.
+
+## Phase 2E
+
+Full stress-suite calibration is now added.
+
+All 15 Phase 2 fixtures run through `buildPhase2Analysis()`, and expected-versus-actual comparison output is generated as a report package.
+
+Consistency testing now re-runs identical fixture inputs to prove deterministic stability.
+
+Governance override proof is now included so raw attractive scores can still end as `REVIEW_REQUIRED` or `NO_DEAL`.
+
+Known limitations are documented explicitly.
+
+Phase 3 remains blocked until the client reviews and accepts this validation package.

@@ -1,4 +1,13 @@
 import type { DealClassification, DueDiligenceInput, StrategyRecommendation } from "@/types/due-diligence"
+import type {
+  DealHeatBand,
+  FinalDealClassification,
+  GovernanceState,
+  Phase2AnalysisOutput,
+  Phase2Strategy,
+  RiskSeverity,
+} from "@/types/phase2"
+import type { Phase2ExitStrategyPreference } from "@/types/phase2-intelligence"
 
 export const PHASE2_GOVERNANCE_STATES = ["PASS", "MANUAL_REVIEW", "BLOCK"] as const
 
@@ -68,6 +77,16 @@ export type Phase2ScenarioInput = {
     structuralRiskLevel: Phase2StructuralRiskLevel
     hotDealClaimed: boolean
     manualReviewTriggers: string[]
+    loanToValue?: number
+    legalEvidenceStrength?: Phase2GdvEvidenceStrength
+    hasLegalTitleRisk?: boolean
+    hasPlanningRisk?: boolean
+    hasRefinanceRisk?: boolean
+    hasMissingCriticalEvidence?: boolean
+    manualReviewRequested?: boolean
+    motivationSignals?: string[]
+    listingSignals?: string[]
+    exitStrategyPreference?: Phase2ExitStrategyPreference
   }
 }
 
@@ -86,4 +105,86 @@ export type Phase2ScenarioFixture = {
   expectedStrategyOutcome: StrategyRecommendation
   expectedReviewRequired: boolean
   notes: string[]
+}
+
+export type Phase2ValidationExpectedSummary = {
+  finalClassification: string
+  governanceState: GovernanceState
+  riskFlags: Phase2RiskFlag[]
+  nextAction: Phase2NextAction
+  strategyOutcome: StrategyRecommendation
+  reviewRequired: boolean
+}
+
+export type Phase2ValidationActualSummary = {
+  finalClassification: FinalDealClassification
+  governanceState: GovernanceState
+  rawHeatScore: number
+  rawHeatBand: DealHeatBand
+  fatalRisk: boolean
+  overallRisk: RiskSeverity
+  strategyOutcome: Phase2Strategy
+  nextAction: string | null
+  reviewRequired: boolean
+  riskFlags: string[]
+}
+
+export type Phase2ScenarioValidationResult = {
+  scenarioId: string
+  name: string
+  pass: boolean
+  failures: string[]
+  expected: Phase2ValidationExpectedSummary
+  actual: Phase2ValidationActualSummary | null
+  actualOutput: Phase2AnalysisOutput | null
+}
+
+export type Phase2ConsistencySnapshot = {
+  score: number
+  band: DealHeatBand
+  governanceState: GovernanceState
+  finalClassification: FinalDealClassification
+  fatalRisk: boolean
+  overallRisk: RiskSeverity
+  recommendedStrategy: Phase2Strategy
+}
+
+export type Phase2ConsistencyResult = {
+  scenarioId: string
+  name: string
+  consistent: boolean
+  driftFields: string[]
+  runs: Phase2ConsistencySnapshot[]
+}
+
+export type Phase2GovernanceOverrideValidationResult = {
+  scenarioId: string
+  name: string
+  pass: boolean
+  rawHeatScore: number
+  rawHeatBand: DealHeatBand
+  governanceState: GovernanceState
+  finalClassification: FinalDealClassification
+  governanceOverrideApplied: boolean
+  fatalRisk: boolean
+  explanation: string
+}
+
+export type Phase2EdgeCaseValidationResult = {
+  caseId: string
+  scenarioId: string
+  pass: boolean
+  explanation: string
+}
+
+export type Phase2ValidationRunResult = {
+  generatedAt: string
+  engineVersion: string
+  totalScenarios: number
+  passed: number
+  failed: number
+  scenarioResults: Phase2ScenarioValidationResult[]
+  consistencyResults: Phase2ConsistencyResult[]
+  governanceOverrideResults: Phase2GovernanceOverrideValidationResult[]
+  edgeCaseResults: Phase2EdgeCaseValidationResult[]
 }

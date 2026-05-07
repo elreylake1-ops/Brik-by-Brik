@@ -29,6 +29,14 @@ function hasOnlyNonEmptyStrings(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(isNonEmptyString)
 }
 
+function isOptionalBoolean(value: unknown): boolean {
+  return value === undefined || typeof value === "boolean"
+}
+
+function isOptionalFiniteNumber(value: unknown): boolean {
+  return value === undefined || isFiniteNumber(value)
+}
+
 export function validatePhase2Fixture(fixture: unknown): Phase2FixtureValidationResult {
   const errors: string[] = []
 
@@ -162,6 +170,58 @@ export function validatePhase2Fixture(fixture: unknown): Phase2FixtureValidation
       }
       if (!hasOnlyNonEmptyStrings(governanceSignals.manualReviewTriggers)) {
         errors.push("input.governanceSignals.manualReviewTriggers must be a string array.")
+      }
+      if (
+        governanceSignals.legalEvidenceStrength !== undefined &&
+        !PHASE2_GDV_EVIDENCE_STRENGTHS.includes(governanceSignals.legalEvidenceStrength as never)
+      ) {
+        errors.push(
+          `input.governanceSignals.legalEvidenceStrength must be one of: ${PHASE2_GDV_EVIDENCE_STRENGTHS.join(", ")} when provided.`
+        )
+      }
+      if (
+        governanceSignals.exitStrategyPreference !== undefined &&
+        !["BRRR", "FLIP", "BUY_TO_LET"].includes(String(governanceSignals.exitStrategyPreference))
+      ) {
+        errors.push(
+          "input.governanceSignals.exitStrategyPreference must be BRRR, FLIP, or BUY_TO_LET when provided."
+        )
+      }
+      if (!isOptionalFiniteNumber(governanceSignals.loanToValue)) {
+        errors.push("input.governanceSignals.loanToValue must be a finite number when provided.")
+      }
+      if (
+        isFiniteNumber(governanceSignals.loanToValue) &&
+        (governanceSignals.loanToValue < 0 || governanceSignals.loanToValue > 1.5)
+      ) {
+        errors.push("input.governanceSignals.loanToValue must be between 0 and 1.5 when provided.")
+      }
+      if (!isOptionalBoolean(governanceSignals.hasLegalTitleRisk)) {
+        errors.push("input.governanceSignals.hasLegalTitleRisk must be a boolean when provided.")
+      }
+      if (!isOptionalBoolean(governanceSignals.hasPlanningRisk)) {
+        errors.push("input.governanceSignals.hasPlanningRisk must be a boolean when provided.")
+      }
+      if (!isOptionalBoolean(governanceSignals.hasRefinanceRisk)) {
+        errors.push("input.governanceSignals.hasRefinanceRisk must be a boolean when provided.")
+      }
+      if (!isOptionalBoolean(governanceSignals.hasMissingCriticalEvidence)) {
+        errors.push("input.governanceSignals.hasMissingCriticalEvidence must be a boolean when provided.")
+      }
+      if (!isOptionalBoolean(governanceSignals.manualReviewRequested)) {
+        errors.push("input.governanceSignals.manualReviewRequested must be a boolean when provided.")
+      }
+      if (
+        governanceSignals.motivationSignals !== undefined &&
+        !hasOnlyNonEmptyStrings(governanceSignals.motivationSignals)
+      ) {
+        errors.push("input.governanceSignals.motivationSignals must be a string array when provided.")
+      }
+      if (
+        governanceSignals.listingSignals !== undefined &&
+        !hasOnlyNonEmptyStrings(governanceSignals.listingSignals)
+      ) {
+        errors.push("input.governanceSignals.listingSignals must be a string array when provided.")
       }
     }
   }

@@ -1,0 +1,1095 @@
+{
+  "generatedAt": "2026-05-07T00:00:00.000Z",
+  "engineVersion": "2.0.0-intelligence",
+  "totalScenarios": 15,
+  "passed": 9,
+  "failed": 6,
+  "scenarioResults": [
+    {
+      "scenarioId": "phase2-001",
+      "name": "Strong BRRR candidate",
+      "pass": true,
+      "failures": [],
+      "expected": {
+        "finalClassification": "HOT_OR_WARM",
+        "governanceState": "PASS",
+        "riskFlags": [],
+        "nextAction": "PROCEED",
+        "strategyOutcome": "BRRR_OR_FLIP",
+        "reviewRequired": false
+      },
+      "actual": {
+        "finalClassification": "HOT",
+        "governanceState": "PASS",
+        "rawHeatScore": 100,
+        "rawHeatBand": "HOT",
+        "fatalRisk": false,
+        "overallRisk": "LOW",
+        "strategyOutcome": "BRRR",
+        "nextAction": "proceed-under-governance",
+        "reviewRequired": false,
+        "riskFlags": []
+      }
+    },
+    {
+      "scenarioId": "phase2-002",
+      "name": "Marginal deal",
+      "pass": false,
+      "failures": [
+        "Final classification expected MARGINAL but got HOT.",
+        "Expected strategy outcome FLIP_ONLY_OR_RENEGOTIATE is not represented by BRRR."
+      ],
+      "expected": {
+        "finalClassification": "MARGINAL",
+        "governanceState": "PASS",
+        "riskFlags": [],
+        "nextAction": "PROCEED_WITH_CAUTION",
+        "strategyOutcome": "FLIP_ONLY_OR_RENEGOTIATE",
+        "reviewRequired": false
+      },
+      "actual": {
+        "finalClassification": "HOT",
+        "governanceState": "PASS",
+        "rawHeatScore": 99,
+        "rawHeatBand": "HOT",
+        "fatalRisk": false,
+        "overallRisk": "MEDIUM",
+        "strategyOutcome": "BRRR",
+        "nextAction": "proceed-under-governance",
+        "reviewRequired": false,
+        "riskFlags": [
+          "GDV Evidence Gate"
+        ]
+      }
+    },
+    {
+      "scenarioId": "phase2-003",
+      "name": "No deal",
+      "pass": true,
+      "failures": [],
+      "expected": {
+        "finalClassification": "NO_DEAL",
+        "governanceState": "BLOCKED",
+        "riskFlags": [
+          "Low profit margin",
+          "Capital overexposure",
+          "Downside GDV creates a loss"
+        ],
+        "nextAction": "REJECT",
+        "strategyOutcome": "NO_DEAL",
+        "reviewRequired": false
+      },
+      "actual": {
+        "finalClassification": "NO_DEAL",
+        "governanceState": "BLOCKED",
+        "rawHeatScore": 30,
+        "rawHeatBand": "COLD",
+        "fatalRisk": true,
+        "overallRisk": "FATAL",
+        "strategyOutcome": "NO_DEAL",
+        "nextAction": "resolve-fatal-risk",
+        "reviewRequired": false,
+        "riskFlags": [
+          "Negative realistic profit",
+          "Fatal downside loss",
+          "Capital Protection Gate",
+          "Downside Loss Gate",
+          "Finance/Time Risk Gate",
+          "Fatal Risk Gate"
+        ]
+      }
+    },
+    {
+      "scenarioId": "phase2-004",
+      "name": "Downside loss",
+      "pass": false,
+      "failures": [
+        "Expected risk flag not represented: Downside GDV creates a loss.",
+        "Expected next action not represented: VERIFY_GDV."
+      ],
+      "expected": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "riskFlags": [
+          "Downside GDV creates a loss"
+        ],
+        "nextAction": "VERIFY_GDV",
+        "strategyOutcome": "FLIP_ONLY_OR_RENEGOTIATE",
+        "reviewRequired": true
+      },
+      "actual": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "rawHeatScore": 90,
+        "rawHeatBand": "HOT",
+        "fatalRisk": false,
+        "overallRisk": "MEDIUM",
+        "strategyOutcome": "MANUAL_REVIEW",
+        "nextAction": "proceed-under-governance",
+        "reviewRequired": true,
+        "riskFlags": [
+          "GDV Evidence Gate"
+        ]
+      }
+    },
+    {
+      "scenarioId": "phase2-005",
+      "name": "Weak GDV evidence",
+      "pass": false,
+      "failures": [
+        "Expected next action not represented: REQUEST_COMPARABLES."
+      ],
+      "expected": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "riskFlags": [
+          "Weak GDV evidence"
+        ],
+        "nextAction": "REQUEST_COMPARABLES",
+        "strategyOutcome": "BRRR_OR_FLIP",
+        "reviewRequired": true
+      },
+      "actual": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "rawHeatScore": 77,
+        "rawHeatBand": "WARM",
+        "fatalRisk": false,
+        "overallRisk": "HIGH",
+        "strategyOutcome": "MANUAL_REVIEW",
+        "nextAction": "validate-gdv",
+        "reviewRequired": true,
+        "riskFlags": [
+          "GDV Evidence Gate",
+          "Comparable Evidence Gate",
+          "Weak GDV evidence",
+          "Thin comparable coverage"
+        ]
+      }
+    },
+    {
+      "scenarioId": "phase2-006",
+      "name": "Heavy refurb exposure",
+      "pass": true,
+      "failures": [],
+      "expected": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "riskFlags": [
+          "High refurb exposure"
+        ],
+        "nextAction": "RENEGOTIATE",
+        "strategyOutcome": "FLIP_ONLY_OR_RENEGOTIATE",
+        "reviewRequired": true
+      },
+      "actual": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "rawHeatScore": 77,
+        "rawHeatBand": "WARM",
+        "fatalRisk": false,
+        "overallRisk": "HIGH",
+        "strategyOutcome": "MANUAL_REVIEW",
+        "nextAction": "builder-scope-validation",
+        "reviewRequired": true,
+        "riskFlags": [
+          "GDV Evidence Gate",
+          "Refurb Exposure Gate",
+          "Heavy refurb exposure",
+          "Time/bridge risk"
+        ]
+      }
+    },
+    {
+      "scenarioId": "phase2-007",
+      "name": "High finance cost",
+      "pass": false,
+      "failures": [
+        "Expected next action not represented: TIGHTEN_FINANCE_ASSUMPTIONS."
+      ],
+      "expected": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "riskFlags": [
+          "High finance cost"
+        ],
+        "nextAction": "TIGHTEN_FINANCE_ASSUMPTIONS",
+        "strategyOutcome": "FLIP_ONLY_OR_RENEGOTIATE",
+        "reviewRequired": true
+      },
+      "actual": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "rawHeatScore": 91,
+        "rawHeatBand": "HOT",
+        "fatalRisk": false,
+        "overallRisk": "HIGH",
+        "strategyOutcome": "MANUAL_REVIEW",
+        "nextAction": "proceed-under-governance",
+        "reviewRequired": true,
+        "riskFlags": [
+          "GDV Evidence Gate",
+          "Finance/Time Risk Gate",
+          "Time/bridge risk"
+        ]
+      }
+    },
+    {
+      "scenarioId": "phase2-008",
+      "name": "False HOT deal",
+      "pass": true,
+      "failures": [],
+      "expected": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "riskFlags": [
+          "False urgency / HOT deal unsupported"
+        ],
+        "nextAction": "RENEGOTIATE",
+        "strategyOutcome": "FLIP_ONLY_OR_RENEGOTIATE",
+        "reviewRequired": true
+      },
+      "actual": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "rawHeatScore": 89,
+        "rawHeatBand": "HOT",
+        "fatalRisk": false,
+        "overallRisk": "MEDIUM",
+        "strategyOutcome": "MANUAL_REVIEW",
+        "nextAction": "slow-urgency-pressure",
+        "reviewRequired": true,
+        "riskFlags": [
+          "GDV Evidence Gate",
+          "False HOT urgency unsupported"
+        ]
+      }
+    },
+    {
+      "scenarioId": "phase2-009",
+      "name": "Structural / fatal risk",
+      "pass": false,
+      "failures": [
+        "reviewRequired expected true but got false."
+      ],
+      "expected": {
+        "finalClassification": "NO_DEAL",
+        "governanceState": "BLOCKED",
+        "riskFlags": [
+          "Structural / fatal risk"
+        ],
+        "nextAction": "COMMISSION_SURVEY",
+        "strategyOutcome": "BRRR_OR_FLIP",
+        "reviewRequired": true
+      },
+      "actual": {
+        "finalClassification": "NO_DEAL",
+        "governanceState": "BLOCKED",
+        "rawHeatScore": 95,
+        "rawHeatBand": "HOT",
+        "fatalRisk": true,
+        "overallRisk": "FATAL",
+        "strategyOutcome": "NO_DEAL",
+        "nextAction": "resolve-fatal-risk",
+        "reviewRequired": false,
+        "riskFlags": [
+          "Fatal structural risk",
+          "Fatal Risk Gate"
+        ]
+      }
+    },
+    {
+      "scenarioId": "phase2-010",
+      "name": "Missing evidence / manual review",
+      "pass": true,
+      "failures": [],
+      "expected": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "riskFlags": [
+          "Missing evidence",
+          "Manual review required"
+        ],
+        "nextAction": "REQUEST_EVIDENCE",
+        "strategyOutcome": "BRRR_OR_FLIP",
+        "reviewRequired": true
+      },
+      "actual": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "rawHeatScore": 64,
+        "rawHeatBand": "MARGINAL",
+        "fatalRisk": false,
+        "overallRisk": "HIGH",
+        "strategyOutcome": "MANUAL_REVIEW",
+        "nextAction": "obtain-comparables",
+        "reviewRequired": true,
+        "riskFlags": [
+          "GDV Evidence Gate",
+          "Comparable Evidence Gate",
+          "Missing Critical Evidence Gate",
+          "Missing GDV evidence",
+          "Missing comparables"
+        ]
+      }
+    },
+    {
+      "scenarioId": "phase2-011",
+      "name": "Missing comparables",
+      "pass": true,
+      "failures": [],
+      "expected": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "riskFlags": [
+          "Missing comparables"
+        ],
+        "nextAction": "REQUEST_COMPARABLES",
+        "strategyOutcome": "BRRR_OR_FLIP",
+        "reviewRequired": true
+      },
+      "actual": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "rawHeatScore": 64,
+        "rawHeatBand": "MARGINAL",
+        "fatalRisk": false,
+        "overallRisk": "HIGH",
+        "strategyOutcome": "MANUAL_REVIEW",
+        "nextAction": "obtain-comparables",
+        "reviewRequired": true,
+        "riskFlags": [
+          "GDV Evidence Gate",
+          "Comparable Evidence Gate",
+          "Missing Critical Evidence Gate",
+          "Missing GDV evidence",
+          "Missing comparables"
+        ]
+      }
+    },
+    {
+      "scenarioId": "phase2-012",
+      "name": "Unrealistic GDV",
+      "pass": false,
+      "failures": [
+        "Final classification expected NO_DEAL but got REVIEW_REQUIRED.",
+        "Governance state expected BLOCKED but got REVIEW_REQUIRED."
+      ],
+      "expected": {
+        "finalClassification": "NO_DEAL",
+        "governanceState": "BLOCKED",
+        "riskFlags": [
+          "Unrealistic GDV assumption"
+        ],
+        "nextAction": "VERIFY_GDV",
+        "strategyOutcome": "BRRR_OR_FLIP",
+        "reviewRequired": true
+      },
+      "actual": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "rawHeatScore": 77,
+        "rawHeatBand": "WARM",
+        "fatalRisk": false,
+        "overallRisk": "HIGH",
+        "strategyOutcome": "MANUAL_REVIEW",
+        "nextAction": "validate-gdv",
+        "reviewRequired": true,
+        "riskFlags": [
+          "GDV Evidence Gate",
+          "Comparable Evidence Gate",
+          "Weak GDV evidence",
+          "Thin comparable coverage"
+        ]
+      }
+    },
+    {
+      "scenarioId": "phase2-013",
+      "name": "Long bridge term",
+      "pass": true,
+      "failures": [],
+      "expected": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "riskFlags": [
+          "High finance cost",
+          "Long bridge term"
+        ],
+        "nextAction": "TIGHTEN_FINANCE_ASSUMPTIONS",
+        "strategyOutcome": "FLIP_ONLY_OR_RENEGOTIATE",
+        "reviewRequired": true
+      },
+      "actual": {
+        "finalClassification": "REVIEW_REQUIRED",
+        "governanceState": "REVIEW_REQUIRED",
+        "rawHeatScore": 87,
+        "rawHeatBand": "HOT",
+        "fatalRisk": false,
+        "overallRisk": "HIGH",
+        "strategyOutcome": "MANUAL_REVIEW",
+        "nextAction": "finance-timeline-review",
+        "reviewRequired": true,
+        "riskFlags": [
+          "GDV Evidence Gate",
+          "Finance/Time Risk Gate",
+          "Time/bridge risk"
+        ]
+      }
+    },
+    {
+      "scenarioId": "phase2-014",
+      "name": "Zero refurb edge case",
+      "pass": true,
+      "failures": [],
+      "expected": {
+        "finalClassification": "HOT_OR_WARM",
+        "governanceState": "PASS",
+        "riskFlags": [],
+        "nextAction": "PROCEED",
+        "strategyOutcome": "BRRR_OR_FLIP",
+        "reviewRequired": false
+      },
+      "actual": {
+        "finalClassification": "HOT",
+        "governanceState": "PASS",
+        "rawHeatScore": 100,
+        "rawHeatBand": "HOT",
+        "fatalRisk": false,
+        "overallRisk": "LOW",
+        "strategyOutcome": "BRRR",
+        "nextAction": "proceed-under-governance",
+        "reviewRequired": false,
+        "riskFlags": []
+      }
+    },
+    {
+      "scenarioId": "phase2-015",
+      "name": "High leverage scenario",
+      "pass": true,
+      "failures": [],
+      "expected": {
+        "finalClassification": "NO_DEAL",
+        "governanceState": "BLOCKED",
+        "riskFlags": [
+          "Low profit margin",
+          "Capital overexposure",
+          "Downside GDV creates a loss"
+        ],
+        "nextAction": "REJECT",
+        "strategyOutcome": "NO_DEAL",
+        "reviewRequired": false
+      },
+      "actual": {
+        "finalClassification": "NO_DEAL",
+        "governanceState": "BLOCKED",
+        "rawHeatScore": 50,
+        "rawHeatBand": "MARGINAL",
+        "fatalRisk": true,
+        "overallRisk": "FATAL",
+        "strategyOutcome": "NO_DEAL",
+        "nextAction": "resolve-fatal-risk",
+        "reviewRequired": false,
+        "riskFlags": [
+          "Fatal downside loss",
+          "Capital Protection Gate",
+          "Downside Loss Gate",
+          "GDV Evidence Gate",
+          "Finance/Time Risk Gate",
+          "Fatal Risk Gate",
+          "High leverage"
+        ]
+      }
+    }
+  ],
+  "consistencyResults": [
+    {
+      "scenarioId": "phase2-001",
+      "name": "Strong BRRR candidate",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 100,
+          "band": "HOT",
+          "governanceState": "PASS",
+          "finalClassification": "HOT",
+          "fatalRisk": false,
+          "overallRisk": "LOW",
+          "recommendedStrategy": "BRRR"
+        },
+        {
+          "score": 100,
+          "band": "HOT",
+          "governanceState": "PASS",
+          "finalClassification": "HOT",
+          "fatalRisk": false,
+          "overallRisk": "LOW",
+          "recommendedStrategy": "BRRR"
+        },
+        {
+          "score": 100,
+          "band": "HOT",
+          "governanceState": "PASS",
+          "finalClassification": "HOT",
+          "fatalRisk": false,
+          "overallRisk": "LOW",
+          "recommendedStrategy": "BRRR"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-002",
+      "name": "Marginal deal",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 99,
+          "band": "HOT",
+          "governanceState": "PASS",
+          "finalClassification": "HOT",
+          "fatalRisk": false,
+          "overallRisk": "MEDIUM",
+          "recommendedStrategy": "BRRR"
+        },
+        {
+          "score": 99,
+          "band": "HOT",
+          "governanceState": "PASS",
+          "finalClassification": "HOT",
+          "fatalRisk": false,
+          "overallRisk": "MEDIUM",
+          "recommendedStrategy": "BRRR"
+        },
+        {
+          "score": 99,
+          "band": "HOT",
+          "governanceState": "PASS",
+          "finalClassification": "HOT",
+          "fatalRisk": false,
+          "overallRisk": "MEDIUM",
+          "recommendedStrategy": "BRRR"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-003",
+      "name": "No deal",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 30,
+          "band": "COLD",
+          "governanceState": "BLOCKED",
+          "finalClassification": "NO_DEAL",
+          "fatalRisk": true,
+          "overallRisk": "FATAL",
+          "recommendedStrategy": "NO_DEAL"
+        },
+        {
+          "score": 30,
+          "band": "COLD",
+          "governanceState": "BLOCKED",
+          "finalClassification": "NO_DEAL",
+          "fatalRisk": true,
+          "overallRisk": "FATAL",
+          "recommendedStrategy": "NO_DEAL"
+        },
+        {
+          "score": 30,
+          "band": "COLD",
+          "governanceState": "BLOCKED",
+          "finalClassification": "NO_DEAL",
+          "fatalRisk": true,
+          "overallRisk": "FATAL",
+          "recommendedStrategy": "NO_DEAL"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-004",
+      "name": "Downside loss",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 90,
+          "band": "HOT",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "MEDIUM",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 90,
+          "band": "HOT",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "MEDIUM",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 90,
+          "band": "HOT",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "MEDIUM",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-005",
+      "name": "Weak GDV evidence",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 77,
+          "band": "WARM",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 77,
+          "band": "WARM",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 77,
+          "band": "WARM",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-006",
+      "name": "Heavy refurb exposure",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 77,
+          "band": "WARM",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 77,
+          "band": "WARM",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 77,
+          "band": "WARM",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-007",
+      "name": "High finance cost",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 91,
+          "band": "HOT",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 91,
+          "band": "HOT",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 91,
+          "band": "HOT",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-008",
+      "name": "False HOT deal",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 89,
+          "band": "HOT",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "MEDIUM",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 89,
+          "band": "HOT",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "MEDIUM",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 89,
+          "band": "HOT",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "MEDIUM",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-009",
+      "name": "Structural / fatal risk",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 95,
+          "band": "HOT",
+          "governanceState": "BLOCKED",
+          "finalClassification": "NO_DEAL",
+          "fatalRisk": true,
+          "overallRisk": "FATAL",
+          "recommendedStrategy": "NO_DEAL"
+        },
+        {
+          "score": 95,
+          "band": "HOT",
+          "governanceState": "BLOCKED",
+          "finalClassification": "NO_DEAL",
+          "fatalRisk": true,
+          "overallRisk": "FATAL",
+          "recommendedStrategy": "NO_DEAL"
+        },
+        {
+          "score": 95,
+          "band": "HOT",
+          "governanceState": "BLOCKED",
+          "finalClassification": "NO_DEAL",
+          "fatalRisk": true,
+          "overallRisk": "FATAL",
+          "recommendedStrategy": "NO_DEAL"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-010",
+      "name": "Missing evidence / manual review",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 64,
+          "band": "MARGINAL",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 64,
+          "band": "MARGINAL",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 64,
+          "band": "MARGINAL",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-011",
+      "name": "Missing comparables",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 64,
+          "band": "MARGINAL",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 64,
+          "band": "MARGINAL",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 64,
+          "band": "MARGINAL",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-012",
+      "name": "Unrealistic GDV",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 77,
+          "band": "WARM",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 77,
+          "band": "WARM",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 77,
+          "band": "WARM",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-013",
+      "name": "Long bridge term",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 87,
+          "band": "HOT",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 87,
+          "band": "HOT",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        },
+        {
+          "score": 87,
+          "band": "HOT",
+          "governanceState": "REVIEW_REQUIRED",
+          "finalClassification": "REVIEW_REQUIRED",
+          "fatalRisk": false,
+          "overallRisk": "HIGH",
+          "recommendedStrategy": "MANUAL_REVIEW"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-014",
+      "name": "Zero refurb edge case",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 100,
+          "band": "HOT",
+          "governanceState": "PASS",
+          "finalClassification": "HOT",
+          "fatalRisk": false,
+          "overallRisk": "LOW",
+          "recommendedStrategy": "BRRR"
+        },
+        {
+          "score": 100,
+          "band": "HOT",
+          "governanceState": "PASS",
+          "finalClassification": "HOT",
+          "fatalRisk": false,
+          "overallRisk": "LOW",
+          "recommendedStrategy": "BRRR"
+        },
+        {
+          "score": 100,
+          "band": "HOT",
+          "governanceState": "PASS",
+          "finalClassification": "HOT",
+          "fatalRisk": false,
+          "overallRisk": "LOW",
+          "recommendedStrategy": "BRRR"
+        }
+      ]
+    },
+    {
+      "scenarioId": "phase2-015",
+      "name": "High leverage scenario",
+      "consistent": true,
+      "driftFields": [],
+      "runs": [
+        {
+          "score": 50,
+          "band": "MARGINAL",
+          "governanceState": "BLOCKED",
+          "finalClassification": "NO_DEAL",
+          "fatalRisk": true,
+          "overallRisk": "FATAL",
+          "recommendedStrategy": "NO_DEAL"
+        },
+        {
+          "score": 50,
+          "band": "MARGINAL",
+          "governanceState": "BLOCKED",
+          "finalClassification": "NO_DEAL",
+          "fatalRisk": true,
+          "overallRisk": "FATAL",
+          "recommendedStrategy": "NO_DEAL"
+        },
+        {
+          "score": 50,
+          "band": "MARGINAL",
+          "governanceState": "BLOCKED",
+          "finalClassification": "NO_DEAL",
+          "fatalRisk": true,
+          "overallRisk": "FATAL",
+          "recommendedStrategy": "NO_DEAL"
+        }
+      ]
+    }
+  ],
+  "governanceOverrideResults": [
+    {
+      "scenarioId": "phase2-008",
+      "name": "False HOT deal",
+      "pass": true,
+      "rawHeatScore": 89,
+      "rawHeatBand": "HOT",
+      "governanceState": "REVIEW_REQUIRED",
+      "finalClassification": "REVIEW_REQUIRED",
+      "governanceOverrideApplied": true,
+      "fatalRisk": false,
+      "explanation": "Deal requires manual review before offer."
+    },
+    {
+      "scenarioId": "phase2-009",
+      "name": "Structural / fatal risk",
+      "pass": true,
+      "rawHeatScore": 95,
+      "rawHeatBand": "HOT",
+      "governanceState": "BLOCKED",
+      "finalClassification": "NO_DEAL",
+      "governanceOverrideApplied": true,
+      "fatalRisk": true,
+      "explanation": "Raw HOT score blocked by governance."
+    }
+  ],
+  "edgeCaseResults": [
+    {
+      "caseId": "zero-refurb-safe-execution",
+      "scenarioId": "phase2-014",
+      "pass": true,
+      "explanation": "Governance pass with strong raw opportunity."
+    },
+    {
+      "caseId": "missing-comparables-not-clean-hot",
+      "scenarioId": "phase2-011",
+      "pass": true,
+      "explanation": "Deal requires manual review before offer."
+    },
+    {
+      "caseId": "unrealistic-gdv-risk-created",
+      "scenarioId": "phase2-012",
+      "pass": true,
+      "explanation": "Deal requires manual review before offer."
+    },
+    {
+      "caseId": "long-bridge-time-risk-created",
+      "scenarioId": "phase2-013",
+      "pass": true,
+      "explanation": "Deal requires manual review before offer."
+    },
+    {
+      "caseId": "high-leverage-review-risk-created",
+      "scenarioId": "phase2-015",
+      "pass": true,
+      "explanation": "Deal blocked by governance."
+    },
+    {
+      "caseId": "negative-profit-blocks-capital-protection",
+      "scenarioId": "phase2-003",
+      "pass": true,
+      "explanation": "Deal blocked by governance."
+    }
+  ]
+}

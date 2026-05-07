@@ -21,6 +21,7 @@
       "comparableCoverage": "FULL",
       "refurbEstimateConfidence": "MEDIUM",
       "structuralRiskLevel": "NONE",
+      "loanToValue": 0.92,
       "hotDealClaimed": false,
       "manualReviewTriggers": []
     }

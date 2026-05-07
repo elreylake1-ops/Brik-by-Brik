@@ -2,9 +2,9 @@ import { readFileSync } from "node:fs"
 import path from "node:path"
 import { describe, expect, it } from "vitest"
 import { buildPhase2Analysis } from "@/lib/engine/intelligence"
+import { mapPhase2FixtureToInput } from "@/lib/engine/intelligence/map-phase2-fixture-to-input"
 import { validatePhase2Output } from "@/lib/validators/validate-phase2-output"
 import type { Phase2ScenarioFixture } from "@/types/phase2-validation"
-import type { GovernanceEvidenceStrength } from "@/types/phase2-governance"
 import type { Phase2IntelligenceInput } from "@/types/phase2-intelligence"
 
 function makeBaseInput(overrides: Partial<Phase2IntelligenceInput> = {}): Phase2IntelligenceInput {
@@ -24,37 +24,6 @@ function makeBaseInput(overrides: Partial<Phase2IntelligenceInput> = {}): Phase2
 function loadScenarioFixture(fileName: string): Phase2ScenarioFixture {
   const fixturePath = path.resolve(process.cwd(), "tests", "fixtures", "phase2", fileName)
   return JSON.parse(readFileSync(fixturePath, "utf8")) as Phase2ScenarioFixture
-}
-
-function mapRefurbConfidence(value: "HIGH" | "MEDIUM" | "LOW"): GovernanceEvidenceStrength {
-  if (value === "HIGH") return "STRONG"
-  if (value === "MEDIUM") return "MODERATE"
-  return "WEAK"
-}
-
-function fixtureToIntelligenceInput(
-  fixture: Phase2ScenarioFixture,
-  overrides: Partial<Phase2IntelligenceInput> = {}
-): Phase2IntelligenceInput {
-  return {
-    scenarioId: fixture.scenarioId,
-    purchasePrice: fixture.input.dueDiligence.purchasePrice,
-    gdvRealistic: fixture.input.dueDiligence.gdvRealistic,
-    gdvDownside: fixture.input.dueDiligence.gdvDownside,
-    gdvStrong: fixture.input.dueDiligence.gdvStrong,
-    refurbCost: fixture.input.dueDiligence.refurbCost,
-    bridgeTermMonths: fixture.input.dueDiligence.bridgeTermMonths,
-    comparablesCount: fixture.input.governanceSignals.comparableCount,
-    gdvEvidenceStrength: fixture.input.governanceSignals.gdvEvidenceStrength,
-    refurbEvidenceStrength: mapRefurbConfidence(
-      fixture.input.governanceSignals.refurbEstimateConfidence
-    ),
-    legalEvidenceStrength: "STRONG",
-    hasStructuralRisk: fixture.input.governanceSignals.structuralRiskLevel === "FATAL",
-    manualReviewRequested: fixture.input.governanceSignals.manualReviewTriggers.length > 0,
-    listingSignals: fixture.input.governanceSignals.hotDealClaimed ? ["hot"] : [],
-    ...overrides,
-  }
 }
 
 describe("phase2 deterministic intelligence engines", () => {
@@ -223,7 +192,7 @@ describe("phase2 deterministic intelligence engines", () => {
       loadScenarioFixture("14-zero-refurb-edge-case.json"),
     ]
 
-    const outputs = selectedFixtures.map((fixture) => buildPhase2Analysis(fixtureToIntelligenceInput(fixture)))
+    const outputs = selectedFixtures.map((fixture) => buildPhase2Analysis(mapPhase2FixtureToInput(fixture)))
 
     expect(outputs[0].governance.state).toBe("PASS")
     expect(outputs[1].governance.state).toBe("REVIEW_REQUIRED")
