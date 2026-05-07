@@ -29,3 +29,13 @@ Governance runs above scoring. Fatal risks and hard gates can override raw `HOT`
 Phase 2D will later implement full intelligence and scoring modules.
 
 No AI, scraping, UI, or Phase 3 work has been added in Phase 2C.
+
+## Phase 2D
+
+Deterministic intelligence engines are now added for raw deal heat scoring, risk radar, strategy match, investor summary, next actions, negotiation position, and time risk.
+
+Raw scoring is explainable and non-final. Governance remains final authority and can still override raw `HOT`, `WARM`, or `MARGINAL` outputs.
+
+No AI, scraping, UI, or Phase 3 work has been added in Phase 2D.
+
+Phase 2E will calibrate all 15 fixtures and produce the final pass/fail matrix.
