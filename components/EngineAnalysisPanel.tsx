@@ -58,6 +58,7 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
     engineVerdictReason: result.verdict.reason,
     capitalProtectionStatus: dueDiligence?.decision.capitalProtectionStatus,
     riskFlags: dueDiligence?.decision.riskFlags,
+    warnings: result.warnings,
   })
 
   return (

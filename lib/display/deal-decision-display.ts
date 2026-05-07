@@ -13,6 +13,7 @@ type DealDecisionDisplayInput = {
   engineVerdictReason: string
   capitalProtectionStatus?: CapitalProtectionStatus
   riskFlags?: string[]
+  warnings?: string[]
   phase2FinalClassification?: FinalDealClassification
   phase2GovernanceState?: GovernanceState
 }
@@ -34,6 +35,10 @@ const CAPITAL_EXPOSURE_WARNING =
   "Projected profit is positive, but capital exposure is above the preferred safe threshold. Proceed only with verified GDV, refurb, and exit assumptions."
 const HEAVY_REFURB_WARNING =
   "Refurb cost is high relative to GDV. Validate builder quote, scope, and contingency before offer."
+const UNCOSTED_SCOPE_WARNING =
+  "Selected refurb scope has no cost template, so refurb cost may be understated. Validate scope and cost before offer."
+const UNCOSTED_SCOPE_WARNING_MARKER =
+  "has no task templates in Phase 1A. Cost not included."
 
 function normalizeProfitMarginPercent(value: number): number {
   if (!isFinite(value) || isNaN(value)) return 0
@@ -48,9 +53,18 @@ export function getTechnicalVerdictDetail(
   return `Engine verdict: ${status}. ${reason}`
 }
 
+function hasUncostedSelectedScope(warnings?: string[]): boolean {
+  return warnings?.some((warning) => warning.includes(UNCOSTED_SCOPE_WARNING_MARKER)) ?? false
+}
+
 function getAdditionalWarnings(input: DealDecisionDisplayInput, primaryWarning?: string): string[] | undefined {
   const warnings: string[] = []
   const hasHighRefurbExposure = input.riskFlags?.some((flag) => flag.toLowerCase() === "high refurb exposure")
+  const hasUncostedScope = hasUncostedSelectedScope(input.warnings)
+
+  if (hasUncostedScope && primaryWarning !== UNCOSTED_SCOPE_WARNING) {
+    warnings.push(UNCOSTED_SCOPE_WARNING)
+  }
 
   if (hasHighRefurbExposure && primaryWarning !== HEAVY_REFURB_WARNING) {
     warnings.push(HEAVY_REFURB_WARNING)
@@ -161,6 +175,17 @@ export function getDealDecisionDisplay(
   }
 
   if (input.engineVerdictStatus === "GO") {
+    if (hasUncostedSelectedScope(input.warnings)) {
+      return {
+        statusLabel: "CONDITIONAL",
+        actionLabel: "Verify Scope",
+        summary: "Selected scope includes items with no current cost template, so the refurb total may be understated.",
+        tone: "amber",
+        warning: UNCOSTED_SCOPE_WARNING,
+        additionalWarnings: getAdditionalWarnings(input, UNCOSTED_SCOPE_WARNING),
+      }
+    }
+
     return {
       statusLabel: "GO",
       actionLabel: "Proceed",

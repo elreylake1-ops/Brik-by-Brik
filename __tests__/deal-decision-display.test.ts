@@ -7,6 +7,40 @@ import {
 } from "@/lib/display/deal-decision-display"
 
 describe("client-facing deal decision display guard", () => {
+  it("clean strong deal with no warnings stays go proceed", () => {
+    const display = getDealDecisionDisplay({
+      profit: 40000,
+      profitMargin: 20,
+      engineVerdictStatus: "GO",
+      engineVerdictReason: "Projected profit is positive and purchase is within 20% target MAO.",
+      capitalProtectionStatus: "SAFE",
+      warnings: [],
+    })
+
+    expect(display.statusLabel).toBe("GO")
+    expect(display.actionLabel).toBe("Proceed")
+    expect(display.warning).toBeUndefined()
+  })
+
+  it("clean strong deal with missing task template warning becomes conditional verify scope", () => {
+    const display = getDealDecisionDisplay({
+      profit: 40000,
+      profitMargin: 20,
+      engineVerdictStatus: "GO",
+      engineVerdictReason: "Projected profit is positive and purchase is within 20% target MAO.",
+      capitalProtectionStatus: "SAFE",
+      warnings: [
+        'Scope "refresh" for "kitchen" has no task templates in Phase 1A. Cost not included. Add templates to task-cost-library.ts.',
+      ],
+    })
+
+    expect(display.statusLabel).toBe("CONDITIONAL")
+    expect(display.actionLabel).toBe("Verify Scope")
+    expect(display.warning).toBe(
+      "Selected refurb scope has no cost template, so refurb cost may be understated. Validate scope and cost before offer."
+    )
+  })
+
   it("positive 1.38% margin uses thin-margin warning", () => {
     const display = getDealDecisionDisplay({
       profit: 2760,
@@ -14,6 +48,9 @@ describe("client-facing deal decision display guard", () => {
       engineVerdictStatus: "NO-GO",
       engineVerdictReason: "Purchase exceeds MAO target even though projected profit remains positive.",
       capitalProtectionStatus: "NO_DEAL",
+      warnings: [
+        'Scope "refresh" for "kitchen" has no task templates in Phase 1A. Cost not included. Add templates to task-cost-library.ts.',
+      ],
     })
 
     expect(display.statusLabel).toBe("MARGINAL")
@@ -21,6 +58,9 @@ describe("client-facing deal decision display guard", () => {
     expect(display.summary).toContain("Thin profit buffer")
     expect(display.warning).toBe(
       "Profit margin is below 5%. Renegotiate purchase price or verify GDV/refurb assumptions before proceeding."
+    )
+    expect(display.additionalWarnings).toContain(
+      "Selected refurb scope has no cost template, so refurb cost may be understated. Validate scope and cost before offer."
     )
   })
 
@@ -48,6 +88,9 @@ describe("client-facing deal decision display guard", () => {
       engineVerdictStatus: "NO-GO",
       engineVerdictReason: "Purchase exceeds MAO bands and/or projected profit is non-positive.",
       capitalProtectionStatus: "NO_DEAL",
+      warnings: [
+        'Scope "partial" for "bathroom" has no task templates in Phase 1A. Cost not included. Add templates to task-cost-library.ts.',
+      ],
     })
 
     expect(display.statusLabel).toBe("NO-GO")
@@ -56,6 +99,9 @@ describe("client-facing deal decision display guard", () => {
       "Projected profit is negative. Reject this deal unless purchase price, GDV, or refurb assumptions materially change."
     )
     expect(display.warning).not.toContain("below 5%")
+    expect(display.additionalWarnings).toContain(
+      "Selected refurb scope has no cost template, so refurb cost may be understated. Validate scope and cost before offer."
+    )
   })
 
   it("9.08% margin uses caution messaging", () => {
