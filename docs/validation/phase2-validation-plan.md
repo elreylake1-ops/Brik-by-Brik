@@ -53,3 +53,11 @@ Governance override proof is now included so raw attractive scores can still end
 Known limitations are documented explicitly.
 
 Phase 3 remains blocked until the client reviews and accepts this validation package.
+
+## Phase 2F
+
+Client return package is now created.
+
+The Phase 2 validation package now contains the stress report, JSON results, architecture notes, JSON samples, known limitations, and recommended refinements.
+
+Phase 3 remains blocked pending client acceptance of this validation package.
