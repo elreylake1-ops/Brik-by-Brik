@@ -12,6 +12,7 @@ type DealDecisionDisplayInput = {
   engineVerdictStatus: DealVerdictStatus
   engineVerdictReason: string
   capitalProtectionStatus?: CapitalProtectionStatus
+  riskFlags?: string[]
   phase2FinalClassification?: FinalDealClassification
   phase2GovernanceState?: GovernanceState
 }
@@ -22,10 +23,17 @@ export type DealDecisionDisplay = {
   summary: string
   tone: "green" | "amber" | "red"
   warning?: string
+  additionalWarnings?: string[]
 }
 
+const NEGATIVE_PROFIT_WARNING =
+  "Projected profit is negative. Reject this deal unless purchase price, GDV, or refurb assumptions materially change."
 const THIN_MARGIN_WARNING =
   "Profit margin is below 5%. Renegotiate purchase price or verify GDV/refurb assumptions before proceeding."
+const CAPITAL_EXPOSURE_WARNING =
+  "Projected profit is positive, but capital exposure is above the preferred safe threshold. Proceed only with verified GDV, refurb, and exit assumptions."
+const HEAVY_REFURB_WARNING =
+  "Refurb cost is high relative to GDV. Validate builder quote, scope, and contingency before offer."
 
 function normalizeProfitMarginPercent(value: number): number {
   if (!isFinite(value) || isNaN(value)) return 0
@@ -38,6 +46,17 @@ export function getTechnicalVerdictDetail(
   reason: string
 ): string {
   return `Engine verdict: ${status}. ${reason}`
+}
+
+function getAdditionalWarnings(input: DealDecisionDisplayInput, primaryWarning?: string): string[] | undefined {
+  const warnings: string[] = []
+  const hasHighRefurbExposure = input.riskFlags?.some((flag) => flag.toLowerCase() === "high refurb exposure")
+
+  if (hasHighRefurbExposure && primaryWarning !== HEAVY_REFURB_WARNING) {
+    warnings.push(HEAVY_REFURB_WARNING)
+  }
+
+  return warnings.length > 0 ? warnings : undefined
 }
 
 export function getDealDecisionDisplay(
@@ -76,6 +95,8 @@ export function getDealDecisionDisplay(
       actionLabel: "Reject",
       summary: "Projected profit is negative. The deal does not support a safe proceed decision.",
       tone: "red",
+      warning: NEGATIVE_PROFIT_WARNING,
+      additionalWarnings: getAdditionalWarnings(input, NEGATIVE_PROFIT_WARNING),
     }
   }
 
@@ -86,6 +107,7 @@ export function getDealDecisionDisplay(
       summary: "Thin profit buffer. Not safe to proceed as-is.",
       tone: "red",
       warning: THIN_MARGIN_WARNING,
+      additionalWarnings: getAdditionalWarnings(input, THIN_MARGIN_WARNING),
     }
   }
 
@@ -95,6 +117,21 @@ export function getDealDecisionDisplay(
       actionLabel: "Needs Stronger Buffer",
       summary: "Profit buffer is thin and should be strengthened before treating the deal as clean.",
       tone: "amber",
+      additionalWarnings: getAdditionalWarnings(input),
+    }
+  }
+
+  if (
+    input.capitalProtectionStatus === "CAUTION" ||
+    input.capitalProtectionStatus === "HIGH_RISK"
+  ) {
+    return {
+      statusLabel: "CONDITIONAL",
+      actionLabel: "Proceed With Caution",
+      summary: "Projected profit is positive, but capital exposure remains above the preferred safe threshold.",
+      tone: "amber",
+      warning: CAPITAL_EXPOSURE_WARNING,
+      additionalWarnings: getAdditionalWarnings(input, CAPITAL_EXPOSURE_WARNING),
     }
   }
 
@@ -107,12 +144,11 @@ export function getDealDecisionDisplay(
       actionLabel: "Reject",
       summary: "Capital protection or verdict checks do not support progression.",
       tone: "red",
+      additionalWarnings: getAdditionalWarnings(input),
     }
   }
 
   if (
-    input.capitalProtectionStatus === "HIGH_RISK" ||
-    input.capitalProtectionStatus === "CAUTION" ||
     input.engineVerdictStatus === "CONDITIONAL"
   ) {
     return {
@@ -120,6 +156,7 @@ export function getDealDecisionDisplay(
       actionLabel: "Proceed With Caution",
       summary: input.engineVerdictReason,
       tone: "amber",
+      additionalWarnings: getAdditionalWarnings(input),
     }
   }
 
@@ -129,6 +166,7 @@ export function getDealDecisionDisplay(
       actionLabel: "Proceed",
       summary: input.engineVerdictReason,
       tone: "green",
+      additionalWarnings: getAdditionalWarnings(input),
     }
   }
 
@@ -137,5 +175,6 @@ export function getDealDecisionDisplay(
     actionLabel: "Complete Core Inputs",
     summary: input.engineVerdictReason,
     tone: "amber",
+    additionalWarnings: getAdditionalWarnings(input),
   }
 }

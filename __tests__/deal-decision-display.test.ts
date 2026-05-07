@@ -7,10 +7,10 @@ import {
 } from "@/lib/display/deal-decision-display"
 
 describe("client-facing deal decision display guard", () => {
-  it("positive profit and 4.73% margin returns marginal renegotiate messaging", () => {
+  it("positive 1.38% margin uses thin-margin warning", () => {
     const display = getDealDecisionDisplay({
-      profit: 9450,
-      profitMargin: 4.73,
+      profit: 2760,
+      profitMargin: 1.38,
       engineVerdictStatus: "NO-GO",
       engineVerdictReason: "Purchase exceeds MAO target even though projected profit remains positive.",
       capitalProtectionStatus: "NO_DEAL",
@@ -41,7 +41,7 @@ describe("client-facing deal decision display guard", () => {
     )
   })
 
-  it("negative profit returns no-go reject messaging", () => {
+  it("negative profit uses the negative-profit warning, not the thin-margin warning", () => {
     const display = getDealDecisionDisplay({
       profit: -5000,
       profitMargin: -2,
@@ -52,9 +52,43 @@ describe("client-facing deal decision display guard", () => {
 
     expect(display.statusLabel).toBe("NO-GO")
     expect(display.actionLabel).toBe("Reject")
+    expect(display.warning).toBe(
+      "Projected profit is negative. Reject this deal unless purchase price, GDV, or refurb assumptions materially change."
+    )
+    expect(display.warning).not.toContain("below 5%")
   })
 
-  it("healthy 20% margin does not show thin-margin warning", () => {
+  it("9.08% margin uses caution messaging", () => {
+    const display = getDealDecisionDisplay({
+      profit: 18160,
+      profitMargin: 9.08,
+      engineVerdictStatus: "CONDITIONAL",
+      engineVerdictReason: "Margin is positive but not yet strong enough for a clean proceed decision.",
+      capitalProtectionStatus: "SAFE",
+    })
+
+    expect(display.statusLabel).toBe("CAUTION")
+    expect(display.actionLabel).toBe("Needs Stronger Buffer")
+    expect(display.warning).toBeUndefined()
+  })
+
+  it("19% margin with high capital exposure stays conditional with capital warning", () => {
+    const display = getDealDecisionDisplay({
+      profit: 38000,
+      profitMargin: 19,
+      engineVerdictStatus: "GO",
+      engineVerdictReason: "Profit is attractive but funding exposure remains elevated.",
+      capitalProtectionStatus: "HIGH_RISK",
+    })
+
+    expect(display.statusLabel).toBe("CONDITIONAL")
+    expect(display.actionLabel).toBe("Proceed With Caution")
+    expect(display.warning).toBe(
+      "Projected profit is positive, but capital exposure is above the preferred safe threshold. Proceed only with verified GDV, refurb, and exit assumptions."
+    )
+  })
+
+  it("strong margin with safe capital does not show warning", () => {
     const display = getDealDecisionDisplay({
       profit: 40000,
       profitMargin: 20,
@@ -65,6 +99,21 @@ describe("client-facing deal decision display guard", () => {
 
     expect(display.statusLabel).toBe("GO")
     expect(display.warning).toBeUndefined()
+  })
+
+  it("heavy refurb exposure warning text is available", () => {
+    const display = getDealDecisionDisplay({
+      profit: 22000,
+      profitMargin: 11,
+      engineVerdictStatus: "CONDITIONAL",
+      engineVerdictReason: "Scope is larger than a light-touch refurb.",
+      capitalProtectionStatus: "SAFE",
+      riskFlags: ["High refurb exposure"],
+    })
+
+    expect(display.additionalWarnings).toContain(
+      "Refurb cost is high relative to GDV. Validate builder quote, scope, and contingency before offer."
+    )
   })
 
   it("confidence label copy no longer implies deal quality", () => {

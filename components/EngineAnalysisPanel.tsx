@@ -57,6 +57,7 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
     engineVerdictStatus: result.verdict.status,
     engineVerdictReason: result.verdict.reason,
     capitalProtectionStatus: dueDiligence?.decision.capitalProtectionStatus,
+    riskFlags: dueDiligence?.decision.riskFlags,
   })
 
   return (
@@ -107,6 +108,19 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
       {displayDecision.warning && (
         <div className="mt-3 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
           {displayDecision.warning}
+        </div>
+      )}
+
+      {displayDecision.additionalWarnings && displayDecision.additionalWarnings.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {displayDecision.additionalWarnings.map((warning) => (
+            <div
+              key={warning}
+              className="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+            >
+              {warning}
+            </div>
+          ))}
         </div>
       )}
 

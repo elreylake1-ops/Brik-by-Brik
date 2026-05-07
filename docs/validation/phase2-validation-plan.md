@@ -63,3 +63,5 @@ The Phase 2 validation package now contains the stress report, JSON results, arc
 Phase 3 remains blocked pending client acceptance of this validation package.
 
 Manual UI safety alignment is now added so thin-margin deals are not presented as strong or clean.
+
+Phase 2G copy polish clarified negative-profit, thin-margin, capital-exposure, and heavy-refurb warning hierarchy for safer client-facing review.
