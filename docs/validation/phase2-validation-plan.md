@@ -19,3 +19,13 @@ Phase 2C will implement governance execution using these contracts.
 Governance must override scoring. A high score must still be able to end as `NO_DEAL` or `REVIEW_REQUIRED` when the control layer requires it.
 
 No AI, scraping, UI, or Phase 3 work has been added in Phase 2B.
+
+## Phase 2C
+
+Governance execution layer is now implemented.
+
+Governance runs above scoring. Fatal risks and hard gates can override raw `HOT` or `WARM` classifications and force `NO_DEAL` or `REVIEW_REQUIRED`.
+
+Phase 2D will later implement full intelligence and scoring modules.
+
+No AI, scraping, UI, or Phase 3 work has been added in Phase 2C.
