@@ -1,0 +1,42 @@
+{
+  "scenarioId": "phase2-006",
+  "name": "Heavy refurb exposure",
+  "description": "Refurb load is high relative to purchase price and should be surfaced as a capital-risk case.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 100000,
+      "gdvRealistic": 185000,
+      "refurbCost": 35000,
+      "stampDuty": 3000,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "MODERATE",
+      "comparableCount": 4,
+      "comparableCoverage": "FULL",
+      "refurbEstimateConfidence": "LOW",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": [
+        "Refurb budget is high relative to entry price."
+      ]
+    }
+  },
+  "expectedClassification": "MARGINAL",
+  "expectedGovernanceState": "MANUAL_REVIEW",
+  "expectedRiskFlags": [
+    "High refurb exposure"
+  ],
+  "expectedNextAction": "RENEGOTIATE",
+  "expectedStrategyOutcome": "FLIP_ONLY_OR_RENEGOTIATE",
+  "expectedReviewRequired": true,
+  "notes": [
+    "Protects against overstretching capex assumptions.",
+    "Later governance can decide whether to block or simply tighten controls."
+  ]
+}

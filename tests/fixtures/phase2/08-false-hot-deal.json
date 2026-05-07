@@ -1,0 +1,42 @@
+{
+  "scenarioId": "phase2-008",
+  "name": "False HOT deal",
+  "description": "Urgency is claimed by the seller or source, but the numbers do not justify rush treatment.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 128000,
+      "gdvRealistic": 205000,
+      "refurbCost": 18000,
+      "stampDuty": 4000,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "MODERATE",
+      "comparableCount": 3,
+      "comparableCoverage": "LIMITED",
+      "refurbEstimateConfidence": "MEDIUM",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": true,
+      "manualReviewTriggers": [
+        "Urgency claim is unsupported by the underwriting edge."
+      ]
+    }
+  },
+  "expectedClassification": "MARGINAL",
+  "expectedGovernanceState": "MANUAL_REVIEW",
+  "expectedRiskFlags": [
+    "False urgency / HOT deal unsupported"
+  ],
+  "expectedNextAction": "RENEGOTIATE",
+  "expectedStrategyOutcome": "FLIP_ONLY_OR_RENEGOTIATE",
+  "expectedReviewRequired": true,
+  "notes": [
+    "Prevents sales pressure from bypassing controls.",
+    "No UI behavior is added here; only the fixture contract is defined."
+  ]
+}

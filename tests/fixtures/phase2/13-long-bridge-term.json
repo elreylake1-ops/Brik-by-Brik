@@ -1,0 +1,43 @@
+{
+  "scenarioId": "phase2-013",
+  "name": "Long bridge term",
+  "description": "An extended bridge period increases financing drag and should be surfaced separately from ordinary pricing risk.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 120000,
+      "gdvRealistic": 210000,
+      "refurbCost": 15000,
+      "stampDuty": 4000,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 18,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "MODERATE",
+      "comparableCount": 4,
+      "comparableCoverage": "FULL",
+      "refurbEstimateConfidence": "MEDIUM",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": [
+        "Bridge term is materially longer than the base case."
+      ]
+    }
+  },
+  "expectedClassification": "MARGINAL",
+  "expectedGovernanceState": "MANUAL_REVIEW",
+  "expectedRiskFlags": [
+    "High finance cost",
+    "Long bridge term"
+  ],
+  "expectedNextAction": "TIGHTEN_FINANCE_ASSUMPTIONS",
+  "expectedStrategyOutcome": "FLIP_ONLY_OR_RENEGOTIATE",
+  "expectedReviewRequired": true,
+  "notes": [
+    "Current engine can validate the finance-cost side of this scenario.",
+    "The long-term governance flag will be enforced in a later phase."
+  ]
+}

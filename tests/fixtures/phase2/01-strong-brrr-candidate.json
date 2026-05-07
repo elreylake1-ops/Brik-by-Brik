@@ -1,0 +1,38 @@
+{
+  "scenarioId": "phase2-001",
+  "name": "Strong BRRR candidate",
+  "description": "Healthy margin, safe capital use, and complete supporting evidence make this a clean baseline pass case.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 110000,
+      "gdvRealistic": 200000,
+      "refurbCost": 20000,
+      "stampDuty": 3500,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "STRONG",
+      "comparableCount": 5,
+      "comparableCoverage": "FULL",
+      "refurbEstimateConfidence": "HIGH",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": []
+    }
+  },
+  "expectedClassification": "STRONG_DEAL",
+  "expectedGovernanceState": "PASS",
+  "expectedRiskFlags": [],
+  "expectedNextAction": "PROCEED",
+  "expectedStrategyOutcome": "BRRR_OR_FLIP",
+  "expectedReviewRequired": false,
+  "notes": [
+    "Baseline pass scenario for deterministic engine behavior.",
+    "Numeric outputs should remain stable unless client-approved formulas change."
+  ]
+}

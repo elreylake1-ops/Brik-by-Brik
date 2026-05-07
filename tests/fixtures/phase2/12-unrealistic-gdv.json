@@ -1,0 +1,42 @@
+{
+  "scenarioId": "phase2-012",
+  "name": "Unrealistic GDV",
+  "description": "The headline GDV is too optimistic relative to the available evidence and should be challenged before approval.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 120000,
+      "gdvRealistic": 240000,
+      "refurbCost": 15000,
+      "stampDuty": 4000,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "WEAK",
+      "comparableCount": 1,
+      "comparableCoverage": "LIMITED",
+      "refurbEstimateConfidence": "HIGH",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": [
+        "GDV appears stretched beyond the comparable evidence."
+      ]
+    }
+  },
+  "expectedClassification": "STRONG_DEAL",
+  "expectedGovernanceState": "BLOCK",
+  "expectedRiskFlags": [
+    "Unrealistic GDV assumption"
+  ],
+  "expectedNextAction": "VERIFY_GDV",
+  "expectedStrategyOutcome": "BRRR_OR_FLIP",
+  "expectedReviewRequired": true,
+  "notes": [
+    "Second explicit override case where numeric strength should not be trusted by itself.",
+    "Helps prevent scoring drift from masking optimistic valuation assumptions."
+  ]
+}

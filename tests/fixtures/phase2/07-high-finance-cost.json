@@ -1,0 +1,42 @@
+{
+  "scenarioId": "phase2-007",
+  "name": "High finance cost",
+  "description": "Finance drag pushes the deal into a thinner margin profile and should be clearly flagged.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 130000,
+      "gdvRealistic": 210000,
+      "refurbCost": 10000,
+      "stampDuty": 4000,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 12,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "MODERATE",
+      "comparableCount": 4,
+      "comparableCoverage": "FULL",
+      "refurbEstimateConfidence": "MEDIUM",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": [
+        "Bridge pricing needs challenge before approval."
+      ]
+    }
+  },
+  "expectedClassification": "MARGINAL",
+  "expectedGovernanceState": "MANUAL_REVIEW",
+  "expectedRiskFlags": [
+    "High finance cost"
+  ],
+  "expectedNextAction": "TIGHTEN_FINANCE_ASSUMPTIONS",
+  "expectedStrategyOutcome": "FLIP_ONLY_OR_RENEGOTIATE",
+  "expectedReviewRequired": true,
+  "notes": [
+    "Numeric engine already exposes this risk flag.",
+    "Later governance can force tighter funding assumptions or reject the deal."
+  ]
+}

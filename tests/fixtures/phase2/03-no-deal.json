@@ -1,0 +1,42 @@
+{
+  "scenarioId": "phase2-003",
+  "name": "No deal",
+  "description": "Loss-making deal with capital overexposure that should fail cleanly and consistently.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 180000,
+      "gdvRealistic": 200000,
+      "refurbCost": 10000,
+      "stampDuty": 6000,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "STRONG",
+      "comparableCount": 5,
+      "comparableCoverage": "FULL",
+      "refurbEstimateConfidence": "HIGH",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": []
+    }
+  },
+  "expectedClassification": "NO_DEAL",
+  "expectedGovernanceState": "BLOCK",
+  "expectedRiskFlags": [
+    "Low profit margin",
+    "Capital overexposure",
+    "Downside GDV creates a loss"
+  ],
+  "expectedNextAction": "REJECT",
+  "expectedStrategyOutcome": "NO_DEAL",
+  "expectedReviewRequired": false,
+  "notes": [
+    "Capital protection should fail deterministically.",
+    "This is an automatic block, not a manual-review case."
+  ]
+}

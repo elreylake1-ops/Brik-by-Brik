@@ -1,0 +1,42 @@
+{
+  "scenarioId": "phase2-009",
+  "name": "Structural / fatal risk",
+  "description": "A numerically attractive deal still needs to be blocked when structural risk is severe or potentially fatal.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 105000,
+      "gdvRealistic": 200000,
+      "refurbCost": 15000,
+      "stampDuty": 3500,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "STRONG",
+      "comparableCount": 5,
+      "comparableCoverage": "FULL",
+      "refurbEstimateConfidence": "MEDIUM",
+      "structuralRiskLevel": "FATAL",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": [
+        "Survey indicates fatal structural risk."
+      ]
+    }
+  },
+  "expectedClassification": "STRONG_DEAL",
+  "expectedGovernanceState": "BLOCK",
+  "expectedRiskFlags": [
+    "Structural / fatal risk"
+  ],
+  "expectedNextAction": "COMMISSION_SURVEY",
+  "expectedStrategyOutcome": "BRRR_OR_FLIP",
+  "expectedReviewRequired": true,
+  "notes": [
+    "Explicit future override case: governance should beat numeric strength.",
+    "Phase 2A only captures the expected outcome and test fixture."
+  ]
+}

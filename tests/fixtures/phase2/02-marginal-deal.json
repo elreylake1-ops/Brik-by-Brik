@@ -1,0 +1,38 @@
+{
+  "scenarioId": "phase2-002",
+  "name": "Marginal deal",
+  "description": "Deal still works numerically, but the margin is thin enough that it should be treated as cautionary rather than strong.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 125000,
+      "gdvRealistic": 200000,
+      "refurbCost": 20000,
+      "stampDuty": 4000,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "MODERATE",
+      "comparableCount": 4,
+      "comparableCoverage": "FULL",
+      "refurbEstimateConfidence": "MEDIUM",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": []
+    }
+  },
+  "expectedClassification": "MARGINAL",
+  "expectedGovernanceState": "PASS",
+  "expectedRiskFlags": [],
+  "expectedNextAction": "PROCEED_WITH_CAUTION",
+  "expectedStrategyOutcome": "FLIP_ONLY_OR_RENEGOTIATE",
+  "expectedReviewRequired": false,
+  "notes": [
+    "Locks a thin-margin but still valid scenario.",
+    "Useful for verifying later governance layers do not silently inflate borderline deals."
+  ]
+}

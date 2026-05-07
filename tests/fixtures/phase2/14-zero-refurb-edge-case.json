@@ -1,0 +1,38 @@
+{
+  "scenarioId": "phase2-014",
+  "name": "Zero refurb edge case",
+  "description": "A zero-refurb case should remain deterministic and not require special-case UI or governance behavior.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 115000,
+      "gdvRealistic": 180000,
+      "refurbCost": 0,
+      "stampDuty": 3500,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "STRONG",
+      "comparableCount": 5,
+      "comparableCoverage": "FULL",
+      "refurbEstimateConfidence": "HIGH",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": []
+    }
+  },
+  "expectedClassification": "STRONG_DEAL",
+  "expectedGovernanceState": "PASS",
+  "expectedRiskFlags": [],
+  "expectedNextAction": "PROCEED",
+  "expectedStrategyOutcome": "BRRR_OR_FLIP",
+  "expectedReviewRequired": false,
+  "notes": [
+    "Edge-case guard for zero refurb input.",
+    "Helps prove deterministic handling of minimal-cost scenarios."
+  ]
+}

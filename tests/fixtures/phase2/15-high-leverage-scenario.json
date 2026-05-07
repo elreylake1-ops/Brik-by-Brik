@@ -1,0 +1,42 @@
+{
+  "scenarioId": "phase2-015",
+  "name": "High leverage scenario",
+  "description": "Leverage is too aggressive for the valuation and should fail as a capital-protection case.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 145000,
+      "gdvRealistic": 170000,
+      "refurbCost": 5000,
+      "stampDuty": 5000,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "MODERATE",
+      "comparableCount": 3,
+      "comparableCoverage": "FULL",
+      "refurbEstimateConfidence": "MEDIUM",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": []
+    }
+  },
+  "expectedClassification": "NO_DEAL",
+  "expectedGovernanceState": "BLOCK",
+  "expectedRiskFlags": [
+    "Low profit margin",
+    "Capital overexposure",
+    "Downside GDV creates a loss"
+  ],
+  "expectedNextAction": "REJECT",
+  "expectedStrategyOutcome": "NO_DEAL",
+  "expectedReviewRequired": false,
+  "notes": [
+    "Direct capital-protection failure scenario.",
+    "Useful to prove the engine blocks unsafe leverage before later phases."
+  ]
+}

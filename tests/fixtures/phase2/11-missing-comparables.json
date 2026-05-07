@@ -1,0 +1,42 @@
+{
+  "scenarioId": "phase2-011",
+  "name": "Missing comparables",
+  "description": "Deal economics are attractive, but there are no usable comparables to support the valuation case.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 118000,
+      "gdvRealistic": 208000,
+      "refurbCost": 18000,
+      "stampDuty": 3500,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "MISSING",
+      "comparableCount": 0,
+      "comparableCoverage": "NONE",
+      "refurbEstimateConfidence": "HIGH",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": [
+        "No comparables attached to support GDV."
+      ]
+    }
+  },
+  "expectedClassification": "STRONG_DEAL",
+  "expectedGovernanceState": "MANUAL_REVIEW",
+  "expectedRiskFlags": [
+    "Missing comparables"
+  ],
+  "expectedNextAction": "REQUEST_COMPARABLES",
+  "expectedStrategyOutcome": "BRRR_OR_FLIP",
+  "expectedReviewRequired": true,
+  "notes": [
+    "Distinct from general missing evidence so the control layer can react precisely.",
+    "Useful for future governance rules around valuation support."
+  ]
+}

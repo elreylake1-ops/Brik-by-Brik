@@ -1,0 +1,42 @@
+{
+  "scenarioId": "phase2-005",
+  "name": "Weak GDV evidence",
+  "description": "Numbers are strong, but the comparable evidence is weak enough that governance should pause the deal for review.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 115000,
+      "gdvRealistic": 210000,
+      "refurbCost": 18000,
+      "stampDuty": 3500,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "WEAK",
+      "comparableCount": 2,
+      "comparableCoverage": "LIMITED",
+      "refurbEstimateConfidence": "HIGH",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": [
+        "Comparable evidence is too thin for the GDV claim."
+      ]
+    }
+  },
+  "expectedClassification": "STRONG_DEAL",
+  "expectedGovernanceState": "MANUAL_REVIEW",
+  "expectedRiskFlags": [
+    "Weak GDV evidence"
+  ],
+  "expectedNextAction": "REQUEST_COMPARABLES",
+  "expectedStrategyOutcome": "BRRR_OR_FLIP",
+  "expectedReviewRequired": true,
+  "notes": [
+    "Numeric engine should stay strong while governance is still able to pause the case.",
+    "This fixture is intentionally designed to become an override scenario in Phase 2C."
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "scenarioId": "phase2-004",
+  "name": "Downside loss",
+  "description": "Realistic case is still investable, but a defined downside GDV turns the deal negative and should trigger caution.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 125000,
+      "gdvRealistic": 195000,
+      "gdvDownside": 160000,
+      "refurbCost": 18000,
+      "stampDuty": 4000,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "MODERATE",
+      "comparableCount": 4,
+      "comparableCoverage": "LIMITED",
+      "refurbEstimateConfidence": "MEDIUM",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": [
+        "Downside case becomes loss-making."
+      ]
+    }
+  },
+  "expectedClassification": "MARGINAL",
+  "expectedGovernanceState": "MANUAL_REVIEW",
+  "expectedRiskFlags": [
+    "Downside GDV creates a loss"
+  ],
+  "expectedNextAction": "VERIFY_GDV",
+  "expectedStrategyOutcome": "FLIP_ONLY_OR_RENEGOTIATE",
+  "expectedReviewRequired": true,
+  "notes": [
+    "Stress case for uncertainty handling.",
+    "Keeps the numeric classification separate from later governance review."
+  ]
+}

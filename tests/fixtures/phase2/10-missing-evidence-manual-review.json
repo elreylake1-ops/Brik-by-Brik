@@ -1,0 +1,44 @@
+{
+  "scenarioId": "phase2-010",
+  "name": "Missing evidence / manual review",
+  "description": "Core documents are missing, so the case should be paused even though the numbers look investable.",
+  "input": {
+    "dueDiligence": {
+      "purchasePrice": 112000,
+      "gdvRealistic": 205000,
+      "refurbCost": 16000,
+      "stampDuty": 3500,
+      "legalCosts": 2000,
+      "saleCosts": 3000,
+      "bridgeTermMonths": 6,
+      "bridgeInterestRateAnnual": 0.15,
+      "arrangementFeePercent": 0.02,
+      "exitFeePercent": 0.01
+    },
+    "governanceSignals": {
+      "gdvEvidenceStrength": "MISSING",
+      "comparableCount": 0,
+      "comparableCoverage": "NONE",
+      "refurbEstimateConfidence": "MEDIUM",
+      "structuralRiskLevel": "NONE",
+      "hotDealClaimed": false,
+      "manualReviewTriggers": [
+        "Comparable pack missing.",
+        "Supporting evidence incomplete."
+      ]
+    }
+  },
+  "expectedClassification": "STRONG_DEAL",
+  "expectedGovernanceState": "MANUAL_REVIEW",
+  "expectedRiskFlags": [
+    "Missing evidence",
+    "Manual review required"
+  ],
+  "expectedNextAction": "REQUEST_EVIDENCE",
+  "expectedStrategyOutcome": "BRRR_OR_FLIP",
+  "expectedReviewRequired": true,
+  "notes": [
+    "Separates missing paperwork from numeric scoring.",
+    "Manual review should be explicit rather than hidden inside a score."
+  ]
+}
