@@ -49,7 +49,7 @@ describe("phase2 governance execution", () => {
     expect(result.evidenceStatus.missingCriticalEvidence).toContain("comparables")
   })
 
-  it("unrealistic GDV or weak GDV evidence triggers review", () => {
+  it("weak GDV evidence without explicit unrealistic flag triggers review", () => {
     const result = applyGovernance(
       makeBaseInput({
         gdvRealistic: 240000,
@@ -62,6 +62,27 @@ describe("phase2 governance execution", () => {
     expect(result.reviewRequired).toBe(true)
     expect(result.governance.state).toBe("REVIEW_REQUIRED")
     expect(result.decisionGates.some((gate) => gate.gateId === "gdv-evidence" && gate.status !== "PASS")).toBe(true)
+  })
+
+  it("explicit unrealistic GDV risk blocks as NO_DEAL", () => {
+    const result = applyGovernance(
+      makeBaseInput({
+        gdvRealistic: 240000,
+        comparablesCount: 1,
+        gdvEvidenceStrength: "WEAK",
+        hasUnrealisticGdvRisk: true,
+        rawClassification: "HOT",
+      })
+    )
+
+    expect(result.governance.state).toBe("BLOCKED")
+    expect(result.governance.finalClassification).toBe("NO_DEAL")
+    expect(result.governance.fatalRisk).toBe(true)
+    expect(
+      result.decisionGates.some(
+        (gate) => gate.gateId === "unrealistic-gdv-assumption" && gate.status === "FAIL"
+      )
+    ).toBe(true)
   })
 
   it("long bridge term triggers finance/time risk review", () => {
@@ -160,5 +181,20 @@ describe("phase2 governance execution", () => {
 
     expect(result.governance.finalClassification).not.toBe("HOT")
     expect(result.governance.finalClassification).toBe("NO_DEAL")
+  })
+
+  it("blocked structural fatal risk keeps review context when manual review was requested", () => {
+    const result = applyGovernance(
+      makeBaseInput({
+        rawHeatScore: 84,
+        rawClassification: "HOT",
+        hasStructuralRisk: true,
+        manualReviewRequested: true,
+      })
+    )
+
+    expect(result.governance.state).toBe("BLOCKED")
+    expect(result.governance.finalClassification).toBe("NO_DEAL")
+    expect(result.governance.reviewRequired).toBe(true)
   })
 })

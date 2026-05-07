@@ -87,7 +87,27 @@ describe("phase2 deterministic intelligence engines", () => {
     )
 
     expect(output.riskRadar.riskFlags.some((flag) => flag.code === "GDV_EVIDENCE_WEAK")).toBe(true)
+    expect(output.nextActions.some((action) => action.id === "obtain-comparables")).toBe(true)
     expect(output.investorSummary.investorWarnings.length).toBeGreaterThan(0)
+  })
+
+  it("marginal deal no longer reaches raw HOT and prefers FLIP over BRRR", () => {
+    const fixture = loadScenarioFixture("02-marginal-deal.json")
+    const output = buildPhase2Analysis(mapPhase2FixtureToInput(fixture))
+
+    expect(output.dealHeatScore.band).toBe("MARGINAL")
+    expect(output.governance.finalClassification).toBe("MARGINAL")
+    expect(output.strategyMatch.recommendedStrategy).toBe("FLIP")
+  })
+
+  it("downside loss creates explicit downside risk and verification action", () => {
+    const fixture = loadScenarioFixture("04-downside-loss.json")
+    const output = buildPhase2Analysis(mapPhase2FixtureToInput(fixture))
+
+    expect(
+      output.riskRadar.riskFlags.some((flag) => flag.label === "Downside GDV creates a loss")
+    ).toBe(true)
+    expect(output.nextActions.some((action) => action.id === "verify-downside-gdv")).toBe(true)
   })
 
   it("heavy refurb exposure creates risk flag and builder validation action", () => {
@@ -113,6 +133,16 @@ describe("phase2 deterministic intelligence engines", () => {
 
     expect(output.riskRadar.riskFlags.some((flag) => flag.code.startsWith("TIME_RISK_"))).toBe(true)
     expect(output.nextActions.some((action) => action.id === "finance-timeline-review")).toBe(true)
+  })
+
+  it("high finance cost produces finance tightening action before proceed", () => {
+    const fixture = loadScenarioFixture("07-high-finance-cost.json")
+    const output = buildPhase2Analysis(mapPhase2FixtureToInput(fixture))
+
+    expect(output.nextActions.some((action) => action.id === "tighten-finance-assumptions")).toBe(
+      true
+    )
+    expect(output.nextActions[0]?.id).toBe("tighten-finance-assumptions")
   })
 
   it("zero refurb edge case does not crash and can still be evaluated", () => {
@@ -203,5 +233,16 @@ describe("phase2 deterministic intelligence engines", () => {
     for (const output of outputs) {
       expect(validatePhase2Output(output).valid).toBe(true)
     }
+  })
+
+  it("explicit unrealistic GDV risk blocks as NO_DEAL", () => {
+    const fixture = loadScenarioFixture("12-unrealistic-gdv.json")
+    const output = buildPhase2Analysis(mapPhase2FixtureToInput(fixture))
+
+    expect(output.governance.state).toBe("BLOCKED")
+    expect(output.governance.finalClassification).toBe("NO_DEAL")
+    expect(
+      output.riskRadar.riskFlags.some((flag) => flag.label === "Unrealistic GDV assumption")
+    ).toBe(true)
   })
 })

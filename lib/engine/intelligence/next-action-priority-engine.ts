@@ -16,6 +16,8 @@ export function buildNextActions(
   const actions: NextActionOutput[] = []
   const comparablesCount = input.comparablesCount ?? 0
   const refurbExposure = governanceResult.metrics.refurbExposure
+  const downsideProfit = governanceResult.metrics.downsideProfit
+  const financeGate = governanceResult.decisionGates.find((gate) => gate.gateId === "finance-time-risk")
 
   if (governanceResult.governance.fatalRisk) {
     pushAction(actions, {
@@ -28,13 +30,27 @@ export function buildNextActions(
     })
   }
 
-  if (comparablesCount === 0) {
+  if (comparablesCount < 3) {
     pushAction(actions, {
       id: "obtain-comparables",
       priority: "HIGH",
       action: "Obtain sold comparables to support GDV.",
       owner: "analyst",
-      reason: "Comparable evidence is missing.",
+      reason:
+        comparablesCount === 0
+          ? "Comparable evidence is missing."
+          : "Comparable evidence is too thin for safe GDV confidence.",
+      blocksOfferSubmission: true,
+    })
+  }
+
+  if (downsideProfit !== null && downsideProfit < 0) {
+    pushAction(actions, {
+      id: "verify-downside-gdv",
+      priority: "HIGH",
+      action: "Validate downside GDV and comparable evidence before offer.",
+      owner: "analyst",
+      reason: "Downside case becomes loss-making under current assumptions.",
       blocksOfferSubmission: true,
     })
   }
@@ -77,6 +93,17 @@ export function buildNextActions(
       owner: "builder",
       reason: "Refurb exposure or refurb evidence needs challenge.",
       blocksOfferSubmission: refurbExposure !== null && refurbExposure > 0.3,
+    })
+  }
+
+  if (financeGate?.status === "REVIEW" || financeGate?.status === "FAIL") {
+    pushAction(actions, {
+      id: "tighten-finance-assumptions",
+      priority: financeGate.status === "FAIL" ? "URGENT" : "HIGH",
+      action: "Tighten finance assumptions and bridge timeline before offer.",
+      owner: "broker",
+      reason: financeGate.explanation,
+      blocksOfferSubmission: true,
     })
   }
 

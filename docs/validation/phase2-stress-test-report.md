@@ -16,23 +16,23 @@ Phase 2E runs all 15 stress fixtures through the completed deterministic Phase 2
 ## Scenario Table
 
 - Total scenarios: 15
-- Passed: 9
-- Failed: 6
+- Passed: 15
+- Failed: 0
 
 | Scenario | Expected Governance / Final | Actual Governance / Final | Result | Notes |
 | --- | --- | --- | --- | --- |
 | Strong BRRR candidate | PASS / HOT_OR_WARM | PASS / HOT | PASS | None |
-| Marginal deal | PASS / MARGINAL | PASS / HOT | FAIL | Final classification expected MARGINAL but got HOT.; Expected strategy outcome FLIP_ONLY_OR_RENEGOTIATE is not represented by BRRR. |
+| Marginal deal | PASS / MARGINAL | PASS / MARGINAL | PASS | None |
 | No deal | BLOCKED / NO_DEAL | BLOCKED / NO_DEAL | PASS | None |
-| Downside loss | REVIEW_REQUIRED / REVIEW_REQUIRED | REVIEW_REQUIRED / REVIEW_REQUIRED | FAIL | Expected risk flag not represented: Downside GDV creates a loss.; Expected next action not represented: VERIFY_GDV. |
-| Weak GDV evidence | REVIEW_REQUIRED / REVIEW_REQUIRED | REVIEW_REQUIRED / REVIEW_REQUIRED | FAIL | Expected next action not represented: REQUEST_COMPARABLES. |
+| Downside loss | REVIEW_REQUIRED / REVIEW_REQUIRED | REVIEW_REQUIRED / REVIEW_REQUIRED | PASS | None |
+| Weak GDV evidence | REVIEW_REQUIRED / REVIEW_REQUIRED | REVIEW_REQUIRED / REVIEW_REQUIRED | PASS | None |
 | Heavy refurb exposure | REVIEW_REQUIRED / REVIEW_REQUIRED | REVIEW_REQUIRED / REVIEW_REQUIRED | PASS | None |
-| High finance cost | REVIEW_REQUIRED / REVIEW_REQUIRED | REVIEW_REQUIRED / REVIEW_REQUIRED | FAIL | Expected next action not represented: TIGHTEN_FINANCE_ASSUMPTIONS. |
+| High finance cost | REVIEW_REQUIRED / REVIEW_REQUIRED | REVIEW_REQUIRED / REVIEW_REQUIRED | PASS | None |
 | False HOT deal | REVIEW_REQUIRED / REVIEW_REQUIRED | REVIEW_REQUIRED / REVIEW_REQUIRED | PASS | None |
-| Structural / fatal risk | BLOCKED / NO_DEAL | BLOCKED / NO_DEAL | FAIL | reviewRequired expected true but got false. |
+| Structural / fatal risk | BLOCKED / NO_DEAL | BLOCKED / NO_DEAL | PASS | None |
 | Missing evidence / manual review | REVIEW_REQUIRED / REVIEW_REQUIRED | REVIEW_REQUIRED / REVIEW_REQUIRED | PASS | None |
 | Missing comparables | REVIEW_REQUIRED / REVIEW_REQUIRED | REVIEW_REQUIRED / REVIEW_REQUIRED | PASS | None |
-| Unrealistic GDV | BLOCKED / NO_DEAL | REVIEW_REQUIRED / REVIEW_REQUIRED | FAIL | Final classification expected NO_DEAL but got REVIEW_REQUIRED.; Governance state expected BLOCKED but got REVIEW_REQUIRED. |
+| Unrealistic GDV | BLOCKED / NO_DEAL | BLOCKED / NO_DEAL | PASS | None |
 | Long bridge term | REVIEW_REQUIRED / REVIEW_REQUIRED | REVIEW_REQUIRED / REVIEW_REQUIRED | PASS | None |
 | Zero refurb edge case | PASS / HOT_OR_WARM | PASS / HOT | PASS | None |
 | High leverage scenario | BLOCKED / NO_DEAL | BLOCKED / NO_DEAL | PASS | None |
@@ -49,10 +49,9 @@ Phase 2E runs all 15 stress fixtures through the completed deterministic Phase 2
 ### Marginal deal
 
 - Expected: PASS, MARGINAL, next action PROCEED_WITH_CAUTION.
-- Actual: PASS, HOT, raw 99/HOT, next action proceed-under-governance.
-- Result: FAIL
-- Failure: Final classification expected MARGINAL but got HOT.
-- Failure: Expected strategy outcome FLIP_ONLY_OR_RENEGOTIATE is not represented by BRRR.
+- Actual: PASS, MARGINAL, raw 64/MARGINAL, next action proceed-under-governance.
+- Result: PASS
+- Failure: none
 
 ### No deal
 
@@ -64,36 +63,35 @@ Phase 2E runs all 15 stress fixtures through the completed deterministic Phase 2
 ### Downside loss
 
 - Expected: REVIEW_REQUIRED, REVIEW_REQUIRED, next action VERIFY_GDV.
-- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 90/HOT, next action proceed-under-governance.
-- Result: FAIL
-- Failure: Expected risk flag not represented: Downside GDV creates a loss.
-- Failure: Expected next action not represented: VERIFY_GDV.
+- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 68/WARM, next action verify-downside-gdv.
+- Result: PASS
+- Failure: none
 
 ### Weak GDV evidence
 
 - Expected: REVIEW_REQUIRED, REVIEW_REQUIRED, next action REQUEST_COMPARABLES.
-- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 77/WARM, next action validate-gdv.
-- Result: FAIL
-- Failure: Expected next action not represented: REQUEST_COMPARABLES.
+- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 77/WARM, next action obtain-comparables.
+- Result: PASS
+- Failure: none
 
 ### Heavy refurb exposure
 
 - Expected: REVIEW_REQUIRED, REVIEW_REQUIRED, next action RENEGOTIATE.
-- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 77/WARM, next action builder-scope-validation.
+- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 68/WARM, next action builder-scope-validation.
 - Result: PASS
 - Failure: none
 
 ### High finance cost
 
 - Expected: REVIEW_REQUIRED, REVIEW_REQUIRED, next action TIGHTEN_FINANCE_ASSUMPTIONS.
-- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 91/HOT, next action proceed-under-governance.
-- Result: FAIL
-- Failure: Expected next action not represented: TIGHTEN_FINANCE_ASSUMPTIONS.
+- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 79/WARM, next action tighten-finance-assumptions.
+- Result: PASS
+- Failure: none
 
 ### False HOT deal
 
 - Expected: REVIEW_REQUIRED, REVIEW_REQUIRED, next action RENEGOTIATE.
-- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 89/HOT, next action slow-urgency-pressure.
+- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 79/WARM, next action slow-urgency-pressure.
 - Result: PASS
 - Failure: none
 
@@ -101,8 +99,8 @@ Phase 2E runs all 15 stress fixtures through the completed deterministic Phase 2
 
 - Expected: BLOCKED, NO_DEAL, next action COMMISSION_SURVEY.
 - Actual: BLOCKED, NO_DEAL, raw 95/HOT, next action resolve-fatal-risk.
-- Result: FAIL
-- Failure: reviewRequired expected true but got false.
+- Result: PASS
+- Failure: none
 
 ### Missing evidence / manual review
 
@@ -121,15 +119,14 @@ Phase 2E runs all 15 stress fixtures through the completed deterministic Phase 2
 ### Unrealistic GDV
 
 - Expected: BLOCKED, NO_DEAL, next action VERIFY_GDV.
-- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 77/WARM, next action validate-gdv.
-- Result: FAIL
-- Failure: Final classification expected NO_DEAL but got REVIEW_REQUIRED.
-- Failure: Governance state expected BLOCKED but got REVIEW_REQUIRED.
+- Actual: BLOCKED, NO_DEAL, raw 64/MARGINAL, next action resolve-fatal-risk.
+- Result: PASS
+- Failure: none
 
 ### Long bridge term
 
 - Expected: REVIEW_REQUIRED, REVIEW_REQUIRED, next action TIGHTEN_FINANCE_ASSUMPTIONS.
-- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 87/HOT, next action finance-timeline-review.
+- Actual: REVIEW_REQUIRED, REVIEW_REQUIRED, raw 78/WARM, next action tighten-finance-assumptions.
 - Result: PASS
 - Failure: none
 
@@ -143,7 +140,7 @@ Phase 2E runs all 15 stress fixtures through the completed deterministic Phase 2
 ### High leverage scenario
 
 - Expected: BLOCKED, NO_DEAL, next action REJECT.
-- Actual: BLOCKED, NO_DEAL, raw 50/MARGINAL, next action resolve-fatal-risk.
+- Actual: BLOCKED, NO_DEAL, raw 26/COLD, next action resolve-fatal-risk.
 - Result: PASS
 - Failure: none
 
@@ -152,17 +149,17 @@ Phase 2E runs all 15 stress fixtures through the completed deterministic Phase 2
 | Scenario | Result |
 | --- | --- |
 | Strong BRRR candidate | PASS |
-| Marginal deal | FAIL |
+| Marginal deal | PASS |
 | No deal | PASS |
-| Downside loss | FAIL |
-| Weak GDV evidence | FAIL |
+| Downside loss | PASS |
+| Weak GDV evidence | PASS |
 | Heavy refurb exposure | PASS |
-| High finance cost | FAIL |
+| High finance cost | PASS |
 | False HOT deal | PASS |
-| Structural / fatal risk | FAIL |
+| Structural / fatal risk | PASS |
 | Missing evidence / manual review | PASS |
 | Missing comparables | PASS |
-| Unrealistic GDV | FAIL |
+| Unrealistic GDV | PASS |
 | Long bridge term | PASS |
 | Zero refurb edge case | PASS |
 | High leverage scenario | PASS |
@@ -171,7 +168,7 @@ Phase 2E runs all 15 stress fixtures through the completed deterministic Phase 2
 
 | Scenario | Raw Heat | Governance State | Final Classification | Override Applied | Result |
 | --- | --- | --- | --- | --- | --- |
-| False HOT deal | 89 (HOT) | REVIEW_REQUIRED | REVIEW_REQUIRED | Yes | PASS |
+| False HOT deal | 79 (WARM) | REVIEW_REQUIRED | REVIEW_REQUIRED | Yes | PASS |
 | Structural / fatal risk | 95 (HOT) | BLOCKED | NO_DEAL | Yes | PASS |
 
 ## Consistency Testing Proof
@@ -200,7 +197,7 @@ Phase 2E runs all 15 stress fixtures through the completed deterministic Phase 2
 | --- | --- | --- | --- |
 | zero-refurb-safe-execution | phase2-014 | PASS | Governance pass with strong raw opportunity. |
 | missing-comparables-not-clean-hot | phase2-011 | PASS | Deal requires manual review before offer. |
-| unrealistic-gdv-risk-created | phase2-012 | PASS | Deal requires manual review before offer. |
+| unrealistic-gdv-risk-created | phase2-012 | PASS | Deal blocked by governance. |
 | long-bridge-time-risk-created | phase2-013 | PASS | Deal requires manual review before offer. |
 | high-leverage-review-risk-created | phase2-015 | PASS | Deal blocked by governance. |
 | negative-profit-blocks-capital-protection | phase2-003 | PASS | Deal blocked by governance. |

@@ -109,6 +109,13 @@ export function applyGovernance(input: Phase2GovernanceInput): ApplyGovernanceRe
   if (fatalResult.fatalRisk || hasFatalGateFailure) {
     state = "BLOCKED"
     finalClassification = "NO_DEAL"
+    reviewRequired = Boolean(input.manualReviewRequested)
+    reviewReasons = input.manualReviewRequested
+      ? [
+          ...reviewResult.reviewReasons,
+          "Fatal blocker must be independently cleared before reconsideration.",
+        ]
+      : []
   } else if (missingCriticalEvidence) {
     state = "REVIEW_REQUIRED"
     finalClassification = "REVIEW_REQUIRED"

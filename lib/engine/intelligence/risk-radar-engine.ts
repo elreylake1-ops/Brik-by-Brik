@@ -54,6 +54,22 @@ export function buildRiskRadar(
   } else if (comparablesCount < 3) {
     pushFlag(flags, "COMPARABLES_THIN", "Thin comparable coverage", "MEDIUM", "Comparable support is limited.", "comparables")
   }
+  if (governanceResult.metrics.downsideProfit !== null && governanceResult.metrics.downsideProfit < 0) {
+    pushFlag(
+      flags,
+      governanceResult.metrics.downsideThreshold !== null &&
+        governanceResult.metrics.downsideProfit <= -governanceResult.metrics.downsideThreshold
+        ? "DOWNSIDE_LOSS_FATAL"
+        : "DOWNSIDE_LOSS_REVIEW",
+      "Downside GDV creates a loss",
+      governanceResult.metrics.downsideThreshold !== null &&
+        governanceResult.metrics.downsideProfit <= -governanceResult.metrics.downsideThreshold
+        ? "FATAL"
+        : "HIGH",
+      "Downside GDV falls below total investment and creates a loss.",
+      "downside"
+    )
+  }
   if (refurbExposure !== null && refurbExposure > 0.25) {
     pushFlag(flags, "REFURB_EXPOSURE_HIGH", "Heavy refurb exposure", "HIGH", "Refurb exposure is high relative to entry price.", "refurb")
   }
@@ -81,6 +97,16 @@ export function buildRiskRadar(
       "MEDIUM",
       "Urgency language is not backed by credible seller motivation.",
       "listing"
+    )
+  }
+  if (input.hasUnrealisticGdvRisk) {
+    pushFlag(
+      flags,
+      "UNREALISTIC_GDV_ASSUMPTION",
+      "Unrealistic GDV assumption",
+      "FATAL",
+      "GDV assumption is stretched beyond credible comparable support.",
+      "gdv"
     )
   }
 

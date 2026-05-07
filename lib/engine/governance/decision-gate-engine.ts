@@ -148,6 +148,31 @@ export function evaluateDecisionGates(
     )
   }
 
+  if (input.hasUnrealisticGdvRisk) {
+    gates.push(
+      buildGate(
+        "unrealistic-gdv-assumption",
+        "Unrealistic GDV Assumption Gate",
+        "FAIL",
+        "FATAL",
+        "GDV assumption is stretched beyond credible evidence and blocks safe progression.",
+        ["gdvEvidenceStrength", "comparablesCount", "hasUnrealisticGdvRisk"],
+        "Block deal unless GDV is independently reset from stronger evidence."
+      )
+    )
+  } else {
+    gates.push(
+      buildGate(
+        "unrealistic-gdv-assumption",
+        "Unrealistic GDV Assumption Gate",
+        "PASS",
+        "LOW",
+        "No explicit unrealistic GDV blocker identified.",
+        ["hasUnrealisticGdvRisk"]
+      )
+    )
+  }
+
   const comparableCount = input.comparablesCount ?? 0
   const gdvStrength = input.gdvEvidenceStrength ?? "MISSING"
 

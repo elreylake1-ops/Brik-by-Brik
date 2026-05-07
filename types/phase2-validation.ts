@@ -82,6 +82,7 @@ export type Phase2ScenarioInput = {
     hasLegalTitleRisk?: boolean
     hasPlanningRisk?: boolean
     hasRefinanceRisk?: boolean
+    hasUnrealisticGdvRisk?: boolean
     hasMissingCriticalEvidence?: boolean
     manualReviewRequested?: boolean
     motivationSignals?: string[]

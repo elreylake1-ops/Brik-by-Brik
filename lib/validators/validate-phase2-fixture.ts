@@ -205,6 +205,9 @@ export function validatePhase2Fixture(fixture: unknown): Phase2FixtureValidation
       if (!isOptionalBoolean(governanceSignals.hasRefinanceRisk)) {
         errors.push("input.governanceSignals.hasRefinanceRisk must be a boolean when provided.")
       }
+      if (!isOptionalBoolean(governanceSignals.hasUnrealisticGdvRisk)) {
+        errors.push("input.governanceSignals.hasUnrealisticGdvRisk must be a boolean when provided.")
+      }
       if (!isOptionalBoolean(governanceSignals.hasMissingCriticalEvidence)) {
         errors.push("input.governanceSignals.hasMissingCriticalEvidence must be a boolean when provided.")
       }

@@ -28,6 +28,7 @@ export function mapPhase2FixtureToInput(
     gdvStrong: dueDiligence.gdvStrong,
     refurbCost: dueDiligence.refurbCost,
     financeCost: dueDiligenceResult.finance.totalFinanceCost,
+    transactionCosts: dueDiligence.stampDuty + dueDiligence.legalCosts + dueDiligence.saleCosts,
     bridgeTermMonths: dueDiligence.bridgeTermMonths,
     loanToValue: governanceSignals.loanToValue,
     comparablesCount: governanceSignals.comparableCount,
@@ -40,6 +41,7 @@ export function mapPhase2FixtureToInput(
     hasLegalTitleRisk: governanceSignals.hasLegalTitleRisk,
     hasPlanningRisk: governanceSignals.hasPlanningRisk,
     hasRefinanceRisk: governanceSignals.hasRefinanceRisk,
+    hasUnrealisticGdvRisk: governanceSignals.hasUnrealisticGdvRisk,
     hasMissingCriticalEvidence: governanceSignals.hasMissingCriticalEvidence,
     manualReviewRequested:
       governanceSignals.manualReviewRequested ??

@@ -14,6 +14,7 @@ import { evaluateNegotiationPosition } from "@/lib/engine/intelligence/negotiati
 import { buildRiskRadar } from "@/lib/engine/intelligence/risk-radar-engine"
 import { matchStrategy } from "@/lib/engine/intelligence/strategy-match-engine"
 import { evaluateTimeRisk } from "@/lib/engine/intelligence/time-risk-engine"
+import type { ApplyGovernanceResult } from "@/types/phase2-governance"
 
 function mapBandToRawClassification(band: Phase2AnalysisOutput["dealHeatScore"]["band"]): FinalDealClassification {
   if (band === "HOT") return "HOT"
@@ -91,9 +92,85 @@ function buildLimitations(): KnownLimitationOutput[] {
   ]
 }
 
+function applyHeatScoreCap(
+  heatScore: Phase2AnalysisOutput["dealHeatScore"],
+  cap: number,
+  reason: string
+): Phase2AnalysisOutput["dealHeatScore"] {
+  if (heatScore.score <= cap) return heatScore
+
+  return {
+    ...heatScore,
+    score: cap,
+    band: cap >= 80 ? "HOT" : cap >= 65 ? "WARM" : cap >= 50 ? "MARGINAL" : "COLD",
+    negativeSignals: [...new Set([...heatScore.negativeSignals, reason])],
+    deductions: [...heatScore.deductions, `cap ${cap}: ${reason}`],
+  }
+}
+
+function calibrateHeatScore(
+  input: Phase2IntelligenceInput,
+  heatScore: Phase2AnalysisOutput["dealHeatScore"],
+  governanceResult: ApplyGovernanceResult
+): Phase2AnalysisOutput["dealHeatScore"] {
+  let calibrated = heatScore
+  const gdvGate = governanceResult.decisionGates.find((gate) => gate.gateId === "gdv-evidence")
+  const financeGate = governanceResult.decisionGates.find((gate) => gate.gateId === "finance-time-risk")
+
+  if (
+    governanceResult.governance.state === "PASS" &&
+    gdvGate?.status !== "PASS"
+  ) {
+    calibrated = applyHeatScoreCap(
+      calibrated,
+      64,
+      "Raw heat score capped because GDV evidence gate is not a clean PASS."
+    )
+  } else if (input.gdvEvidenceStrength === "MODERATE") {
+    calibrated = applyHeatScoreCap(
+      calibrated,
+      79,
+      "Raw heat score capped because GDV evidence is only moderate."
+    )
+  }
+
+  if (governanceResult.metrics.downsideProfit !== null && governanceResult.metrics.downsideProfit < 0) {
+    calibrated = applyHeatScoreCap(
+      calibrated,
+      79,
+      "Raw heat score capped because downside GDV creates a loss."
+    )
+  }
+
+  if (financeGate?.status === "REVIEW" || financeGate?.status === "FAIL") {
+    calibrated = applyHeatScoreCap(
+      calibrated,
+      financeGate.status === "FAIL" ? 64 : 79,
+      "Raw heat score capped because finance/time assumptions are not clean."
+    )
+  }
+
+  if (input.hasUnrealisticGdvRisk) {
+    calibrated = applyHeatScoreCap(
+      calibrated,
+      64,
+      "Raw heat score capped because GDV assumption is explicitly unrealistic."
+    )
+  }
+
+  return calibrated
+}
+
 export function buildPhase2Analysis(input: Phase2IntelligenceInput): Phase2AnalysisOutput {
   const negotiation = evaluateNegotiationPosition(input)
-  const heatScore = calculateDealHeatScore(input)
+  const initialHeatScore = calculateDealHeatScore(input)
+  const initialRawClassification = mapBandToRawClassification(initialHeatScore.band)
+  const initialGovernanceResult = applyGovernance({
+    ...input,
+    rawHeatScore: initialHeatScore.score,
+    rawClassification: initialRawClassification,
+  })
+  const heatScore = calibrateHeatScore(input, initialHeatScore, initialGovernanceResult)
   const rawClassification = mapBandToRawClassification(heatScore.band)
   const governanceResult = applyGovernance({
     ...input,

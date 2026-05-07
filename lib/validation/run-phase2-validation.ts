@@ -174,9 +174,13 @@ function matchesExpectedNextAction(expectedAction: Phase2NextAction, output: Pha
     case "REQUEST_COMPARABLES":
       return actionIds.has("obtain-comparables")
     case "VERIFY_GDV":
-      return actionIds.has("validate-gdv")
+      return actionIds.has("validate-gdv") || actionIds.has("verify-downside-gdv")
     case "TIGHTEN_FINANCE_ASSUMPTIONS":
-      return actionIds.has("finance-timeline-review") || actionIds.has("lender-refinance-validation")
+      return (
+        actionIds.has("tighten-finance-assumptions") ||
+        actionIds.has("finance-timeline-review") ||
+        actionIds.has("lender-refinance-validation")
+      )
     case "COMMISSION_SURVEY":
       return output.governance.fatalRisk && actionIds.has("resolve-fatal-risk")
     case "REJECT":

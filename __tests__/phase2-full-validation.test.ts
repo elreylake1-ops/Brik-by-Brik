@@ -100,6 +100,12 @@ describe("phase2 full validation suite", () => {
     expect(validationRun.passed + validationRun.failed).toBe(validationRun.totalScenarios)
   })
 
+  it("passes all 15 calibrated scenarios", () => {
+    expect(validationRun.passed).toBe(15)
+    expect(validationRun.failed).toBe(0)
+    expect(validationRun.scenarioResults.every((result) => result.pass)).toBe(true)
+  })
+
   it("never leaves a BLOCKED or REVIEW_REQUIRED scenario as final HOT", () => {
     const invalidHotScenarios = validationRun.scenarioResults.flatMap((scenario) => {
       if (

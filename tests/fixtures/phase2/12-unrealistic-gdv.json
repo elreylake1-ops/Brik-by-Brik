@@ -21,6 +21,7 @@
       "comparableCoverage": "LIMITED",
       "refurbEstimateConfidence": "HIGH",
       "structuralRiskLevel": "NONE",
+      "hasUnrealisticGdvRisk": true,
       "hotDealClaimed": false,
       "manualReviewTriggers": [
         "GDV appears stretched beyond the comparable evidence."

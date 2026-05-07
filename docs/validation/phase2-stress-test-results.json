@@ -2,8 +2,8 @@
   "generatedAt": "2026-05-07T00:00:00.000Z",
   "engineVersion": "2.0.0-intelligence",
   "totalScenarios": 15,
-  "passed": 9,
-  "failed": 6,
+  "passed": 15,
+  "failed": 0,
   "scenarioResults": [
     {
       "scenarioId": "phase2-001",
@@ -34,11 +34,8 @@
     {
       "scenarioId": "phase2-002",
       "name": "Marginal deal",
-      "pass": false,
-      "failures": [
-        "Final classification expected MARGINAL but got HOT.",
-        "Expected strategy outcome FLIP_ONLY_OR_RENEGOTIATE is not represented by BRRR."
-      ],
+      "pass": true,
+      "failures": [],
       "expected": {
         "finalClassification": "MARGINAL",
         "governanceState": "PASS",
@@ -48,13 +45,13 @@
         "reviewRequired": false
       },
       "actual": {
-        "finalClassification": "HOT",
+        "finalClassification": "MARGINAL",
         "governanceState": "PASS",
-        "rawHeatScore": 99,
-        "rawHeatBand": "HOT",
+        "rawHeatScore": 64,
+        "rawHeatBand": "MARGINAL",
         "fatalRisk": false,
         "overallRisk": "MEDIUM",
-        "strategyOutcome": "BRRR",
+        "strategyOutcome": "FLIP",
         "nextAction": "proceed-under-governance",
         "reviewRequired": false,
         "riskFlags": [
@@ -95,18 +92,16 @@
           "Capital Protection Gate",
           "Downside Loss Gate",
           "Finance/Time Risk Gate",
-          "Fatal Risk Gate"
+          "Fatal Risk Gate",
+          "Downside GDV creates a loss"
         ]
       }
     },
     {
       "scenarioId": "phase2-004",
       "name": "Downside loss",
-      "pass": false,
-      "failures": [
-        "Expected risk flag not represented: Downside GDV creates a loss.",
-        "Expected next action not represented: VERIFY_GDV."
-      ],
+      "pass": true,
+      "failures": [],
       "expected": {
         "finalClassification": "REVIEW_REQUIRED",
         "governanceState": "REVIEW_REQUIRED",
@@ -120,25 +115,25 @@
       "actual": {
         "finalClassification": "REVIEW_REQUIRED",
         "governanceState": "REVIEW_REQUIRED",
-        "rawHeatScore": 90,
-        "rawHeatBand": "HOT",
+        "rawHeatScore": 68,
+        "rawHeatBand": "WARM",
         "fatalRisk": false,
-        "overallRisk": "MEDIUM",
+        "overallRisk": "HIGH",
         "strategyOutcome": "MANUAL_REVIEW",
-        "nextAction": "proceed-under-governance",
+        "nextAction": "verify-downside-gdv",
         "reviewRequired": true,
         "riskFlags": [
-          "GDV Evidence Gate"
+          "Downside Loss Gate",
+          "GDV Evidence Gate",
+          "Downside GDV creates a loss"
         ]
       }
     },
     {
       "scenarioId": "phase2-005",
       "name": "Weak GDV evidence",
-      "pass": false,
-      "failures": [
-        "Expected next action not represented: REQUEST_COMPARABLES."
-      ],
+      "pass": true,
+      "failures": [],
       "expected": {
         "finalClassification": "REVIEW_REQUIRED",
         "governanceState": "REVIEW_REQUIRED",
@@ -157,7 +152,7 @@
         "fatalRisk": false,
         "overallRisk": "HIGH",
         "strategyOutcome": "MANUAL_REVIEW",
-        "nextAction": "validate-gdv",
+        "nextAction": "obtain-comparables",
         "reviewRequired": true,
         "riskFlags": [
           "GDV Evidence Gate",
@@ -185,7 +180,7 @@
       "actual": {
         "finalClassification": "REVIEW_REQUIRED",
         "governanceState": "REVIEW_REQUIRED",
-        "rawHeatScore": 77,
+        "rawHeatScore": 68,
         "rawHeatBand": "WARM",
         "fatalRisk": false,
         "overallRisk": "HIGH",
@@ -203,10 +198,8 @@
     {
       "scenarioId": "phase2-007",
       "name": "High finance cost",
-      "pass": false,
-      "failures": [
-        "Expected next action not represented: TIGHTEN_FINANCE_ASSUMPTIONS."
-      ],
+      "pass": true,
+      "failures": [],
       "expected": {
         "finalClassification": "REVIEW_REQUIRED",
         "governanceState": "REVIEW_REQUIRED",
@@ -220,12 +213,12 @@
       "actual": {
         "finalClassification": "REVIEW_REQUIRED",
         "governanceState": "REVIEW_REQUIRED",
-        "rawHeatScore": 91,
-        "rawHeatBand": "HOT",
+        "rawHeatScore": 79,
+        "rawHeatBand": "WARM",
         "fatalRisk": false,
         "overallRisk": "HIGH",
         "strategyOutcome": "MANUAL_REVIEW",
-        "nextAction": "proceed-under-governance",
+        "nextAction": "tighten-finance-assumptions",
         "reviewRequired": true,
         "riskFlags": [
           "GDV Evidence Gate",
@@ -252,8 +245,8 @@
       "actual": {
         "finalClassification": "REVIEW_REQUIRED",
         "governanceState": "REVIEW_REQUIRED",
-        "rawHeatScore": 89,
-        "rawHeatBand": "HOT",
+        "rawHeatScore": 79,
+        "rawHeatBand": "WARM",
         "fatalRisk": false,
         "overallRisk": "MEDIUM",
         "strategyOutcome": "MANUAL_REVIEW",
@@ -268,10 +261,8 @@
     {
       "scenarioId": "phase2-009",
       "name": "Structural / fatal risk",
-      "pass": false,
-      "failures": [
-        "reviewRequired expected true but got false."
-      ],
+      "pass": true,
+      "failures": [],
       "expected": {
         "finalClassification": "NO_DEAL",
         "governanceState": "BLOCKED",
@@ -291,7 +282,7 @@
         "overallRisk": "FATAL",
         "strategyOutcome": "NO_DEAL",
         "nextAction": "resolve-fatal-risk",
-        "reviewRequired": false,
+        "reviewRequired": true,
         "riskFlags": [
           "Fatal structural risk",
           "Fatal Risk Gate"
@@ -370,11 +361,8 @@
     {
       "scenarioId": "phase2-012",
       "name": "Unrealistic GDV",
-      "pass": false,
-      "failures": [
-        "Final classification expected NO_DEAL but got REVIEW_REQUIRED.",
-        "Governance state expected BLOCKED but got REVIEW_REQUIRED."
-      ],
+      "pass": true,
+      "failures": [],
       "expected": {
         "finalClassification": "NO_DEAL",
         "governanceState": "BLOCKED",
@@ -386,18 +374,21 @@
         "reviewRequired": true
       },
       "actual": {
-        "finalClassification": "REVIEW_REQUIRED",
-        "governanceState": "REVIEW_REQUIRED",
-        "rawHeatScore": 77,
-        "rawHeatBand": "WARM",
-        "fatalRisk": false,
-        "overallRisk": "HIGH",
-        "strategyOutcome": "MANUAL_REVIEW",
-        "nextAction": "validate-gdv",
+        "finalClassification": "NO_DEAL",
+        "governanceState": "BLOCKED",
+        "rawHeatScore": 64,
+        "rawHeatBand": "MARGINAL",
+        "fatalRisk": true,
+        "overallRisk": "FATAL",
+        "strategyOutcome": "NO_DEAL",
+        "nextAction": "resolve-fatal-risk",
         "reviewRequired": true,
         "riskFlags": [
+          "Unrealistic GDV assumption",
+          "Unrealistic GDV Assumption Gate",
           "GDV Evidence Gate",
           "Comparable Evidence Gate",
+          "Fatal Risk Gate",
           "Weak GDV evidence",
           "Thin comparable coverage"
         ]
@@ -422,12 +413,12 @@
       "actual": {
         "finalClassification": "REVIEW_REQUIRED",
         "governanceState": "REVIEW_REQUIRED",
-        "rawHeatScore": 87,
-        "rawHeatBand": "HOT",
+        "rawHeatScore": 78,
+        "rawHeatBand": "WARM",
         "fatalRisk": false,
         "overallRisk": "HIGH",
         "strategyOutcome": "MANUAL_REVIEW",
-        "nextAction": "finance-timeline-review",
+        "nextAction": "tighten-finance-assumptions",
         "reviewRequired": true,
         "riskFlags": [
           "GDV Evidence Gate",
@@ -482,20 +473,22 @@
       "actual": {
         "finalClassification": "NO_DEAL",
         "governanceState": "BLOCKED",
-        "rawHeatScore": 50,
-        "rawHeatBand": "MARGINAL",
+        "rawHeatScore": 26,
+        "rawHeatBand": "COLD",
         "fatalRisk": true,
         "overallRisk": "FATAL",
         "strategyOutcome": "NO_DEAL",
         "nextAction": "resolve-fatal-risk",
         "reviewRequired": false,
         "riskFlags": [
+          "Negative realistic profit",
           "Fatal downside loss",
           "Capital Protection Gate",
           "Downside Loss Gate",
           "GDV Evidence Gate",
           "Finance/Time Risk Gate",
           "Fatal Risk Gate",
+          "Downside GDV creates a loss",
           "High leverage"
         ]
       }
@@ -544,31 +537,31 @@
       "driftFields": [],
       "runs": [
         {
-          "score": 99,
-          "band": "HOT",
+          "score": 64,
+          "band": "MARGINAL",
           "governanceState": "PASS",
-          "finalClassification": "HOT",
+          "finalClassification": "MARGINAL",
           "fatalRisk": false,
           "overallRisk": "MEDIUM",
-          "recommendedStrategy": "BRRR"
+          "recommendedStrategy": "FLIP"
         },
         {
-          "score": 99,
-          "band": "HOT",
+          "score": 64,
+          "band": "MARGINAL",
           "governanceState": "PASS",
-          "finalClassification": "HOT",
+          "finalClassification": "MARGINAL",
           "fatalRisk": false,
           "overallRisk": "MEDIUM",
-          "recommendedStrategy": "BRRR"
+          "recommendedStrategy": "FLIP"
         },
         {
-          "score": 99,
-          "band": "HOT",
+          "score": 64,
+          "band": "MARGINAL",
           "governanceState": "PASS",
-          "finalClassification": "HOT",
+          "finalClassification": "MARGINAL",
           "fatalRisk": false,
           "overallRisk": "MEDIUM",
-          "recommendedStrategy": "BRRR"
+          "recommendedStrategy": "FLIP"
         }
       ]
     },
@@ -614,30 +607,30 @@
       "driftFields": [],
       "runs": [
         {
-          "score": 90,
-          "band": "HOT",
+          "score": 68,
+          "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
           "fatalRisk": false,
-          "overallRisk": "MEDIUM",
+          "overallRisk": "HIGH",
           "recommendedStrategy": "MANUAL_REVIEW"
         },
         {
-          "score": 90,
-          "band": "HOT",
+          "score": 68,
+          "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
           "fatalRisk": false,
-          "overallRisk": "MEDIUM",
+          "overallRisk": "HIGH",
           "recommendedStrategy": "MANUAL_REVIEW"
         },
         {
-          "score": 90,
-          "band": "HOT",
+          "score": 68,
+          "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
           "fatalRisk": false,
-          "overallRisk": "MEDIUM",
+          "overallRisk": "HIGH",
           "recommendedStrategy": "MANUAL_REVIEW"
         }
       ]
@@ -684,7 +677,7 @@
       "driftFields": [],
       "runs": [
         {
-          "score": 77,
+          "score": 68,
           "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
@@ -693,7 +686,7 @@
           "recommendedStrategy": "MANUAL_REVIEW"
         },
         {
-          "score": 77,
+          "score": 68,
           "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
@@ -702,7 +695,7 @@
           "recommendedStrategy": "MANUAL_REVIEW"
         },
         {
-          "score": 77,
+          "score": 68,
           "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
@@ -719,8 +712,8 @@
       "driftFields": [],
       "runs": [
         {
-          "score": 91,
-          "band": "HOT",
+          "score": 79,
+          "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
           "fatalRisk": false,
@@ -728,8 +721,8 @@
           "recommendedStrategy": "MANUAL_REVIEW"
         },
         {
-          "score": 91,
-          "band": "HOT",
+          "score": 79,
+          "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
           "fatalRisk": false,
@@ -737,8 +730,8 @@
           "recommendedStrategy": "MANUAL_REVIEW"
         },
         {
-          "score": 91,
-          "band": "HOT",
+          "score": 79,
+          "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
           "fatalRisk": false,
@@ -754,8 +747,8 @@
       "driftFields": [],
       "runs": [
         {
-          "score": 89,
-          "band": "HOT",
+          "score": 79,
+          "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
           "fatalRisk": false,
@@ -763,8 +756,8 @@
           "recommendedStrategy": "MANUAL_REVIEW"
         },
         {
-          "score": 89,
-          "band": "HOT",
+          "score": 79,
+          "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
           "fatalRisk": false,
@@ -772,8 +765,8 @@
           "recommendedStrategy": "MANUAL_REVIEW"
         },
         {
-          "score": 89,
-          "band": "HOT",
+          "score": 79,
+          "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
           "fatalRisk": false,
@@ -894,31 +887,31 @@
       "driftFields": [],
       "runs": [
         {
-          "score": 77,
-          "band": "WARM",
-          "governanceState": "REVIEW_REQUIRED",
-          "finalClassification": "REVIEW_REQUIRED",
-          "fatalRisk": false,
-          "overallRisk": "HIGH",
-          "recommendedStrategy": "MANUAL_REVIEW"
+          "score": 64,
+          "band": "MARGINAL",
+          "governanceState": "BLOCKED",
+          "finalClassification": "NO_DEAL",
+          "fatalRisk": true,
+          "overallRisk": "FATAL",
+          "recommendedStrategy": "NO_DEAL"
         },
         {
-          "score": 77,
-          "band": "WARM",
-          "governanceState": "REVIEW_REQUIRED",
-          "finalClassification": "REVIEW_REQUIRED",
-          "fatalRisk": false,
-          "overallRisk": "HIGH",
-          "recommendedStrategy": "MANUAL_REVIEW"
+          "score": 64,
+          "band": "MARGINAL",
+          "governanceState": "BLOCKED",
+          "finalClassification": "NO_DEAL",
+          "fatalRisk": true,
+          "overallRisk": "FATAL",
+          "recommendedStrategy": "NO_DEAL"
         },
         {
-          "score": 77,
-          "band": "WARM",
-          "governanceState": "REVIEW_REQUIRED",
-          "finalClassification": "REVIEW_REQUIRED",
-          "fatalRisk": false,
-          "overallRisk": "HIGH",
-          "recommendedStrategy": "MANUAL_REVIEW"
+          "score": 64,
+          "band": "MARGINAL",
+          "governanceState": "BLOCKED",
+          "finalClassification": "NO_DEAL",
+          "fatalRisk": true,
+          "overallRisk": "FATAL",
+          "recommendedStrategy": "NO_DEAL"
         }
       ]
     },
@@ -929,8 +922,8 @@
       "driftFields": [],
       "runs": [
         {
-          "score": 87,
-          "band": "HOT",
+          "score": 78,
+          "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
           "fatalRisk": false,
@@ -938,8 +931,8 @@
           "recommendedStrategy": "MANUAL_REVIEW"
         },
         {
-          "score": 87,
-          "band": "HOT",
+          "score": 78,
+          "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
           "fatalRisk": false,
@@ -947,8 +940,8 @@
           "recommendedStrategy": "MANUAL_REVIEW"
         },
         {
-          "score": 87,
-          "band": "HOT",
+          "score": 78,
+          "band": "WARM",
           "governanceState": "REVIEW_REQUIRED",
           "finalClassification": "REVIEW_REQUIRED",
           "fatalRisk": false,
@@ -999,8 +992,8 @@
       "driftFields": [],
       "runs": [
         {
-          "score": 50,
-          "band": "MARGINAL",
+          "score": 26,
+          "band": "COLD",
           "governanceState": "BLOCKED",
           "finalClassification": "NO_DEAL",
           "fatalRisk": true,
@@ -1008,8 +1001,8 @@
           "recommendedStrategy": "NO_DEAL"
         },
         {
-          "score": 50,
-          "band": "MARGINAL",
+          "score": 26,
+          "band": "COLD",
           "governanceState": "BLOCKED",
           "finalClassification": "NO_DEAL",
           "fatalRisk": true,
@@ -1017,8 +1010,8 @@
           "recommendedStrategy": "NO_DEAL"
         },
         {
-          "score": 50,
-          "band": "MARGINAL",
+          "score": 26,
+          "band": "COLD",
           "governanceState": "BLOCKED",
           "finalClassification": "NO_DEAL",
           "fatalRisk": true,
@@ -1033,8 +1026,8 @@
       "scenarioId": "phase2-008",
       "name": "False HOT deal",
       "pass": true,
-      "rawHeatScore": 89,
-      "rawHeatBand": "HOT",
+      "rawHeatScore": 79,
+      "rawHeatBand": "WARM",
       "governanceState": "REVIEW_REQUIRED",
       "finalClassification": "REVIEW_REQUIRED",
       "governanceOverrideApplied": true,
@@ -1071,7 +1064,7 @@
       "caseId": "unrealistic-gdv-risk-created",
       "scenarioId": "phase2-012",
       "pass": true,
-      "explanation": "Deal requires manual review before offer."
+      "explanation": "Deal blocked by governance."
     },
     {
       "caseId": "long-bridge-time-risk-created",

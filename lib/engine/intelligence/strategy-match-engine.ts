@@ -37,8 +37,7 @@ export function matchStrategy(
   const brrrViable =
     !input.hasRefinanceRisk &&
     (input.comparablesCount ?? 0) >= 3 &&
-    input.gdvEvidenceStrength !== "WEAK" &&
-    input.gdvEvidenceStrength !== "MISSING" &&
+    input.gdvEvidenceStrength === "STRONG" &&
     (metrics.refurbExposure ?? 0) <= 0.25 &&
     realisticMargin >= 0.15
 

@@ -20,6 +20,7 @@ export type Phase2GovernanceInput = {
   gdvStrong?: number
   refurbCost: number
   financeCost?: number
+  transactionCosts?: number
   bridgeTermMonths?: number
   loanToValue?: number
   comparablesCount?: number
@@ -30,6 +31,7 @@ export type Phase2GovernanceInput = {
   hasLegalTitleRisk?: boolean
   hasPlanningRisk?: boolean
   hasRefinanceRisk?: boolean
+  hasUnrealisticGdvRisk?: boolean
   hasMissingCriticalEvidence?: boolean
   manualReviewRequested?: boolean
   rawHeatScore?: number

@@ -22,8 +22,14 @@ function estimateFinanceCost(input: Phase2GovernanceInput): number | null {
 
 function buildMetrics(input: Phase2GovernanceInput): GovernanceDerivedMetrics {
   const financeCost = estimateFinanceCost(input)
+  const transactionCosts =
+    typeof input.transactionCosts === "number" && Number.isFinite(input.transactionCosts)
+      ? roundCurrency(input.transactionCosts)
+      : 0
   const totalInvestmentBasis =
-    financeCost === null ? null : roundCurrency(input.purchasePrice + input.refurbCost + financeCost)
+    financeCost === null
+      ? null
+      : roundCurrency(input.purchasePrice + input.refurbCost + transactionCosts + financeCost)
   const downsideGdv = input.gdvDownside ?? roundCurrency(input.gdvRealistic * 0.9)
   const strongGdv = input.gdvStrong ?? roundCurrency(input.gdvRealistic * 1.1)
   const realisticProfit =
@@ -99,6 +105,18 @@ export function evaluateDealFatalRisk(input: Phase2GovernanceInput): FatalRiskRe
         "Fatal planning risk",
         "Planning issue prevents safe execution.",
         "planning"
+      )
+    )
+  }
+
+  if (input.hasUnrealisticGdvRisk) {
+    fatalReasons.push("GDV assumption is unrealistic relative to available evidence.")
+    fatalFlags.push(
+      makeFatalFlag(
+        "UNREALISTIC_GDV_FATAL",
+        "Unrealistic GDV assumption",
+        "Valuation case is stretched beyond credible evidence.",
+        "gdv"
       )
     )
   }
