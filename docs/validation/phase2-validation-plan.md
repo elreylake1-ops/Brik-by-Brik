@@ -61,3 +61,5 @@ Client return package is now created.
 The Phase 2 validation package now contains the stress report, JSON results, architecture notes, JSON samples, known limitations, and recommended refinements.
 
 Phase 3 remains blocked pending client acceptance of this validation package.
+
+Manual UI safety alignment is now added so thin-margin deals are not presented as strong or clean.

@@ -1,0 +1,126 @@
+import type { DealVerdictStatus } from "@/lib/engine/analyze-deal-with-refurb"
+import type { CapitalProtectionStatus } from "@/types/due-diligence"
+import type { FinalDealClassification, GovernanceState } from "@/types/phase2"
+
+export const CALCULATION_CONFIDENCE_LABEL = "Calculation Confidence"
+export const CALCULATION_CONFIDENCE_HELP =
+  "Calculation confidence summarizes warning level, override usage, and input completeness. It is not a deal-quality recommendation."
+
+type DealDecisionDisplayInput = {
+  profit: number
+  profitMargin: number
+  engineVerdictStatus: DealVerdictStatus
+  engineVerdictReason: string
+  capitalProtectionStatus?: CapitalProtectionStatus
+  phase2FinalClassification?: FinalDealClassification
+  phase2GovernanceState?: GovernanceState
+}
+
+export type DealDecisionDisplay = {
+  statusLabel: string
+  actionLabel: string
+  summary: string
+  tone: "green" | "amber" | "red"
+  warning?: string
+}
+
+const THIN_MARGIN_WARNING =
+  "Profit margin is below 5%. Renegotiate purchase price or verify GDV/refurb assumptions before proceeding."
+
+export function getDealDecisionDisplay(
+  input: DealDecisionDisplayInput
+): DealDecisionDisplay {
+  if (
+    input.phase2GovernanceState === "BLOCKED" ||
+    input.phase2FinalClassification === "NO_DEAL"
+  ) {
+    return {
+      statusLabel: "NO-GO",
+      actionLabel: "Reject",
+      summary: "Governance has blocked the deal. Unsafe deals cannot proceed as-is.",
+      tone: "red",
+    }
+  }
+
+  if (
+    input.phase2GovernanceState === "REVIEW_REQUIRED" ||
+    input.phase2FinalClassification === "REVIEW_REQUIRED"
+  ) {
+    return {
+      statusLabel: "REVIEW REQUIRED",
+      actionLabel: "Verify Before Proceeding",
+      summary:
+        "Governance requires additional review before this deal can be treated as investable.",
+      tone: "amber",
+    }
+  }
+
+  if (input.profit < 0 || input.profitMargin < 0) {
+    return {
+      statusLabel: "NO-GO",
+      actionLabel: "Reject",
+      summary: "Projected profit is negative. The deal does not support a safe proceed decision.",
+      tone: "red",
+    }
+  }
+
+  if (input.profitMargin < 0.05) {
+    return {
+      statusLabel: "MARGINAL",
+      actionLabel: "Renegotiate",
+      summary: "Thin profit buffer. Not safe to proceed as-is.",
+      tone: "red",
+      warning: THIN_MARGIN_WARNING,
+    }
+  }
+
+  if (input.profitMargin < 0.1) {
+    return {
+      statusLabel: "CAUTION",
+      actionLabel: "Needs Stronger Buffer",
+      summary: "Profit buffer is thin and should be strengthened before treating the deal as clean.",
+      tone: "amber",
+    }
+  }
+
+  if (
+    input.capitalProtectionStatus === "NO_DEAL" ||
+    input.engineVerdictStatus === "NO-GO"
+  ) {
+    return {
+      statusLabel: "NO-GO",
+      actionLabel: "Reject",
+      summary: "Capital protection or verdict checks do not support progression.",
+      tone: "red",
+    }
+  }
+
+  if (
+    input.capitalProtectionStatus === "HIGH_RISK" ||
+    input.capitalProtectionStatus === "CAUTION" ||
+    input.engineVerdictStatus === "CONDITIONAL"
+  ) {
+    return {
+      statusLabel: "CONDITIONAL",
+      actionLabel: "Proceed With Caution",
+      summary: input.engineVerdictReason,
+      tone: "amber",
+    }
+  }
+
+  if (input.engineVerdictStatus === "GO") {
+    return {
+      statusLabel: "GO",
+      actionLabel: "Proceed",
+      summary: input.engineVerdictReason,
+      tone: "green",
+    }
+  }
+
+  return {
+    statusLabel: "ANALYSIS ONLY",
+    actionLabel: "Complete Core Inputs",
+    summary: input.engineVerdictReason,
+    tone: "amber",
+  }
+}

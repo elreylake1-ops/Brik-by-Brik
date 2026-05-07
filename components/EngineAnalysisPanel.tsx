@@ -1,6 +1,11 @@
 "use client"
 
 import { formatCurrency, formatPercent, formatProfit, formatLabel, formatRatioPercent, formatNumber } from "@/lib/formatters"
+import {
+  CALCULATION_CONFIDENCE_HELP,
+  CALCULATION_CONFIDENCE_LABEL,
+  getDealDecisionDisplay,
+} from "@/lib/display/deal-decision-display"
 import type { DealInputs } from "@/types/deal"
 import type { DealWithRefurbResult } from "@/lib/engine/analyze-deal-with-refurb"
 
@@ -17,11 +22,10 @@ function subSectionTitle(label: string) {
   return <h4 className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wider text-gray-400">{label}</h4>
 }
 
-function verdictClasses(status: DealWithRefurbResult["verdict"]["status"]): string {
-  if (status === "GO") return "border-green-200 bg-green-50 text-green-800"
-  if (status === "CONDITIONAL") return "border-amber-200 bg-amber-50 text-amber-800"
-  if (status === "NO-GO") return "border-red-200 bg-red-50 text-red-800"
-  return "border-gray-200 bg-gray-50 text-gray-800"
+function decisionToneClasses(tone: "green" | "amber" | "red"): string {
+  if (tone === "green") return "border-green-200 bg-green-50 text-green-800"
+  if (tone === "amber") return "border-amber-200 bg-amber-50 text-amber-800"
+  return "border-red-200 bg-red-50 text-red-800"
 }
 
 function dueDiligenceColourClasses(colour: "green" | "amber" | "red"): string {
@@ -46,6 +50,13 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
   const dueDiligenceStrategyLabel = dueDiligence
     ? formatDueDiligenceStrategy(dueDiligence.decision.strategyRecommendation)
     : ""
+  const displayDecision = getDealDecisionDisplay({
+    profit: result.deal.profit,
+    profitMargin: result.deal.profitMargin,
+    engineVerdictStatus: result.verdict.status,
+    engineVerdictReason: result.verdict.reason,
+    capitalProtectionStatus: dueDiligence?.decision.capitalProtectionStatus,
+  })
 
   return (
     <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -54,21 +65,23 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
         Client-demo view from engine output only. No UI-side calculation shortcuts.
       </p>
 
-      {sectionTitle("Verdict and Confidence")}
+      {sectionTitle("Decision and Calculation Confidence")}
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className={`rounded border p-4 ${verdictClasses(result.verdict.status)}`}>
-          <div className="text-xs font-medium uppercase tracking-wide">Verdict</div>
-          <div className="mt-1 text-xl font-bold">{result.verdict.status}</div>
-          <p className="mt-2 text-xs">{result.verdict.reason}</p>
+        <div className={`rounded border p-4 ${decisionToneClasses(displayDecision.tone)}`}>
+          <div className="text-xs font-medium uppercase tracking-wide">Client Safety Decision</div>
+          <div className="mt-1 text-xl font-bold">{displayDecision.statusLabel}</div>
+          <div className="mt-1 text-sm font-semibold">{displayDecision.actionLabel}</div>
+          <p className="mt-2 text-xs">{displayDecision.summary}</p>
+          <p className="mt-2 text-[11px] opacity-80">Underlying engine verdict: {result.verdict.status}</p>
         </div>
         <div className="rounded border border-gray-200 p-4">
-          <div className="text-xs text-gray-500">Confidence</div>
+          <div className="text-xs text-gray-500">{CALCULATION_CONFIDENCE_LABEL}</div>
           <div className="mt-1 text-xl font-bold text-gray-900">
             {result.confidence.score}%
           </div>
           <div className="text-sm font-medium text-gray-700">{result.confidence.band}</div>
           <p className="mt-2 text-xs text-gray-500">
-            Confidence summarizes warning level, override usage, and input completeness.
+            {CALCULATION_CONFIDENCE_HELP}
           </p>
         </div>
         <div className="rounded border border-gray-200 p-4">
@@ -86,6 +99,12 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
             <li key={idx}>{factor}</li>
           ))}
         </ul>
+      )}
+
+      {displayDecision.warning && (
+        <div className="mt-3 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {displayDecision.warning}
+        </div>
       )}
 
       {sectionTitle("Deal Numbers")}
@@ -185,16 +204,21 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
 
           {subSectionTitle("Strategy Decision")}
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <div className={`rounded border p-4 ${dueDiligenceColourClasses(dueDiligence.uiColours.dealClassification)}`}>
+            <div className={`rounded border p-4 ${decisionToneClasses(displayDecision.tone)}`}>
               <div className="text-xs font-medium uppercase tracking-wide">Strategy Decision</div>
-              <div className="mt-2 text-sm">Classification: {dueDiligenceClassificationLabel}</div>
-              <div className="mt-1 text-base font-semibold">{dueDiligenceStrategyLabel}</div>
+              <div className="mt-2 text-sm">Display Classification: {displayDecision.statusLabel}</div>
+              <div className="mt-1 text-base font-semibold">{displayDecision.actionLabel}</div>
+              <div className="mt-2 text-xs opacity-80">Underlying due diligence strategy: {dueDiligenceStrategyLabel}</div>
             </div>
             <div className="rounded border border-gray-200 p-4">
               <div className="text-xs text-gray-500">Decision Summary</div>
               <div className="mt-2 text-sm font-semibold text-gray-900">
-                {`${formatLabel(dueDiligence.decision.dealClassification.toLowerCase())} — ${dueDiligenceStrategyLabel}`}
+                {`${displayDecision.statusLabel} - ${displayDecision.actionLabel}`}
               </div>
+              <p className="mt-2 text-xs text-gray-500">{displayDecision.summary}</p>
+              <p className="mt-2 text-xs text-gray-500">
+                Underlying due diligence classification: {dueDiligenceClassificationLabel}
+              </p>
             </div>
           </div>
 
