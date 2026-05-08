@@ -46,6 +46,7 @@ This JSON file contains the machine-readable actual outputs used for validation.
 ## Scenario 3. No deal
 
 - Purpose / what the scenario tests: Loss-making deal with capital overexposure that should fail cleanly and consistently.
+- Manual screenshot reference: `03-no-deal.png` uses the corrected manual walkthrough setup for client review: purchase `190000`, GDV `200000`, zero fees, zero bridge term, generated standard refurb, and expected visible result `NO-GO / Reject`.
 - Expected governance state: `BLOCKED`
 - Actual governance state: `BLOCKED`
 - Expected final classification: `NO_DEAL`

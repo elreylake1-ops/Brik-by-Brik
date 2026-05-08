@@ -86,4 +86,6 @@ Actual scenario output appendix is now created.
 
 Full 15-scenario reports are now available for client review.
 
+Scenario 3 screenshot walkthrough values were corrected to match the validated no-deal manual screenshot: £190k purchase, £200k GDV, zero fees, zero bridge term, generated standard refurb, expected NO-GO / Reject.
+
 Phase 3 remains blocked pending client acceptance.

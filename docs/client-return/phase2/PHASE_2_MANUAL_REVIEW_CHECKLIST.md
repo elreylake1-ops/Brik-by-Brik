@@ -5,9 +5,9 @@ This checklist is for client-side dangerous-deal review only. It is intended to 
 ## No Deal
 
 - Test objective: Confirm that a loss-making case fails capital protection and does not progress.
-- Suggested app input values: Purchase `180000`, GDV `200000`, refurb `10000`, stamp duty `6000`, legal `2000`, sale `3000`, bridge term `6`, evidence `STRONG`, comparables `5`, structural risk `NONE`.
-- Expected result: `BLOCKED / NO_DEAL`.
-- What to verify manually: Negative-profit or fatal-risk messaging is visible; the app does not present a proceed outcome.
+- Suggested app input values: Purchase `190000`, GDV `200000`, stamp duty `0`, legal `0`, sale `0`, bridge term `0`; use generated refurb scope with bedrooms `2`, bathrooms `1`, floor area `80 sqm`, kitchen `Full Replacement / Medium`, bathroom `Full Replacement`, bedroom `Cosmetic Refresh`, flooring whole property `ON`, full rewire `ON`, boiler replacement `OFF`, roof works `OFF`.
+- Expected result: `NO-GO / Reject`.
+- What to verify manually: Client Safety Decision shows `NO-GO / Reject`; profit and profit margin are negative; capital protection shows `High Risk / No Deal`; strategy decision resolves to `NO-GO / Reject`; risk flags include low profit margin, capital overexposure, and downside GDV creates a loss.
 - Pass/Fail: [ ] Pass [ ] Fail
 
 ## Downside Loss
