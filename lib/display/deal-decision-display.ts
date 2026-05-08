@@ -29,6 +29,8 @@ export type DealDecisionDisplay = {
 
 const NEGATIVE_PROFIT_WARNING =
   "Projected profit is negative. Reject this deal unless purchase price, GDV, or refurb assumptions materially change."
+const HARD_NO_GO_WARNING =
+  "Projected economics fail the engine safety rules. Reject this deal unless purchase price, GDV, refurb, or cost assumptions materially change."
 const THIN_MARGIN_WARNING =
   "Profit margin is below 5%. Renegotiate purchase price or verify GDV/refurb assumptions before proceeding."
 const CAPITAL_EXPOSURE_WARNING =
@@ -50,7 +52,11 @@ export function getTechnicalVerdictDetail(
   status: DealVerdictStatus,
   reason: string
 ): string {
-  return `Engine verdict: ${status}. ${reason}`
+  if (status === "NO-GO") {
+    return "Technical engine verdict: NO-GO by MAO/capital-protection rules."
+  }
+
+  return `Technical engine verdict: ${status}. ${reason}`
 }
 
 function hasUncostedSelectedScope(warnings?: string[]): boolean {
@@ -71,6 +77,17 @@ function getAdditionalWarnings(input: DealDecisionDisplayInput, primaryWarning?:
   }
 
   return warnings.length > 0 ? warnings : undefined
+}
+
+function hasHardEngineNoGoReason(reason: string): boolean {
+  const normalizedReason = reason.toLowerCase()
+
+  return (
+    normalizedReason.includes("purchase exceeds mao") ||
+    normalizedReason.includes("projected profit is non-positive") ||
+    normalizedReason.includes("total investment exceeds gdv") ||
+    normalizedReason.includes("capital protection fail")
+  )
 }
 
 export function getDealDecisionDisplay(
@@ -114,6 +131,20 @@ export function getDealDecisionDisplay(
     }
   }
 
+  if (
+    input.capitalProtectionStatus === "NO_DEAL" ||
+    (input.engineVerdictStatus === "NO-GO" && hasHardEngineNoGoReason(input.engineVerdictReason))
+  ) {
+    return {
+      statusLabel: "NO-GO",
+      actionLabel: "Reject",
+      summary: "Hard engine safety checks do not support progression.",
+      tone: "red",
+      warning: HARD_NO_GO_WARNING,
+      additionalWarnings: getAdditionalWarnings(input, HARD_NO_GO_WARNING),
+    }
+  }
+
   if (profitMarginPercent < 5) {
     return {
       statusLabel: "MARGINAL",
@@ -146,19 +177,6 @@ export function getDealDecisionDisplay(
       tone: "amber",
       warning: CAPITAL_EXPOSURE_WARNING,
       additionalWarnings: getAdditionalWarnings(input, CAPITAL_EXPOSURE_WARNING),
-    }
-  }
-
-  if (
-    input.capitalProtectionStatus === "NO_DEAL" ||
-    input.engineVerdictStatus === "NO-GO"
-  ) {
-    return {
-      statusLabel: "NO-GO",
-      actionLabel: "Reject",
-      summary: "Capital protection or verdict checks do not support progression.",
-      tone: "red",
-      additionalWarnings: getAdditionalWarnings(input),
     }
   }
 

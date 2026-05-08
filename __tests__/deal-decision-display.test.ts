@@ -7,6 +7,38 @@ import {
 } from "@/lib/display/deal-decision-display"
 
 describe("client-facing deal decision display guard", () => {
+  it("technical engine verdict no-go with positive profit margin still returns no-go reject", () => {
+    const display = getDealDecisionDisplay({
+      profit: 2760,
+      profitMargin: 1.38,
+      engineVerdictStatus: "NO-GO",
+      engineVerdictReason: "Purchase exceeds MAO target even though projected profit remains positive.",
+      capitalProtectionStatus: "SAFE",
+    })
+
+    expect(display.statusLabel).toBe("NO-GO")
+    expect(display.actionLabel).toBe("Reject")
+    expect(display.warning).toBe(
+      "Projected economics fail the engine safety rules. Reject this deal unless purchase price, GDV, refurb, or cost assumptions materially change."
+    )
+  })
+
+  it("technical engine verdict no-go with capital exposure high still returns no-go reject", () => {
+    const display = getDealDecisionDisplay({
+      profit: 38000,
+      profitMargin: 19,
+      engineVerdictStatus: "NO-GO",
+      engineVerdictReason: "Purchase exceeds MAO bands and/or projected profit is non-positive.",
+      capitalProtectionStatus: "HIGH_RISK",
+    })
+
+    expect(display.statusLabel).toBe("NO-GO")
+    expect(display.actionLabel).toBe("Reject")
+    expect(display.warning).toBe(
+      "Projected economics fail the engine safety rules. Reject this deal unless purchase price, GDV, refurb, or cost assumptions materially change."
+    )
+  })
+
   it("clean strong deal with no warnings stays go proceed", () => {
     const display = getDealDecisionDisplay({
       profit: 40000,
@@ -45,9 +77,9 @@ describe("client-facing deal decision display guard", () => {
     const display = getDealDecisionDisplay({
       profit: 2760,
       profitMargin: 1.38,
-      engineVerdictStatus: "NO-GO",
-      engineVerdictReason: "Purchase exceeds MAO target even though projected profit remains positive.",
-      capitalProtectionStatus: "NO_DEAL",
+      engineVerdictStatus: "CONDITIONAL",
+      engineVerdictReason: "Projected profit is positive but still needs renegotiation support.",
+      capitalProtectionStatus: "SAFE",
       warnings: [
         'Scope "refresh" for "kitchen" has no task templates in Phase 1A. Cost not included. Add templates to task-cost-library.ts.',
       ],
@@ -85,9 +117,9 @@ describe("client-facing deal decision display guard", () => {
     const display = getDealDecisionDisplay({
       profit: -5000,
       profitMargin: -2,
-      engineVerdictStatus: "NO-GO",
-      engineVerdictReason: "Purchase exceeds MAO bands and/or projected profit is non-positive.",
-      capitalProtectionStatus: "NO_DEAL",
+      engineVerdictStatus: "CONDITIONAL",
+      engineVerdictReason: "Projected margin was softened by display logic before this guard.",
+      capitalProtectionStatus: "SAFE",
       warnings: [
         'Scope "partial" for "bathroom" has no task templates in Phase 1A. Cost not included. Add templates to task-cost-library.ts.',
       ],
@@ -174,7 +206,7 @@ describe("client-facing deal decision display guard", () => {
         "Purchase exceeds MAO target even though projected profit remains positive."
       )
     ).toBe(
-      "Engine verdict: NO-GO. Purchase exceeds MAO target even though projected profit remains positive."
+      "Technical engine verdict: NO-GO by MAO/capital-protection rules."
     )
   })
 })
