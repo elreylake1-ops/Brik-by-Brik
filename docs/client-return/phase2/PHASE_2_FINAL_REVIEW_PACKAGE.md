@@ -15,6 +15,10 @@ Brik Engine Phase 2 is validated for client review.
 
 - App for manual review: https://lakeviewsproperty.vercel.app/
 
+## Supporting Review Documents
+
+- [Actual Outputs for All 15 Tested Scenarios](./PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md)
+
 ## Full Scenario List
 
 1. Strong BRRR candidate

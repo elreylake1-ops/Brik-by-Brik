@@ -17,6 +17,7 @@ Phase 2 validates investor safety and engine control quality, not UI polish.
 ## Client Review Index
 
 - [Phase 2 Final Review Package](./PHASE_2_FINAL_REVIEW_PACKAGE.md)
+- [Actual Outputs for All 15 Tested Scenarios](./PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md)
 - [Phase 2 Manual Review Checklist](./PHASE_2_MANUAL_REVIEW_CHECKLIST.md)
 - [Phase 2 JSON Samples](./PHASE_2_JSON_SAMPLES.md)
 - [Phase 2 Architecture Notes](./PHASE_2_ARCHITECTURE_NOTES.md)
