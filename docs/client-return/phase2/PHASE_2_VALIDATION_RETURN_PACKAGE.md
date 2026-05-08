@@ -14,6 +14,14 @@ The Phase 2 validation package demonstrates that the engine:
 
 Phase 2 validates investor safety and engine control quality, not UI polish.
 
+## Client Review Index
+
+- [Phase 2 Final Review Package](./PHASE_2_FINAL_REVIEW_PACKAGE.md)
+- [Phase 2 Manual Review Checklist](./PHASE_2_MANUAL_REVIEW_CHECKLIST.md)
+- [Phase 2 JSON Samples](./PHASE_2_JSON_SAMPLES.md)
+- [Phase 2 Architecture Notes](./PHASE_2_ARCHITECTURE_NOTES.md)
+- [Phase 2 Recommended Refinements](./PHASE_2_RECOMMENDED_REFINEMENTS.md)
+
 ## Phase 2 Validation Objective
 
 The objective of Phase 2 was to prove that Brik Engine can evaluate deals using deterministic, rules-based logic before any Phase 3 expansion.
@@ -158,6 +166,15 @@ Current known limitations remain documented in the validation package and should
 - Legal and survey evidence intake refinement
 - Persistent analysis history later, only if approved
 - Lender and refinance validation later, only if approved
+
+## Client Review Package Additions
+
+The client-facing review package now includes:
+
+- a final Phase 2 review document with the full 15-scenario matrix
+- a manual dangerous-deal review checklist
+- compact JSON output examples for manual inspection
+- architecture notes and recommended refinements as supporting references
 
 ## Phase 3 Readiness Recommendation
 

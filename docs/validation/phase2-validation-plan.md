@@ -67,3 +67,15 @@ Manual UI safety alignment is now added so thin-margin deals are not presented a
 Phase 2G copy polish clarified negative-profit, thin-margin, capital-exposure, and heavy-refurb warning hierarchy for safer client-facing review.
 
 Manual refurb testing added completeness guard so selected-but-uncosted scopes cannot display as clean GO without scope validation.
+
+## Phase 2F-B
+
+Final client review package is now created.
+
+The package includes:
+
+- final Phase 2 review package document
+- manual dangerous-deal checklist
+- screenshot placeholder guidance for manual walkthrough
+
+Phase 3 remains blocked pending client acceptance of this Phase 2 review package.
