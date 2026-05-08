@@ -12,8 +12,13 @@
 ## Full JSON Reference
 
 - Machine-readable validation outputs: [phase2-stress-test-results.json](../../validation/phase2-stress-test-results.json)
+- Exact validation-output screenshot route: `/phase-2-review`
 
 This JSON file contains the machine-readable actual outputs used for validation.
+
+Phase 2 scenario screenshots should be captured from `/phase-2-review` for exact validation-output screenshots.
+
+Normal calculator screenshots may still be used for visual examples, but they should not be treated as proof for hidden governance/evidence scenarios.
 
 ## Scenario 1. Strong BRRR candidate
 

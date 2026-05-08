@@ -18,6 +18,7 @@ Brik Engine Phase 2 is validated for client review.
 ## Supporting Review Documents
 
 - [Actual Outputs for All 15 Tested Scenarios](./PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md)
+- Exact validation-output screenshot route: `/phase-2-review`
 
 ## Full Scenario List
 
@@ -233,6 +234,10 @@ Governance remains the final authority. A strong raw score is informative, but i
 ## Screenshots / Walkthrough
 
 Place screenshots in `docs/client-return/phase2/screenshots/`. If screenshots are not yet committed, use the placeholders below during client review.
+
+Phase 2 scenario screenshots should be captured from `/phase-2-review` for exact validation-output screenshots.
+
+Normal calculator screenshots may still be used for visual examples, but they should not be treated as proof for hidden governance/evidence scenarios.
 
 | Screenshot Slot | Placeholder Path | Input Summary | Expected Decision | What the Screen Proves |
 | --- | --- | --- | --- | --- |

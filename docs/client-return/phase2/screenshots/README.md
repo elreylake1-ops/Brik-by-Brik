@@ -2,6 +2,10 @@
 
 Place manual review screenshots for the client package in this folder.
 
+For exact Phase 2 validation-output screenshots, capture scenarios from `/phase-2-review`.
+
+Normal calculator screenshots may still be used for visual examples, but they should not be treated as proof for hidden governance/evidence scenarios because the current calculator form does not expose all Phase 2 evidence/governance inputs.
+
 Recommended files:
 
 - `01-strong-clean-deal.png`

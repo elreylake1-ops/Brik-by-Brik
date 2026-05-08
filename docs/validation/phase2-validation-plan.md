@@ -88,4 +88,8 @@ Full 15-scenario reports are now available for client review.
 
 Scenario 3 screenshot walkthrough values were corrected to match the validated no-deal manual screenshot: £190k purchase, £200k GDV, zero fees, zero bridge term, generated standard refurb, expected NO-GO / Reject.
 
+Phase 2 scenario screenshots should be captured from `/phase-2-review` for exact validation-output screenshots.
+
+Normal calculator screenshots may still be used for visual examples, but they should not be treated as proof for hidden governance/evidence scenarios.
+
 Phase 3 remains blocked pending client acceptance.
