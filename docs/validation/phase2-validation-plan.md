@@ -104,6 +104,6 @@ Live scenario review route is now added.
 
 Official 15-scenario screenshots should be captured from `/phase-2-live-review` for live-behavior proof.
 
-Normal calculator screenshots may still be used for manual deal-calculator walkthroughs, but they do not expose every governance or evidence field required to reproduce all 15 validation scenarios.
+`/` remains the live calculator for normal manual deal walkthroughs. Calculator screenshots may still be used for manual deal-calculator walkthroughs, but they do not expose every governance or evidence field required to reproduce all 15 validation scenarios.
 
 Phase 3 remains blocked pending client acceptance.
