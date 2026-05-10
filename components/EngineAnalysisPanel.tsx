@@ -5,6 +5,7 @@ import {
   CALCULATION_CONFIDENCE_HELP,
   CALCULATION_CONFIDENCE_LABEL,
   getDealDecisionDisplay,
+  getDealDecisionSummaryLine,
   getTechnicalVerdictDetail,
 } from "@/lib/display/deal-decision-display"
 import type { DealInputs } from "@/types/deal"
@@ -40,6 +41,11 @@ function formatDueDiligenceStrategy(strategyRecommendation: string): string {
   return formatLabel(strategyRecommendation.toLowerCase())
 }
 
+function formatTechnicalCapitalProtectionStatus(status: string): string {
+  if (status.toLowerCase() === "no_deal") return "No-deal threshold breached"
+  return formatLabel(status.toLowerCase())
+}
+
 export default function EngineAnalysisPanel({ inputs, result }: Props) {
   const refurbTotal = result.refurbSource === "generated"
     ? formatCurrency(result.refurb?.totalRefurbCost ?? 0)
@@ -60,6 +66,11 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
     riskFlags: dueDiligence?.decision.riskFlags,
     warnings: result.warnings,
   })
+  const technicalVerdictDetail = getTechnicalVerdictDetail(
+    result.verdict.status,
+    result.verdict.reason
+  )
+  const decisionSummaryLine = getDealDecisionSummaryLine(displayDecision)
 
   return (
     <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -76,7 +87,7 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
           <div className="mt-1 text-sm font-semibold">{displayDecision.actionLabel}</div>
           <p className="mt-2 text-xs">{displayDecision.summary}</p>
           <p className="mt-2 text-[11px] opacity-80">
-            {getTechnicalVerdictDetail(result.verdict.status, result.verdict.reason)}
+            {technicalVerdictDetail}
           </p>
         </div>
         <div className="rounded border border-gray-200 p-4">
@@ -211,7 +222,10 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
             <div className={`rounded border p-4 ${dueDiligenceColourClasses(dueDiligence.uiColours.capitalProtection)}`}>
               <div className="text-xs font-medium uppercase tracking-wide">Capital Protection</div>
               <div className="mt-2 text-sm">Capital Used: {formatRatioPercent(dueDiligence.dealSummary.capitalUsedPercent)}</div>
-              <div className="mt-1 text-base font-semibold">{formatLabel(dueDiligence.decision.capitalProtectionStatus.toLowerCase())}</div>
+              <div className="mt-2 text-xs uppercase tracking-wide opacity-80">Technical capital status</div>
+              <div className="mt-1 text-sm font-semibold">
+                {formatTechnicalCapitalProtectionStatus(dueDiligence.decision.capitalProtectionStatus)}
+              </div>
             </div>
             <div className={`rounded border p-4 ${dueDiligenceColourClasses(dueDiligence.uiColours.profit)}`}>
               <div className="text-xs font-medium uppercase tracking-wide">Realistic Margin</div>
@@ -224,18 +238,21 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className={`rounded border p-4 ${decisionToneClasses(displayDecision.tone)}`}>
               <div className="text-xs font-medium uppercase tracking-wide">Strategy Decision</div>
-              <div className="mt-2 text-sm">Display Classification: {displayDecision.statusLabel}</div>
-              <div className="mt-1 text-base font-semibold">{displayDecision.actionLabel}</div>
-              <div className="mt-2 text-xs opacity-80">Underlying due diligence strategy: {dueDiligenceStrategyLabel}</div>
+              <div className="mt-2 text-base font-semibold">{displayDecision.statusLabel}</div>
+              <div className="mt-1 text-sm font-semibold">{displayDecision.actionLabel}</div>
+              <p className="mt-2 text-xs opacity-80">{technicalVerdictDetail}</p>
+              <div className="mt-2 text-xs opacity-80">
+                Technical due diligence strategy: {dueDiligenceStrategyLabel}
+              </div>
             </div>
             <div className="rounded border border-gray-200 p-4">
               <div className="text-xs text-gray-500">Decision Summary</div>
               <div className="mt-2 text-sm font-semibold text-gray-900">
-                {`${displayDecision.statusLabel} - ${displayDecision.actionLabel}`}
+                {decisionSummaryLine}
               </div>
               <p className="mt-2 text-xs text-gray-500">{displayDecision.summary}</p>
               <p className="mt-2 text-xs text-gray-500">
-                Underlying due diligence classification: {dueDiligenceClassificationLabel}
+                Technical due diligence classification: {dueDiligenceClassificationLabel}
               </p>
             </div>
           </div>

@@ -53,10 +53,30 @@ export function getTechnicalVerdictDetail(
   reason: string
 ): string {
   if (status === "NO-GO") {
-    return "Technical engine verdict: NO-GO by MAO/capital-protection rules."
+    return "Engine verdict: NO-GO by MAO target."
   }
 
-  return `Technical engine verdict: ${status}. ${reason}`
+  return `Engine verdict: ${status}. ${reason}`
+}
+
+export function getDealDecisionSummaryLine(
+  decision: Pick<DealDecisionDisplay, "statusLabel" | "actionLabel">
+): string {
+  if (decision.statusLabel === "GO") return "Go — proceed"
+  if (decision.statusLabel === "MARGINAL") return "Marginal — renegotiate before proceeding"
+  if (decision.statusLabel === "NO-GO") return "No-go — reject"
+  if (decision.statusLabel === "REVIEW REQUIRED") return "Review required — verify before proceeding"
+  if (decision.statusLabel === "CAUTION") return "Caution — build stronger buffer before proceeding"
+
+  if (decision.statusLabel === "CONDITIONAL") {
+    if (decision.actionLabel === "Verify Scope") {
+      return "Conditional — verify scope before proceeding"
+    }
+
+    return "Conditional — proceed with caution"
+  }
+
+  return "Analysis only — complete core inputs"
 }
 
 function hasUncostedSelectedScope(warnings?: string[]): boolean {
@@ -77,17 +97,6 @@ function getAdditionalWarnings(input: DealDecisionDisplayInput, primaryWarning?:
   }
 
   return warnings.length > 0 ? warnings : undefined
-}
-
-function hasHardEngineNoGoReason(reason: string): boolean {
-  const normalizedReason = reason.toLowerCase()
-
-  return (
-    normalizedReason.includes("purchase exceeds mao") ||
-    normalizedReason.includes("projected profit is non-positive") ||
-    normalizedReason.includes("total investment exceeds gdv") ||
-    normalizedReason.includes("capital protection fail")
-  )
 }
 
 export function getDealDecisionDisplay(
@@ -131,20 +140,6 @@ export function getDealDecisionDisplay(
     }
   }
 
-  if (
-    input.capitalProtectionStatus === "NO_DEAL" ||
-    (input.engineVerdictStatus === "NO-GO" && hasHardEngineNoGoReason(input.engineVerdictReason))
-  ) {
-    return {
-      statusLabel: "NO-GO",
-      actionLabel: "Reject",
-      summary: "Hard engine safety checks do not support progression.",
-      tone: "red",
-      warning: HARD_NO_GO_WARNING,
-      additionalWarnings: getAdditionalWarnings(input, HARD_NO_GO_WARNING),
-    }
-  }
-
   if (profitMarginPercent < 5) {
     return {
       statusLabel: "MARGINAL",
@@ -153,6 +148,17 @@ export function getDealDecisionDisplay(
       tone: "red",
       warning: THIN_MARGIN_WARNING,
       additionalWarnings: getAdditionalWarnings(input, THIN_MARGIN_WARNING),
+    }
+  }
+
+  if (input.capitalProtectionStatus === "NO_DEAL") {
+    return {
+      statusLabel: "NO-GO",
+      actionLabel: "Reject",
+      summary: "Hard engine safety checks do not support progression.",
+      tone: "red",
+      warning: HARD_NO_GO_WARNING,
+      additionalWarnings: getAdditionalWarnings(input, HARD_NO_GO_WARNING),
     }
   }
 
@@ -187,6 +193,16 @@ export function getDealDecisionDisplay(
       statusLabel: "CONDITIONAL",
       actionLabel: "Proceed With Caution",
       summary: input.engineVerdictReason,
+      tone: "amber",
+      additionalWarnings: getAdditionalWarnings(input),
+    }
+  }
+
+  if (input.engineVerdictStatus === "NO-GO") {
+    return {
+      statusLabel: "CONDITIONAL",
+      actionLabel: "Proceed With Caution",
+      summary: "Technical MAO targets were missed, so price and assumptions should be challenged before treating the deal as clean.",
       tone: "amber",
       additionalWarnings: getAdditionalWarnings(input),
     }

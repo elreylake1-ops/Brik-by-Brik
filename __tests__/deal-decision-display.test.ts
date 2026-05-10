@@ -3,11 +3,12 @@ import {
   CALCULATION_CONFIDENCE_HELP,
   CALCULATION_CONFIDENCE_LABEL,
   getDealDecisionDisplay,
+  getDealDecisionSummaryLine,
   getTechnicalVerdictDetail,
 } from "@/lib/display/deal-decision-display"
 
 describe("client-facing deal decision display guard", () => {
-  it("technical engine verdict no-go with positive profit margin still returns no-go reject", () => {
+  it("technical engine verdict no-go with positive thin margin still returns marginal renegotiate", () => {
     const display = getDealDecisionDisplay({
       profit: 2760,
       profitMargin: 1.38,
@@ -16,14 +17,14 @@ describe("client-facing deal decision display guard", () => {
       capitalProtectionStatus: "SAFE",
     })
 
-    expect(display.statusLabel).toBe("NO-GO")
-    expect(display.actionLabel).toBe("Reject")
+    expect(display.statusLabel).toBe("MARGINAL")
+    expect(display.actionLabel).toBe("Renegotiate")
     expect(display.warning).toBe(
-      "Projected economics fail the engine safety rules. Reject this deal unless purchase price, GDV, refurb, or cost assumptions materially change."
+      "Profit margin is below 5%. Renegotiate purchase price or verify GDV/refurb assumptions before proceeding."
     )
   })
 
-  it("technical engine verdict no-go with capital exposure high still returns no-go reject", () => {
+  it("technical engine verdict no-go with positive margin and high capital exposure stays secondary", () => {
     const display = getDealDecisionDisplay({
       profit: 38000,
       profitMargin: 19,
@@ -32,10 +33,10 @@ describe("client-facing deal decision display guard", () => {
       capitalProtectionStatus: "HIGH_RISK",
     })
 
-    expect(display.statusLabel).toBe("NO-GO")
-    expect(display.actionLabel).toBe("Reject")
+    expect(display.statusLabel).toBe("CONDITIONAL")
+    expect(display.actionLabel).toBe("Proceed With Caution")
     expect(display.warning).toBe(
-      "Projected economics fail the engine safety rules. Reject this deal unless purchase price, GDV, refurb, or cost assumptions materially change."
+      "Projected profit is positive, but capital exposure is above the preferred safe threshold. Proceed only with verified GDV, refurb, and exit assumptions."
     )
   })
 
@@ -206,7 +207,16 @@ describe("client-facing deal decision display guard", () => {
         "Purchase exceeds MAO target even though projected profit remains positive."
       )
     ).toBe(
-      "Technical engine verdict: NO-GO by MAO/capital-protection rules."
+      "Engine verdict: NO-GO by MAO target."
     )
+  })
+
+  it("builds the marginal walkthrough summary line from the client-facing display state", () => {
+    expect(
+      getDealDecisionSummaryLine({
+        statusLabel: "MARGINAL",
+        actionLabel: "Renegotiate",
+      })
+    ).toBe("Marginal — renegotiate before proceeding")
   })
 })
