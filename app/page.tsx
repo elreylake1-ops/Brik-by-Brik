@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import CalculatorForm from "@/components/CalculatorForm"
 import ResultsDisplay from "@/components/ResultsDisplay"
 import RefurbScopeForm from "@/components/RefurbScopeForm"
@@ -41,6 +41,18 @@ export default function Home() {
   const [selectedWalkthroughPresetId, setSelectedWalkthroughPresetId] = useState(
     CALCULATOR_WALKTHROUGH_PRESETS[0]?.id ?? ""
   )
+  const [presetDropdownOpen, setPresetDropdownOpen] = useState(false)
+  const presetDropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (presetDropdownRef.current && !presetDropdownRef.current.contains(event.target as Node)) {
+        setPresetDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   function handleChange(field: keyof DealInputs, raw: string) {
     const value = raw === "" ? 0 : Math.max(0, parseFloat(raw) || 0)
@@ -65,6 +77,9 @@ export default function Home() {
     inputs.purchasePrice > 0 ||
     inputs.gdv > 0 ||
     inputs.refurbCost > 0
+
+  const selectedPresetLabel =
+    CALCULATOR_WALKTHROUGH_PRESETS.find((p) => p.id === selectedWalkthroughPresetId)?.label ?? "Select preset"
 
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
@@ -103,20 +118,40 @@ export default function Home() {
         <div className="mb-6 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
           <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-              <label className="flex-1 text-sm font-medium text-gray-700">
-                Walkthrough preset
-                <select
-                  value={selectedWalkthroughPresetId}
-                  onChange={(e) => setSelectedWalkthroughPresetId(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                >
-                  {CALCULATOR_WALKTHROUGH_PRESETS.map((preset) => (
-                    <option key={preset.id} value={preset.id}>
-                      {preset.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="flex-1">
+                <span className="text-sm font-medium text-gray-700">Walkthrough preset</span>
+                <div ref={presetDropdownRef} className="relative mt-1">
+                  <button
+                    type="button"
+                    onClick={() => setPresetDropdownOpen((v) => !v)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-left text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 flex items-center justify-between"
+                  >
+                    <span>{selectedPresetLabel}</span>
+                    <span className="ml-2 text-gray-400 text-xs">▾</span>
+                  </button>
+                  {presetDropdownOpen && (
+                    <div className="absolute left-0 top-full z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden">
+                      {CALCULATOR_WALKTHROUGH_PRESETS.map((preset) => (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedWalkthroughPresetId(preset.id)
+                            setPresetDropdownOpen(false)
+                          }}
+                          className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
+                            preset.id === selectedWalkthroughPresetId
+                              ? "bg-blue-50 text-blue-700 font-medium"
+                              : "text-gray-900"
+                          }`}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={loadSelectedWalkthroughPreset}
