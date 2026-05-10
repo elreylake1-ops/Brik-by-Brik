@@ -34,27 +34,6 @@ const defaultScope: RefurbScopeInput = {
   majorWorks: { rewire: false, boiler: false, roof: false },
 }
 
-const sampleDemoInputs: DealInputs = {
-  purchasePrice: 120000,
-  gdv: 200000,
-  refurbCost: 25000,
-  stampDuty: 3600,
-  legalCosts: 2000,
-  saleCosts: 3000,
-  bridgeTermMonths: 6,
-}
-
-const sampleDemoScope: RefurbScopeInput = {
-  bedrooms: 3,
-  bathrooms: 1,
-  floorAreaSqm: 80,
-  kitchen: { scope: "full_replace", size: "medium" },
-  bathroom: { scope: "full_replace" },
-  bedroom: { scope: "cosmetic_refresh" },
-  flooring: { replaceWholeProperty: true },
-  majorWorks: { rewire: true, boiler: false, roof: false },
-}
-
 export default function Home() {
   const [inputs, setInputs] = useState<DealInputs>(defaultInputs)
   const [useScope, setUseScope] = useState(false)
@@ -66,12 +45,6 @@ export default function Home() {
   function handleChange(field: keyof DealInputs, raw: string) {
     const value = raw === "" ? 0 : Math.max(0, parseFloat(raw) || 0)
     setInputs((prev) => ({ ...prev, [field]: value }))
-  }
-
-  function loadSampleScenario() {
-    setInputs(sampleDemoInputs)
-    setScope(sampleDemoScope)
-    setUseScope(true)
   }
 
   function loadSelectedWalkthroughPreset() {
@@ -128,19 +101,7 @@ export default function Home() {
         </div>
 
         <div className="mb-6 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={loadSampleScenario}
-              className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              Load sample 3-bed terrace
-            </button>
-            <span className="text-xs text-gray-500">
-              Demo preset uses mandatory Phase 1B sample scenario for quick client walkthrough.
-            </span>
-          </div>
-          <div className="mt-4 flex flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
               <label className="flex-1 text-sm font-medium text-gray-700">
                 Walkthrough preset
