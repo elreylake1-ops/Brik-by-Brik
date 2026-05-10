@@ -1,6 +1,10 @@
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
+import { mkdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { beforeAll, describe, expect, it } from "vitest"
+import {
+  loadPhase2Fixtures,
+  PHASE2_EXPECTED_SCENARIO_COUNT,
+} from "@/lib/validation/load-phase2-fixtures"
 import {
   buildPhase2KnownLimitationsMarkdown,
   buildPhase2StressTestReportMarkdown,
@@ -8,19 +12,6 @@ import {
   runPhase2Validation,
 } from "@/lib/validation/run-phase2-validation"
 import { validatePhase2Output } from "@/lib/validators/validate-phase2-output"
-import type { Phase2ScenarioFixture } from "@/types/phase2-validation"
-
-function loadFixtures(): Phase2ScenarioFixture[] {
-  const fixturesDir = path.resolve(process.cwd(), "tests", "fixtures", "phase2")
-  const fixtureFiles = readdirSync(fixturesDir)
-    .filter((fileName) => /^\d{2}-.*\.json$/.test(fileName))
-    .sort()
-
-  return fixtureFiles.map((fileName) => {
-    const filePath = path.join(fixturesDir, fileName)
-    return JSON.parse(readFileSync(filePath, "utf8")) as Phase2ScenarioFixture
-  })
-}
 
 function writeValidationArtifacts(markdownReport: string, jsonReport: object, limitations: string) {
   const docsDir = path.resolve(process.cwd(), "docs", "validation")
@@ -34,7 +25,7 @@ function writeValidationArtifacts(markdownReport: string, jsonReport: object, li
   writeFileSync(path.join(docsDir, "phase2-known-limitations.md"), limitations)
 }
 
-const fixtures = loadFixtures()
+const fixtures = loadPhase2Fixtures()
 const validationRun = runPhase2Validation(fixtures)
 
 describe("phase2 full validation suite", () => {
@@ -47,8 +38,8 @@ describe("phase2 full validation suite", () => {
   })
 
   it("executes all 15 fixtures", () => {
-    expect(validationRun.totalScenarios).toBe(15)
-    expect(validationRun.scenarioResults).toHaveLength(15)
+    expect(validationRun.totalScenarios).toBe(PHASE2_EXPECTED_SCENARIO_COUNT)
+    expect(validationRun.scenarioResults).toHaveLength(PHASE2_EXPECTED_SCENARIO_COUNT)
   })
 
   it("produces only outputs that pass validatePhase2Output", () => {
@@ -101,7 +92,7 @@ describe("phase2 full validation suite", () => {
   })
 
   it("passes all 15 calibrated scenarios", () => {
-    expect(validationRun.passed).toBe(15)
+    expect(validationRun.passed).toBe(PHASE2_EXPECTED_SCENARIO_COUNT)
     expect(validationRun.failed).toBe(0)
     expect(validationRun.scenarioResults.every((result) => result.pass)).toBe(true)
   })

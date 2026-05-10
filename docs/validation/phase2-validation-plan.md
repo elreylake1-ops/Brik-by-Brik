@@ -88,8 +88,22 @@ Full 15-scenario reports are now available for client review.
 
 Scenario 3 screenshot walkthrough values were corrected to match the validated no-deal manual screenshot: £190k purchase, £200k GDV, zero fees, zero bridge term, generated standard refurb, expected NO-GO / Reject.
 
-Phase 2 scenario screenshots should be captured from `/phase-2-review` for exact validation-output screenshots.
+The saved validation-report viewer for this appendix is `/phase-2-review`.
 
 Normal calculator screenshots may still be used for visual examples, but they should not be treated as proof for hidden governance/evidence scenarios.
+
+Phase 3 remains blocked pending client acceptance.
+
+## Phase 2F-D
+
+Live scenario review route is now added.
+
+`/phase-2-review` remains the saved validation-report viewer backed by `docs/validation/phase2-stress-test-results.json`.
+
+`/phase-2-live-review` now executes the actual deterministic Phase 2 engine against the locked 15 fixtures at runtime using the existing validation runner and fixture mapping path.
+
+Official 15-scenario screenshots should be captured from `/phase-2-live-review` for live-behavior proof.
+
+Normal calculator screenshots may still be used for manual deal-calculator walkthroughs, but they do not expose every governance or evidence field required to reproduce all 15 validation scenarios.
 
 Phase 3 remains blocked pending client acceptance.

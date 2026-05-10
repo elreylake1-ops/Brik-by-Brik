@@ -18,7 +18,12 @@ Brik Engine Phase 2 is validated for client review.
 ## Supporting Review Documents
 
 - [Actual Outputs for All 15 Tested Scenarios](./PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md)
-- Exact validation-output screenshot route: `/phase-2-review`
+- Saved validation-report viewer: `/phase-2-review`
+- Live engine execution route for official scenario screenshots: `/phase-2-live-review`
+
+`/phase-2-review` displays saved validation report outputs from `docs/validation/phase2-stress-test-results.json`.
+
+`/phase-2-live-review` executes the actual deterministic Phase 2 engine against the locked 15 fixtures at runtime and is the official screenshot route for live-behavior proof.
 
 ## Full Scenario List
 
@@ -235,9 +240,11 @@ Governance remains the final authority. A strong raw score is informative, but i
 
 Place screenshots in `docs/client-return/phase2/screenshots/`. If screenshots are not yet committed, use the placeholders below during client review.
 
-Phase 2 scenario screenshots should be captured from `/phase-2-review` for exact validation-output screenshots.
+Official 15-scenario proof screenshots should be captured from `/phase-2-live-review` because it executes the actual Phase 2 engine against the locked fixtures at runtime.
 
-Normal calculator screenshots may still be used for visual examples, but they should not be treated as proof for hidden governance/evidence scenarios.
+`/phase-2-review` remains useful as the saved validation-report viewer for documentation and package review.
+
+Normal calculator screenshots may still be used for visual examples of manual deal-calculator behavior, but they should not be treated as proof for governance scenarios that require evidence and risk fields not exposed in the basic calculator form.
 
 | Screenshot Slot | Placeholder Path | Input Summary | Expected Decision | What the Screen Proves |
 | --- | --- | --- | --- | --- |

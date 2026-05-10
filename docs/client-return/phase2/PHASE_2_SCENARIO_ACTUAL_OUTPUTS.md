@@ -12,13 +12,16 @@
 ## Full JSON Reference
 
 - Machine-readable validation outputs: [phase2-stress-test-results.json](../../validation/phase2-stress-test-results.json)
-- Exact validation-output screenshot route: `/phase-2-review`
+- Saved validation-report viewer: `/phase-2-review`
+- Live engine execution screenshot route: `/phase-2-live-review`
 
 This JSON file contains the machine-readable actual outputs used for validation.
 
-Phase 2 scenario screenshots should be captured from `/phase-2-review` for exact validation-output screenshots.
+`/phase-2-review` displays saved validation report outputs from the JSON artifact above.
 
-Normal calculator screenshots may still be used for visual examples, but they should not be treated as proof for hidden governance/evidence scenarios.
+`/phase-2-live-review` executes the actual deterministic Phase 2 engine against the locked 15 fixtures at runtime. Official 15-scenario screenshots should be captured from that live route for deployed-behavior proof.
+
+Normal calculator screenshots may still be used for visual examples of the basic deal calculator, but they should not be treated as proof for governance scenarios that depend on evidence and risk fields not exposed in the basic calculator form.
 
 ## Scenario 1. Strong BRRR candidate
 
