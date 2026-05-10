@@ -10,6 +10,8 @@ It is separate from the locked Phase 2 validation runner:
 
 The normal calculator form does not expose every hidden evidence or governance field required to reproduce the full locked Phase 2 validation suite. Those hidden-governance scenarios must still be evidenced from `/phase-2-live-review`, not from `/`.
 
+The live calculator now includes a walkthrough preset selector so reviewers can reproduce the 15 validated calculator screenshot cases from the deployed app.
+
 ## Live Calculator Walkthrough Screenshots
 
 ### 01-calculator-strong-profitable-deal.png

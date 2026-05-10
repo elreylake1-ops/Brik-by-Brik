@@ -7,6 +7,10 @@ import RefurbScopeForm from "@/components/RefurbScopeForm"
 import RefurbBreakdownSummary from "@/components/RefurbBreakdownSummary"
 import EngineAnalysisPanel from "@/components/EngineAnalysisPanel"
 import { analyzeDealWithRefurb } from "@/lib/engine/analyze-deal-with-refurb"
+import {
+  CALCULATOR_WALKTHROUGH_PRESETS,
+  getCalculatorWalkthroughPresetState,
+} from "@/lib/calculator-walkthrough-presets"
 import type { DealInputs } from "@/types/deal"
 import type { RefurbScopeInput } from "@/types/scope"
 
@@ -55,6 +59,9 @@ export default function Home() {
   const [inputs, setInputs] = useState<DealInputs>(defaultInputs)
   const [useScope, setUseScope] = useState(false)
   const [scope, setScope] = useState<RefurbScopeInput>(defaultScope)
+  const [selectedWalkthroughPresetId, setSelectedWalkthroughPresetId] = useState(
+    CALCULATOR_WALKTHROUGH_PRESETS[0]?.id ?? ""
+  )
 
   function handleChange(field: keyof DealInputs, raw: string) {
     const value = raw === "" ? 0 : Math.max(0, parseFloat(raw) || 0)
@@ -65,6 +72,18 @@ export default function Home() {
     setInputs(sampleDemoInputs)
     setScope(sampleDemoScope)
     setUseScope(true)
+  }
+
+  function loadSelectedWalkthroughPreset() {
+    const presetState = getCalculatorWalkthroughPresetState(selectedWalkthroughPresetId)
+
+    if (!presetState) {
+      return
+    }
+
+    setInputs(presetState.inputs)
+    setScope(presetState.scope)
+    setUseScope(presetState.useScope)
   }
 
   const result = analyzeDealWithRefurb(inputs, useScope ? scope : undefined)
@@ -120,6 +139,35 @@ export default function Home() {
             <span className="text-xs text-gray-500">
               Demo preset uses mandatory Phase 1B sample scenario for quick client walkthrough.
             </span>
+          </div>
+          <div className="mt-4 flex flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <label className="flex-1 text-sm font-medium text-gray-700">
+                Walkthrough preset
+                <select
+                  value={selectedWalkthroughPresetId}
+                  onChange={(e) => setSelectedWalkthroughPresetId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  {CALCULATOR_WALKTHROUGH_PRESETS.map((preset) => (
+                    <option key={preset.id} value={preset.id}>
+                      {preset.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                onClick={loadSelectedWalkthroughPreset}
+                className="rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800"
+              >
+                Load selected walkthrough
+              </button>
+            </div>
+            <p className="text-xs text-gray-500">
+              These presets reproduce the validated live calculator walkthrough screenshots.
+              Official Phase 2 fixture validation remains available at <code>/phase-2-live-review</code>.
+            </p>
           </div>
           <p className="mt-3 text-xs text-gray-500">
             Manual mode uses your entered refurb cost. Scope mode calculates refurb cost from selected rooms, tasks, timeline, warnings, and assumptions.

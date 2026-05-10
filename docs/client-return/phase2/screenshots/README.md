@@ -10,6 +10,8 @@ Route separation:
 
 Normal calculator screenshots must not be treated as proof for hidden governance and evidence scenarios because the current calculator form does not expose all Phase 2 governance inputs.
 
+The live calculator now includes a walkthrough preset selector so reviewers can reproduce the 15 validated calculator screenshot cases from the deployed app.
+
 ## Live Calculator Walkthrough Screenshots
 
 - `01-calculator-strong-profitable-deal.png`: Strong profitable deal — The calculator shows a clean GO / Proceed decision where purchase price, generated refurb cost, fees, finance, and GDV produce a strong profit margin and safe capital protection.

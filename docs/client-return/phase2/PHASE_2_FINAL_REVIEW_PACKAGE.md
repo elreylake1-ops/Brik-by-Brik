@@ -281,6 +281,8 @@ Official 15-scenario proof screenshots should be captured from `/phase-2-live-re
 
 Normal calculator screenshots may still be used for visual examples of manual deal-calculator behavior, but they should not be treated as proof for governance scenarios that require evidence and risk fields not exposed in the basic calculator form.
 
+The live calculator now includes a walkthrough preset selector so reviewers can reproduce the 15 validated calculator screenshot cases from the deployed app.
+
 | Screenshot Slot | Placeholder Path | Input Summary | Expected Decision | What the Screen Proves |
 | --- | --- | --- | --- | --- |
 | Strong clean deal | `docs/client-return/phase2/screenshots/01-strong-clean-deal.png` | Purchase `110000`, GDV `200000`, refurb `20000`, strong evidence, 5 comparables. | `PASS / HOT` | Clean baseline scenario can progress without governance friction. |
