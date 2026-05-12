@@ -10,6 +10,12 @@ This document is planning only.
 
 It does not authorize Phase 3 implementation.
 
+## Status Note
+
+Phase 2 acceptance has been received.
+
+First approved implementation scope is Phase 3A-0 orchestration foundation only.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.

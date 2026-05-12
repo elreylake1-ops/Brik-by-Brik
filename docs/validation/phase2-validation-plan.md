@@ -111,3 +111,5 @@ Official 15-scenario screenshots should be captured from `/phase-2-live-review` 
 Phase 3 remains blocked pending client acceptance.
 
 A Phase 2 Operational Acceptance Package has been created for client review. Phase 3 remains blocked until that package is accepted.
+
+Phase 2 has been accepted with limitations acknowledged. Controlled Phase 3A-0 orchestration foundation may begin, but AI, scraping, CRM, autonomous workflows, persistence expansion, and heavy UI scaling remain blocked.
