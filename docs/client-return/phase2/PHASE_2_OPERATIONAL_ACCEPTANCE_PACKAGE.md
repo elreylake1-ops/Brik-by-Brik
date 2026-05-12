@@ -36,11 +36,11 @@ Phase 2 scope currently covers:
 
 Primary supporting references:
 
-- [PHASE_2_STRESS_TEST_REPORT](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/validation/phase2-stress-test-report.md)
-- [PHASE_2_VALIDATION_RETURN_PACKAGE](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/client-return/phase2/PHASE_2_VALIDATION_RETURN_PACKAGE.md)
-- [PHASE_2_FINAL_REVIEW_PACKAGE](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/client-return/phase2/PHASE_2_FINAL_REVIEW_PACKAGE.md)
-- [PHASE_2_SCENARIO_ACTUAL_OUTPUTS](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/client-return/phase2/PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md)
-- [PHASE_2_KNOWN_LIMITATIONS](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/validation/phase2-known-limitations.md)
+- [PHASE_2_STRESS_TEST_REPORT](../../validation/phase2-stress-test-report.md)
+- [PHASE_2_VALIDATION_RETURN_PACKAGE](./PHASE_2_VALIDATION_RETURN_PACKAGE.md)
+- [PHASE_2_FINAL_REVIEW_PACKAGE](./PHASE_2_FINAL_REVIEW_PACKAGE.md)
+- [PHASE_2_SCENARIO_ACTUAL_OUTPUTS](./PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md)
+- [PHASE_2_KNOWN_LIMITATIONS](../../validation/phase2-known-limitations.md)
 
 ## Operational Trust Criteria
 
@@ -48,12 +48,12 @@ James priority criteria and supporting repo evidence:
 
 | Criterion | Evidence in repo | Why it supports trust |
 | --- | --- | --- |
-| deterministic reliability | [phase2-stress-test-report.md](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/validation/phase2-stress-test-report.md), `Consistency Testing Proof` section | Same inputs re-run with no drift across all 15 scenarios. |
-| governance integrity | [phase2-stress-test-report.md](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/validation/phase2-stress-test-report.md), `Governance Override Proof` section | Raw attractive scores can still end as `REVIEW_REQUIRED` or `NO_DEAL`. |
-| edge-case handling | [phase2-stress-test-report.md](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/validation/phase2-stress-test-report.md), `Edge-Case Testing Proof` section | Zero-refurb, missing comparables, unrealistic GDV, long bridge, and leverage cases are explicitly validated. |
-| evidence consistency | [PHASE_2_ARCHITECTURE_NOTES.md](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/client-return/phase2/PHASE_2_ARCHITECTURE_NOTES.md), [PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/client-return/phase2/PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md) | Evidence and confidence are handled through deterministic contracts, not ad hoc UI interpretation. |
-| investor confidence | [PHASE_2_FINAL_REVIEW_PACKAGE.md](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/client-return/phase2/PHASE_2_FINAL_REVIEW_PACKAGE.md), [PHASE_2_MANUAL_REVIEW_CHECKLIST.md](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/client-return/phase2/PHASE_2_MANUAL_REVIEW_CHECKLIST.md) | Dangerous and thin-margin deals are not presented as safe proceed cases. |
-| workflow smoothness | [app/phase-2-review/page.tsx](C:/Users/user/Documents/Lake Views Property/deal-analyzer/app/phase-2-review/page.tsx), [app/phase-2-live-review/page.tsx](C:/Users/user/Documents/Lake Views Property/deal-analyzer/app/phase-2-live-review/page.tsx), [app/page.tsx](C:/Users/user/Documents/Lake Views Property/deal-analyzer/app/page.tsx) | Clear route separation supports saved review, live fixture proof, and manual calculator walkthroughs. |
+| deterministic reliability | [phase2-stress-test-report.md](../../validation/phase2-stress-test-report.md), `Consistency Testing Proof` section | Same inputs re-run with no drift across all 15 scenarios. |
+| governance integrity | [phase2-stress-test-report.md](../../validation/phase2-stress-test-report.md), `Governance Override Proof` section | Raw attractive scores can still end as `REVIEW_REQUIRED` or `NO_DEAL`. |
+| edge-case handling | [phase2-stress-test-report.md](../../validation/phase2-stress-test-report.md), `Edge-Case Testing Proof` section | Zero-refurb, missing comparables, unrealistic GDV, long bridge, and leverage cases are explicitly validated. |
+| evidence consistency | [PHASE_2_ARCHITECTURE_NOTES.md](./PHASE_2_ARCHITECTURE_NOTES.md), [PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md](./PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md) | Evidence and confidence are handled through deterministic contracts, not ad hoc UI interpretation. |
+| investor confidence | [PHASE_2_FINAL_REVIEW_PACKAGE.md](./PHASE_2_FINAL_REVIEW_PACKAGE.md), [PHASE_2_MANUAL_REVIEW_CHECKLIST.md](./PHASE_2_MANUAL_REVIEW_CHECKLIST.md) | Dangerous and thin-margin deals are not presented as safe proceed cases. |
+| workflow smoothness | [`app/phase-2-review/page.tsx`](../../../app/phase-2-review/page.tsx), [`app/phase-2-live-review/page.tsx`](../../../app/phase-2-live-review/page.tsx), [`app/page.tsx`](../../../app/page.tsx) | Clear route separation supports saved review, live fixture proof, and manual calculator walkthroughs. |
 
 ## Review Routes
 
@@ -92,9 +92,9 @@ High-level summary of the locked stress suite:
 
 Detailed evidence sources:
 
-- [phase2-stress-test-report.md](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/validation/phase2-stress-test-report.md)
-- [PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/client-return/phase2/PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md)
-- [phase2-stress-test-results.json](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/validation/phase2-stress-test-results.json)
+- [phase2-stress-test-report.md](../../validation/phase2-stress-test-report.md)
+- [PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md](./PHASE_2_SCENARIO_ACTUAL_OUTPUTS.md)
+- [phase2-stress-test-results.json](../../validation/phase2-stress-test-results.json)
 
 ## Manual Walkthrough Evidence
 
@@ -130,8 +130,8 @@ Screenshot slots for client review:
 
 Supporting references:
 
-- [PHASE_3_INVESTOR_INTELLIGENCE_ROADMAP.md](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/client-return/phase3/PHASE_3_INVESTOR_INTELLIGENCE_ROADMAP.md)
-- [PHASE_3_IMPLEMENTATION_PLAN.md](C:/Users/user/Documents/Lake Views Property/deal-analyzer/docs/phase3/PHASE_3_IMPLEMENTATION_PLAN.md)
+- [PHASE_3_INVESTOR_INTELLIGENCE_ROADMAP.md](../phase3/PHASE_3_INVESTOR_INTELLIGENCE_ROADMAP.md)
+- [PHASE_3_IMPLEMENTATION_PLAN.md](../../phase3/PHASE_3_IMPLEMENTATION_PLAN.md)
 
 ## Acceptance Decision Section
 
