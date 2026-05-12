@@ -94,6 +94,8 @@ Normal calculator screenshots may still be used for visual examples, but they sh
 
 Phase 3 remains blocked pending client acceptance.
 
+Phase 3 planning documents have been created, but Phase 3 implementation remains blocked pending Phase 2 operational acceptance.
+
 ## Phase 2F-D
 
 Live scenario review route is now added.
