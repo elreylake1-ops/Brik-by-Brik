@@ -55,3 +55,16 @@ During Phase 3A-0:
 Phase 3A-0 prepares structure for later intelligence modules without implementing those modules.
 
 It creates safe orchestration scaffolding so future modules can plug in without weakening governance-first deterministic control.
+
+## Step 2 - Contract Hardening
+
+Phase 3A-0 Step 2 hardens orchestration contracts for safe module plug-in behavior.
+
+Scope summary:
+
+- contract stability for orchestration input, output, metadata, tasks, and escalation route
+- no randomness and no date/time generation in orchestration output
+- no mutation of deterministic snapshot input or accepted limitation inputs
+- stable task IDs for repeatable downstream routing
+- advisory-only orchestration output with no decision override authority
+- deterministic engine remains the source of truth for final deal decisions
