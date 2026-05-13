@@ -36,6 +36,8 @@ Phase 3D-0 has begun with runtime review surface planning only. No route, UI, ru
 
 Phase 3D-0 developer-only `/phase-3-dev-review` route skeleton has been created using locked fixtures only. It is not linked from existing routes and does not alter calculator, Phase 2 review, governance, or deterministic behavior.
 
+Phase 3D-0 is closed. A non-linked `/phase-3-dev-review` fixture-only developer route exists for internal advisory review only. It does not alter calculator, Phase 2 review, governance, or deterministic behavior.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.

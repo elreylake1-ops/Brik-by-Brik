@@ -48,6 +48,24 @@ describe("phase3 dev review route", () => {
     expect(html.toLowerCase()).not.toContain("upload evidence")
   })
 
+  it("contains no form or button elements", () => {
+    const html = renderToStaticMarkup(<Phase3DevReviewPage />).toLowerCase()
+
+    expect(html).not.toContain("<form")
+    expect(html).not.toContain("<button")
+  })
+
+  it("states fixture-only behavior and no live data/service behavior", () => {
+    const html = renderToStaticMarkup(<Phase3DevReviewPage />).toLowerCase()
+
+    expect(html).toContain("fixture-only")
+    expect(html).toContain("no persistence")
+    expect(html).toContain("no scraping/integration data")
+    expect(html).not.toContain("live user input")
+    expect(html).not.toContain("database connected")
+    expect(html).not.toContain("external service call")
+  })
+
   it("does not claim active ai/scraping/integration behavior", () => {
     const html = renderToStaticMarkup(<Phase3DevReviewPage />).toLowerCase()
 
