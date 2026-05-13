@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "id": "hint-lender-missing-001",
+      "evidenceItemId": "ev-lender-missing-1",
+      "category": "lender_refinance_evidence",
+      "trigger": "missing_evidence",
+      "severity": "high",
+      "suggestedTaskCategory": "evidence",
+      "suggestedTaskPriority": "high",
+      "suggestedEscalationRoute": "lender_review",
+      "summary": "Lender refinance evidence is missing. No term sheet or lender confirmation available. Refinance assumptions must not be treated as settled until evidence is supplied.",
+      "warnings": [
+        "missing lender evidence: no_term_sheet",
+        "missing lender evidence: no_lender_confirmation",
+        "manual_lender_review required"
+      ],
+      "advisoryOnly": true
+    }
+  ],
+  "escalationRoutes": ["lender_review", "evidence_gap"],
+  "warnings": [
+    "refinance_term_sheet is missing from critical evidence",
+    "lender evidence gap must not be hidden behind finance confidence output"
+  ],
+  "reviewRequired": true,
+  "advisoryOnly": true
+}

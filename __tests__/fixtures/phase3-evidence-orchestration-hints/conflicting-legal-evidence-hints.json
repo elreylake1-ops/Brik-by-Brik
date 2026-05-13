@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "id": "hint-legal-conflict-001",
+      "evidenceItemId": "ev-legal-conflict-1",
+      "category": "legal_survey_evidence",
+      "trigger": "conflicting_evidence",
+      "severity": "high",
+      "suggestedTaskCategory": "manual_review",
+      "suggestedTaskPriority": "high",
+      "suggestedEscalationRoute": "legal_review",
+      "summary": "Legal and survey evidence conflict detected. Title plan mismatch and boundary conflict require manual legal review before progression.",
+      "warnings": [
+        "conflicting legal evidence: title_plan_mismatch",
+        "conflicting legal evidence: boundary_conflict",
+        "manual_review_required"
+      ],
+      "advisoryOnly": true
+    }
+  ],
+  "escalationRoutes": ["legal_review"],
+  "warnings": [
+    "conflicting legal evidence must not be hidden from manual reviewer",
+    "legal conflict may affect deal progression — manual legal review required"
+  ],
+  "reviewRequired": true,
+  "advisoryOnly": true
+}

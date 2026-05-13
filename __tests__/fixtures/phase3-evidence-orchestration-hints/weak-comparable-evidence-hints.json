@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "id": "hint-comp-weak-001",
+      "evidenceItemId": "ev-comp-weak-1",
+      "category": "comparable_evidence",
+      "trigger": "weak_evidence",
+      "severity": "high",
+      "suggestedTaskCategory": "evidence",
+      "suggestedTaskPriority": "high",
+      "suggestedEscalationRoute": "valuation_review",
+      "summary": "Comparable evidence is weak. Stale comparables and low sample size reduce valuation confidence and require manual review before confidence can be presented as clean.",
+      "warnings": [
+        "weak comparable evidence: stale_comparables",
+        "weak comparable evidence: low_sample_size",
+        "manual_operator_entry only"
+      ],
+      "advisoryOnly": true
+    }
+  ],
+  "escalationRoutes": ["valuation_review", "evidence_gap"],
+  "warnings": [
+    "comparable evidence is weak and must not be presented as clean",
+    "recent_comparable_sale is missing from critical evidence"
+  ],
+  "reviewRequired": true,
+  "advisoryOnly": true
+}

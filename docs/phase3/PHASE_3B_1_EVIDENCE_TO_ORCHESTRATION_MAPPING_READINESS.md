@@ -138,6 +138,41 @@ Summary:
 - hints remain advisory-only and non-decisioning
 - no adapter implementation and no runtime wiring are added in this step
 
+## Step 3 — Adapter Planning and Hint Fixtures
+
+Phase 3B-1 Step 3 adds expected output fixtures and adapter planning documentation only.
+
+Summary:
+
+- expected hint output fixtures added under `__tests__/fixtures/phase3-evidence-orchestration-hints/`
+- adapter target signature clarified: `mapEvidenceBundleToOrchestrationHints(bundle: Phase3EvidenceBundle): EvidenceOrchestrationHints`
+- fixture contract-shape tests added in `__tests__/phase3-evidence-orchestration-hint-fixtures.test.ts`
+- hints remain advisory only in all fixtures
+- no adapter implementation added
+- no runtime wiring added
+
+## Step 3 Status
+
+Step 3 is complete.
+
+Delivered:
+
+- `__tests__/fixtures/phase3-evidence-orchestration-hints/weak-comparable-evidence-hints.json`
+- `__tests__/fixtures/phase3-evidence-orchestration-hints/conflicting-legal-evidence-hints.json`
+- `__tests__/fixtures/phase3-evidence-orchestration-hints/accepted-operator-note-hints.json`
+- `__tests__/fixtures/phase3-evidence-orchestration-hints/missing-lender-evidence-hints.json`
+- `docs/phase3/PHASE_3B_1_EVIDENCE_ORCHESTRATION_HINT_FIXTURES.md`
+- `__tests__/phase3-evidence-orchestration-hint-fixtures.test.ts`
+
+Not built in this step:
+
+- no adapter implementation
+- no runtime mapping function
+- no evidence ingestion or routing
+- no governance decisioning
+- no AI, scraping, or integrations
+- no persistence expansion
+
 ## Step 2 Status
 
 Step 2 is complete.
