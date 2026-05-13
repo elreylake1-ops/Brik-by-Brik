@@ -28,6 +28,8 @@ Phase 3B-1 has begun with evidence-to-orchestration mapping readiness only. No a
 
 Phase 3B-1 is closed. Evidence-to-orchestration hint contracts, fixtures, and pure adapter are complete and remain unwired to runtime behavior. Recommended next phase is Phase 3C-0 Orchestration Merge Layer Planning.
 
+Phase 3C-0 has begun with orchestration merge layer planning only. No merge implementation, runtime wiring, UI, AI, scraping, persistence, or governance changes are approved.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.
