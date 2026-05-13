@@ -68,3 +68,16 @@ Scope summary:
 - stable task IDs for repeatable downstream routing
 - advisory-only orchestration output with no decision override authority
 - deterministic engine remains the source of truth for final deal decisions
+
+## Step 3 - Task Generation Framework
+
+Phase 3A-0 Step 3 hardens orchestration task generation for predictable workflow guidance.
+
+Scope summary:
+
+- stable task IDs for consistent downstream workflow references
+- deterministic task order across repeated identical inputs
+- no duplicate trigger tasks when evidence-gap inputs contain duplicates
+- manual review orientation for evidence and governance escalations
+- accepted limitations are awareness-only and non-blocking by themselves
+- tasks remain advisory and do not alter deterministic engine results

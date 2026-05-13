@@ -41,6 +41,14 @@ describe("phase3 orchestrator", () => {
 
     expect(output.globalDealState).toBe("no_deal")
     expect(output.workflowState).toBe("blocked")
+    expect(
+      output.tasks.some(
+        (task) =>
+          task.id === "capital-protection-stop" &&
+          task.route === "capital_protection" &&
+          task.status === "blocked"
+      )
+    ).toBe(true)
   })
 
   it("maps review-required deterministic result to globalDealState review_required", () => {
@@ -53,6 +61,14 @@ describe("phase3 orchestrator", () => {
     })
 
     expect(output.globalDealState).toBe("review_required")
+    expect(
+      output.tasks.some(
+        (task) =>
+          task.id === "governance-review" &&
+          task.status === "in_progress" &&
+          task.route === "manual_review"
+      )
+    ).toBe(true)
   })
 
   it("preserves accepted limitations in metadata", () => {
@@ -106,6 +122,20 @@ describe("phase3 orchestrator", () => {
     )
   })
 
+  it("duplicate evidence gaps do not create duplicate task triggers", () => {
+    const output = buildPhase3Orchestration({
+      deterministicResult: makeDeterministicResult({
+        governanceState: "REVIEW_REQUIRED",
+        finalClassification: "REVIEW_REQUIRED",
+        reviewRequired: true,
+        missingCriticalEvidence: ["comparables", "comparables", "survey"],
+      }),
+    })
+
+    expect(output.metadata.evidenceGaps).toEqual(["comparables", "survey"])
+    expect(output.tasks.filter((task) => task.id === "evidence-review")).toHaveLength(1)
+  })
+
   it("handles missing deterministic result with pending task state", () => {
     const output = buildPhase3Orchestration({
       acceptedLimitations: ["manual_comparable_input"],
@@ -120,6 +150,27 @@ describe("phase3 orchestrator", () => {
     expect(output.metadata.workflowFlags).toEqual([
       "deterministic_snapshot_missing",
       "accepted_with_limitations",
+    ])
+  })
+
+  it("task ordering is stable and deterministic", () => {
+    const output = buildPhase3Orchestration({
+      deterministicResult: makeDeterministicResult({
+        governanceState: "REVIEW_REQUIRED",
+        finalClassification: "REVIEW_REQUIRED",
+        reviewRequired: true,
+        missingCriticalEvidence: ["comparables"],
+      }),
+      acceptedLimitations: ["manual_comparable_input"],
+    })
+
+    expect(output.tasks.map((task) => task.id)).toEqual([
+      "deterministic-analysis",
+      "governance-review",
+      "evidence-review",
+      "manual-review-routing",
+      "capital-protection-stop",
+      "accepted-limitations-awareness",
     ])
   })
 
@@ -191,5 +242,29 @@ describe("phase3 orchestrator", () => {
 
     expect(output.metadata.acceptedWithLimitations).toBe(true)
     expect(output.globalDealState).not.toBe("no_deal")
+    expect(
+      output.tasks.some(
+        (task) =>
+          task.id === "accepted-limitations-awareness" &&
+          task.blocksProgression === false &&
+          task.category === "limitations_awareness"
+      )
+    ).toBe(true)
+  })
+
+  it("repeated identical inputs produce identical task arrays", () => {
+    const input = {
+      deterministicResult: makeDeterministicResult({
+        governanceState: "PASS",
+        finalClassification: "WARM",
+        reviewRequired: false,
+      }),
+      acceptedLimitations: ["rules_based_refurb_assumptions"] as const,
+    }
+
+    const first = buildPhase3Orchestration(input).tasks
+    const second = buildPhase3Orchestration(input).tasks
+
+    expect(first).toEqual(second)
   })
 })

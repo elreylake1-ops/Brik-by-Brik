@@ -54,6 +54,7 @@ export const PHASE3_TASK_CATEGORIES = [
   "governance",
   "evidence",
   "manual_review",
+  "limitations_awareness",
 ] as const
 
 export type Phase3TaskCategory = typeof PHASE3_TASK_CATEGORIES[number]
@@ -61,6 +62,34 @@ export type Phase3TaskCategory = typeof PHASE3_TASK_CATEGORIES[number]
 export const PHASE3_TASK_PRIORITIES = ["low", "medium", "high", "critical"] as const
 
 export type Phase3TaskPriority = typeof PHASE3_TASK_PRIORITIES[number]
+
+export const PHASE3_TASK_TRIGGERS = [
+  "missing_deterministic_snapshot",
+  "review_required_state",
+  "evidence_gap_detected",
+  "capital_protection_block",
+  "accepted_limitations_present",
+  "no_escalation_required",
+] as const
+
+export type Phase3TaskTrigger = typeof PHASE3_TASK_TRIGGERS[number]
+
+export const PHASE3_TASK_SOURCES = [
+  "deterministic_snapshot",
+  "accepted_limitations",
+  "orchestrator_guardrail",
+] as const
+
+export type Phase3TaskSource = typeof PHASE3_TASK_SOURCES[number]
+
+export const PHASE3_TASK_BLOCKING_SCOPES = [
+  "none",
+  "workflow_only",
+  "manual_review",
+  "deal_progression",
+] as const
+
+export type Phase3TaskBlockingScope = typeof PHASE3_TASK_BLOCKING_SCOPES[number]
 
 export const PHASE3_ACCEPTED_LIMITATIONS = [
   "manual_comparable_input",
@@ -88,12 +117,17 @@ export type Phase3WorkflowFlag = typeof PHASE3_WORKFLOW_FLAGS[number]
 export type Phase3Task = {
   id: string
   title: string
+  description: string
   category: Phase3TaskCategory
+  trigger: Phase3TaskTrigger
+  source: Phase3TaskSource
   priority: Phase3TaskPriority
   status: Phase3TaskStatus
   route: GovernanceEscalationRoute
   reason: string
   blocksProgression: boolean
+  blockingScope: Phase3TaskBlockingScope
+  advisoryOnly: true
 }
 
 export type Phase3DeterministicSnapshot = {
