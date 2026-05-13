@@ -138,6 +138,49 @@ Summary:
 - hints remain advisory-only and non-decisioning
 - no adapter implementation and no runtime wiring are added in this step
 
+## Step 4 — Pure Adapter Implemented
+
+Phase 3B-1 Step 4 adds the pure evidence-to-orchestration adapter only.
+
+Summary:
+
+- adapter added at `lib/engine/phase3-evidence-orchestration-adapter.ts`
+- `mapEvidenceBundleToOrchestrationHints(bundle: Phase3EvidenceBundle): EvidenceOrchestrationHints` exported
+- pure function: no side effects, no external calls, no mutation of input, no timestamps, no random values
+- output order is stable and deterministic
+- exact fixture comparisons pass for all 4 evidence bundle fixtures
+- adapter does not create `Phase3Task` objects
+- adapter does not change deterministic governance, classifications, or engine formulas
+- no runtime wiring added
+- no governance override behavior added
+- adapter tests added at `__tests__/phase3-evidence-orchestration-adapter.test.ts`
+
+## Step 4 Status
+
+Step 4 is complete.
+
+Delivered:
+
+- `lib/engine/phase3-evidence-orchestration-adapter.ts`
+- `__tests__/phase3-evidence-orchestration-adapter.test.ts`
+- updated hint fixtures: summary text and item warning text updated to match adapter output; structural/semantic fields unchanged
+- `docs/phase3/PHASE_3B_1_EVIDENCE_ORCHESTRATION_ADAPTER.md`
+
+Fixture text changes (advisory text only, structural fields unchanged):
+
+- `weak-comparable-evidence-hints.json`: summary simplified; item warning "manual_operator_entry only" → "manual_operator_entry" (verbatim passthrough)
+- `conflicting-legal-evidence-hints.json`: summary simplified
+- `missing-lender-evidence-hints.json`: summary simplified; item warning "manual_lender_review required" → "manual_lender_review" (verbatim passthrough); bundle warning order changed to risk phrases first
+
+Not built in this step:
+
+- no runtime wiring to calculator, Phase 2 review routes, or Phase 3 orchestrator
+- no governance override logic
+- no AI, scraping, or integrations
+- no persistence expansion
+
+Test result: 303 tests passing.
+
 ## Step 3 — Adapter Planning and Hint Fixtures
 
 Phase 3B-1 Step 3 adds expected output fixtures and adapter planning documentation only.

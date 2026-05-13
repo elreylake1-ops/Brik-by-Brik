@@ -9,11 +9,11 @@
       "suggestedTaskCategory": "evidence",
       "suggestedTaskPriority": "high",
       "suggestedEscalationRoute": "valuation_review",
-      "summary": "Comparable evidence is weak. Stale comparables and low sample size reduce valuation confidence and require manual review before confidence can be presented as clean.",
+      "summary": "Comparable evidence is weak. Manual review required before confidence can be presented as clean.",
       "warnings": [
         "weak comparable evidence: stale_comparables",
         "weak comparable evidence: low_sample_size",
-        "manual_operator_entry only"
+        "manual_operator_entry"
       ],
       "advisoryOnly": true
     }

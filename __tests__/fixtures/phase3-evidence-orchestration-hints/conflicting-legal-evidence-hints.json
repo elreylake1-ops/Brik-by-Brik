@@ -9,7 +9,7 @@
       "suggestedTaskCategory": "manual_review",
       "suggestedTaskPriority": "high",
       "suggestedEscalationRoute": "legal_review",
-      "summary": "Legal and survey evidence conflict detected. Title plan mismatch and boundary conflict require manual legal review before progression.",
+      "summary": "Legal and survey evidence conflict detected. Manual review required before progression.",
       "warnings": [
         "conflicting legal evidence: title_plan_mismatch",
         "conflicting legal evidence: boundary_conflict",
