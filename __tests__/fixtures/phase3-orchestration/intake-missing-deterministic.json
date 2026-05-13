@@ -1,0 +1,39 @@
+{
+  "workflowState": "intake",
+  "globalDealState": "draft",
+  "governanceEscalationRoute": "none",
+  "escalation": {
+    "route": "none",
+    "severity": "none",
+    "reason": "none",
+    "source": "orchestrator_guardrail",
+    "requiresManualReview": false,
+    "advisoryOnly": true
+  },
+  "tasks": [
+    {
+      "id": "deterministic-analysis",
+      "title": "Run deterministic analysis",
+      "description": "Run deterministic calculation and governance engines before orchestration progression.",
+      "category": "deterministic",
+      "trigger": "missing_deterministic_snapshot",
+      "source": "orchestrator_guardrail",
+      "priority": "critical",
+      "status": "pending",
+      "route": "none",
+      "reason": "Deterministic output is required before orchestration can progress.",
+      "blocksProgression": true,
+      "blockingScope": "deal_progression",
+      "advisoryOnly": true
+    }
+  ],
+  "metadata": {
+    "deterministicResultProvided": false,
+    "acceptedLimitations": [],
+    "acceptedWithLimitations": false,
+    "workflowFlags": [
+      "deterministic_snapshot_missing"
+    ],
+    "evidenceGaps": []
+  }
+}

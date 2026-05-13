@@ -94,3 +94,14 @@ Scope summary:
 - accepted limitations remain awareness-only and do not trigger escalation by themselves
 - escalation remains advisory workflow routing only and cannot override deterministic decisions
 - deterministic engine remains the source of truth for governance and final classification
+
+## Step 5 - Output Fixture Locking
+
+Phase 3A-0 Step 5 locks representative orchestration outputs as stable contract references.
+
+Scope summary:
+
+- representative output fixtures captured for intake, no-deal, review-required, valuation-review, and accepted-limitations awareness scenarios
+- exact output comparison tests validate workflow state, deal state, escalation route, metadata, and full task arrays
+- fixture JSON files serve as stable contract references for future module integration work
+- fixture-lock tests provide drift protection so later Phase 3 modules cannot silently alter orchestration contracts

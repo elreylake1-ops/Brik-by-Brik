@@ -1,0 +1,118 @@
+{
+  "workflowState": "evidence_review",
+  "globalDealState": "review_required",
+  "governanceEscalationRoute": "evidence_gap",
+  "escalation": {
+    "route": "evidence_gap",
+    "severity": "high",
+    "reason": "evidence_gap_generic",
+    "source": "evidence_gap_analysis",
+    "requiresManualReview": true,
+    "advisoryOnly": true
+  },
+  "tasks": [
+    {
+      "id": "deterministic-analysis",
+      "title": "Deterministic analysis complete",
+      "description": "Deterministic snapshot is available for orchestration workflow routing.",
+      "category": "deterministic",
+      "trigger": "no_escalation_required",
+      "source": "deterministic_snapshot",
+      "priority": "critical",
+      "status": "completed",
+      "route": "none",
+      "reason": "Orchestration received deterministic governance and classification output.",
+      "blocksProgression": false,
+      "blockingScope": "none",
+      "advisoryOnly": true
+    },
+    {
+      "id": "governance-review",
+      "title": "Governance review task",
+      "description": "Confirm deterministic governance state and ensure escalation decision is traceable.",
+      "category": "governance",
+      "trigger": "review_required_state",
+      "source": "deterministic_snapshot",
+      "priority": "high",
+      "status": "in_progress",
+      "route": "evidence_gap",
+      "reason": "Deterministic output requires governance review before progression.",
+      "blocksProgression": true,
+      "blockingScope": "workflow_only",
+      "advisoryOnly": true
+    },
+    {
+      "id": "evidence-review",
+      "title": "Evidence review tasks",
+      "description": "Review deterministic evidence gap list and request required missing support.",
+      "category": "evidence",
+      "trigger": "evidence_gap_detected",
+      "source": "deterministic_snapshot",
+      "priority": "critical",
+      "status": "in_progress",
+      "route": "evidence_gap",
+      "reason": "Missing critical evidence: proof_of_funds, seller_docs",
+      "blocksProgression": true,
+      "blockingScope": "manual_review",
+      "advisoryOnly": true
+    },
+    {
+      "id": "manual-review-routing",
+      "title": "Manual review routing",
+      "description": "Route escalated deterministic cases to manual reviewer challenge workflow.",
+      "category": "manual_review",
+      "trigger": "evidence_gap_detected",
+      "source": "orchestrator_guardrail",
+      "priority": "high",
+      "status": "in_progress",
+      "route": "manual_review",
+      "reason": "Escalation requires manual reviewer challenge before progression.",
+      "blocksProgression": true,
+      "blockingScope": "manual_review",
+      "advisoryOnly": true
+    },
+    {
+      "id": "capital-protection-stop",
+      "title": "Capital protection stop review",
+      "description": "Record deterministic stop state for blocked or no-deal outcomes.",
+      "category": "governance",
+      "trigger": "no_escalation_required",
+      "source": "deterministic_snapshot",
+      "priority": "low",
+      "status": "not_applicable",
+      "route": "none",
+      "reason": "No capital protection stop triggered by deterministic output.",
+      "blocksProgression": false,
+      "blockingScope": "none",
+      "advisoryOnly": true
+    },
+    {
+      "id": "accepted-limitations-awareness",
+      "title": "Accepted limitations awareness",
+      "description": "Surface accepted operational limitations without changing deterministic deal decisions.",
+      "category": "limitations_awareness",
+      "trigger": "no_escalation_required",
+      "source": "accepted_limitations",
+      "priority": "low",
+      "status": "not_applicable",
+      "route": "none",
+      "reason": "No accepted limitations supplied for awareness tracking.",
+      "blocksProgression": false,
+      "blockingScope": "none",
+      "advisoryOnly": true
+    }
+  ],
+  "metadata": {
+    "deterministicResultProvided": true,
+    "acceptedLimitations": [],
+    "acceptedWithLimitations": false,
+    "workflowFlags": [
+      "evidence_gap_detected",
+      "review_required"
+    ],
+    "evidenceGaps": [
+      "proof_of_funds",
+      "seller_docs"
+    ]
+  }
+}

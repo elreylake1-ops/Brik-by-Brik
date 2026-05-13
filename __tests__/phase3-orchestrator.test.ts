@@ -1,8 +1,12 @@
+import { readFileSync } from "node:fs"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 import { buildPhase3Orchestration } from "@/lib/engine/phase3-orchestrator"
 import type {
   Phase3AcceptedLimitation,
   Phase3DeterministicSnapshot,
+  Phase3OrchestrationOutput,
 } from "@/types/phase3-orchestration"
 
 function makeDeterministicResult(
@@ -18,6 +22,17 @@ function makeDeterministicResult(
     riskFlags: [],
     ...overrides,
   }
+}
+
+function loadOutputFixture(name: string): Phase3OrchestrationOutput {
+  const fixturesDir = path.join(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "fixtures",
+    "phase3-orchestration"
+  )
+  const fixturePath = path.join(fixturesDir, name)
+
+  return JSON.parse(readFileSync(fixturePath, "utf8")) as Phase3OrchestrationOutput
 }
 
 describe("phase3 orchestrator", () => {
@@ -353,5 +368,73 @@ describe("phase3 orchestrator", () => {
 
     expect(first.governanceEscalationRoute).toBe(second.governanceEscalationRoute)
     expect(first.escalation).toEqual(second.escalation)
+  })
+
+  it("matches locked intake missing deterministic fixture", () => {
+    const output = buildPhase3Orchestration({})
+    const expected = loadOutputFixture("intake-missing-deterministic.json")
+
+    expect(output).toEqual(expected)
+  })
+
+  it("matches locked no-deal capital protection fixture", () => {
+    const output = buildPhase3Orchestration({
+      deterministicResult: makeDeterministicResult({
+        governanceState: "BLOCKED",
+        finalClassification: "NO_DEAL",
+        fatalRisk: true,
+        reviewRequired: true,
+      }),
+    })
+    const expected = loadOutputFixture("no-deal-capital-protection.json")
+
+    expect(output).toEqual(expected)
+    expect(output.governanceEscalationRoute).toBe("capital_protection")
+  })
+
+  it("matches locked review-required evidence-gap fixture", () => {
+    const output = buildPhase3Orchestration({
+      deterministicResult: makeDeterministicResult({
+        governanceState: "REVIEW_REQUIRED",
+        finalClassification: "REVIEW_REQUIRED",
+        reviewRequired: true,
+        missingCriticalEvidence: ["proof_of_funds", "seller_docs"],
+      }),
+    })
+    const expected = loadOutputFixture("review-required-evidence-gap.json")
+
+    expect(output).toEqual(expected)
+    expect(output.tasks.map((task) => task.id)).toEqual(expected.tasks.map((task) => task.id))
+  })
+
+  it("matches locked valuation-review fixture", () => {
+    const output = buildPhase3Orchestration({
+      deterministicResult: makeDeterministicResult({
+        governanceState: "REVIEW_REQUIRED",
+        finalClassification: "REVIEW_REQUIRED",
+        reviewRequired: true,
+        missingCriticalEvidence: ["gdv comp mismatch", "sold price support missing"],
+      }),
+    })
+    const expected = loadOutputFixture("valuation-review-gap.json")
+
+    expect(output).toEqual(expected)
+    expect(output.governanceEscalationRoute).toBe("valuation_review")
+  })
+
+  it("matches locked accepted-limitations awareness fixture", () => {
+    const output = buildPhase3Orchestration({
+      deterministicResult: makeDeterministicResult({
+        governanceState: "PASS",
+        finalClassification: "WARM",
+      }),
+      acceptedLimitations: ["manual_comparable_input", "rules_based_refurb_assumptions"],
+    })
+    const expected = loadOutputFixture("accepted-limitations-awareness.json")
+
+    expect(output).toEqual(expected)
+    expect(
+      output.tasks.find((task) => task.id === "accepted-limitations-awareness")?.blocksProgression
+    ).toBe(false)
   })
 })

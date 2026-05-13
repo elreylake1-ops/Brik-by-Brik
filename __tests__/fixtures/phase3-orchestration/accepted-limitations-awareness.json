@@ -1,0 +1,117 @@
+{
+  "workflowState": "governance_review",
+  "globalDealState": "proceed_candidate",
+  "governanceEscalationRoute": "none",
+  "escalation": {
+    "route": "none",
+    "severity": "none",
+    "reason": "none",
+    "source": "deterministic_snapshot",
+    "requiresManualReview": false,
+    "advisoryOnly": true
+  },
+  "tasks": [
+    {
+      "id": "deterministic-analysis",
+      "title": "Deterministic analysis complete",
+      "description": "Deterministic snapshot is available for orchestration workflow routing.",
+      "category": "deterministic",
+      "trigger": "no_escalation_required",
+      "source": "deterministic_snapshot",
+      "priority": "critical",
+      "status": "completed",
+      "route": "none",
+      "reason": "Orchestration received deterministic governance and classification output.",
+      "blocksProgression": false,
+      "blockingScope": "none",
+      "advisoryOnly": true
+    },
+    {
+      "id": "governance-review",
+      "title": "Governance review task",
+      "description": "Confirm deterministic governance state and ensure escalation decision is traceable.",
+      "category": "governance",
+      "trigger": "no_escalation_required",
+      "source": "deterministic_snapshot",
+      "priority": "low",
+      "status": "completed",
+      "route": "none",
+      "reason": "Governance review completed with no additional escalation requirement.",
+      "blocksProgression": false,
+      "blockingScope": "none",
+      "advisoryOnly": true
+    },
+    {
+      "id": "evidence-review",
+      "title": "Evidence review tasks",
+      "description": "Review deterministic evidence gap list and request required missing support.",
+      "category": "evidence",
+      "trigger": "no_escalation_required",
+      "source": "deterministic_snapshot",
+      "priority": "low",
+      "status": "not_applicable",
+      "route": "none",
+      "reason": "No critical evidence gaps reported in deterministic output.",
+      "blocksProgression": false,
+      "blockingScope": "none",
+      "advisoryOnly": true
+    },
+    {
+      "id": "manual-review-routing",
+      "title": "Manual review routing",
+      "description": "Route escalated deterministic cases to manual reviewer challenge workflow.",
+      "category": "manual_review",
+      "trigger": "no_escalation_required",
+      "source": "orchestrator_guardrail",
+      "priority": "low",
+      "status": "not_applicable",
+      "route": "none",
+      "reason": "No manual review routing required.",
+      "blocksProgression": false,
+      "blockingScope": "none",
+      "advisoryOnly": true
+    },
+    {
+      "id": "capital-protection-stop",
+      "title": "Capital protection stop review",
+      "description": "Record deterministic stop state for blocked or no-deal outcomes.",
+      "category": "governance",
+      "trigger": "no_escalation_required",
+      "source": "deterministic_snapshot",
+      "priority": "low",
+      "status": "not_applicable",
+      "route": "none",
+      "reason": "No capital protection stop triggered by deterministic output.",
+      "blocksProgression": false,
+      "blockingScope": "none",
+      "advisoryOnly": true
+    },
+    {
+      "id": "accepted-limitations-awareness",
+      "title": "Accepted limitations awareness",
+      "description": "Surface accepted operational limitations without changing deterministic deal decisions.",
+      "category": "limitations_awareness",
+      "trigger": "accepted_limitations_present",
+      "source": "accepted_limitations",
+      "priority": "medium",
+      "status": "in_progress",
+      "route": "none",
+      "reason": "Accepted limitations acknowledged; awareness task created for review discipline.",
+      "blocksProgression": false,
+      "blockingScope": "none",
+      "advisoryOnly": true
+    }
+  ],
+  "metadata": {
+    "deterministicResultProvided": true,
+    "acceptedLimitations": [
+      "manual_comparable_input",
+      "rules_based_refurb_assumptions"
+    ],
+    "acceptedWithLimitations": true,
+    "workflowFlags": [
+      "accepted_with_limitations"
+    ],
+    "evidenceGaps": []
+  }
+}
