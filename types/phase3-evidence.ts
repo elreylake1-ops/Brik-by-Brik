@@ -1,3 +1,9 @@
+import type {
+  GovernanceEscalationRoute,
+  Phase3TaskCategory,
+  Phase3TaskPriority,
+} from "@/types/phase3-orchestration"
+
 export const EVIDENCE_CATEGORIES = [
   "comparable_evidence",
   "listing_evidence",
@@ -73,4 +79,50 @@ export type Phase3EvidenceBundleValidationResult = {
   errors: readonly string[]
   warnings: readonly string[]
   requiresReview: boolean
+}
+
+export const EVIDENCE_ORCHESTRATION_HINT_TRIGGERS = [
+  "missing_evidence",
+  "weak_evidence",
+  "conflicting_evidence",
+  "reserved_source_review",
+  "operator_note",
+  "accepted_evidence_awareness",
+  "duplicate_evidence",
+  "contract_warning",
+] as const
+
+export type EvidenceOrchestrationHintTrigger =
+  typeof EVIDENCE_ORCHESTRATION_HINT_TRIGGERS[number]
+
+export const EVIDENCE_ORCHESTRATION_HINT_SEVERITIES = ["low", "medium", "high"] as const
+
+export type EvidenceOrchestrationHintSeverity =
+  typeof EVIDENCE_ORCHESTRATION_HINT_SEVERITIES[number]
+
+// Hint contracts only:
+// - these do not create Phase3Task objects
+// - these do not change deterministic governance or classifications
+// - these do not approve evidence as truth
+// - these are not wired into runtime behavior
+export type EvidenceOrchestrationHint = {
+  id: string
+  evidenceItemId?: string
+  category: EvidenceCategory
+  trigger: EvidenceOrchestrationHintTrigger
+  severity: EvidenceOrchestrationHintSeverity
+  suggestedTaskCategory: Phase3TaskCategory
+  suggestedTaskPriority: Phase3TaskPriority
+  suggestedEscalationRoute: GovernanceEscalationRoute
+  summary: string
+  warnings?: readonly string[]
+  advisoryOnly: true
+}
+
+export type EvidenceOrchestrationHints = {
+  tasks: readonly EvidenceOrchestrationHint[]
+  escalationRoutes: readonly GovernanceEscalationRoute[]
+  warnings: readonly string[]
+  reviewRequired: boolean
+  advisoryOnly: true
 }

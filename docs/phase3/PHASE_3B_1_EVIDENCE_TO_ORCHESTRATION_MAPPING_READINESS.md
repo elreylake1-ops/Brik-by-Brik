@@ -126,3 +126,14 @@ Recommended next implementation step:
 **Phase 3B-1 Step 2 - Create Evidence-to-Orchestration Hint Types Only**
 
 Step 2 should add type definitions and tests only, with no adapter implementation yet.
+
+## Step 2 - Evidence-to-Orchestration Hint Types
+
+Phase 3B-1 Step 2 adds hint contracts only for future evidence-to-orchestration mapping.
+
+Summary:
+
+- hint trigger and severity contracts are added in `types/phase3-evidence.ts`
+- evidence orchestration hint contracts are added for advisory suggestion payloads
+- hints remain advisory-only and non-decisioning
+- no adapter implementation and no runtime wiring are added in this step
