@@ -137,3 +137,29 @@ Summary:
 - evidence orchestration hint contracts are added for advisory suggestion payloads
 - hints remain advisory-only and non-decisioning
 - no adapter implementation and no runtime wiring are added in this step
+
+## Step 2 Status
+
+Step 2 is complete.
+
+Delivered:
+
+- `EvidenceOrchestrationHintTrigger` union added to `types/phase3-evidence.ts`
+- `EvidenceOrchestrationHintSeverity` union added to `types/phase3-evidence.ts`
+- `EvidenceOrchestrationHint` contract added to `types/phase3-evidence.ts`
+- `EvidenceOrchestrationHints` bundle contract added to `types/phase3-evidence.ts`
+- imports of `Phase3TaskCategory`, `Phase3TaskPriority`, and `GovernanceEscalationRoute` use `import type` to avoid circular runtime imports
+- guardrail comments confirm hints do not create Phase3Task objects, do not change deterministic governance, do not approve evidence as truth, and are not wired into runtime behavior
+- test file added: `__tests__/phase3-evidence-orchestration-hints.test.ts`
+- tests cover: valid missing evidence hint, valid weak comparable evidence hint, valid conflicting legal evidence hint, valid reserved source review hint, valid accepted evidence awareness hint, EvidenceOrchestrationHints bundle shape, `advisoryOnly: true` enforcement, no deterministic approval, escalation routes as suggestions only
+
+Not built in this step:
+
+- no adapter implementation
+- no runtime wiring
+- no evidence ingestion
+- no governance decisioning
+- no AI, scraping, or integrations
+- no persistence expansion
+
+Test result: 252 tests passing.
