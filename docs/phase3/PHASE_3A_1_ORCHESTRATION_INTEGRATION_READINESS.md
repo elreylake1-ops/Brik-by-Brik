@@ -132,3 +132,5 @@ Summary:
 - no UI/runtime route wiring is added in this step
 
 Phase 3A-1 closure report created; integration bridge is ready for review before the next controlled phase.
+
+Phase 3B-0 planning has started with evidence intake contract audit only; no runtime evidence ingestion or UI wiring is approved.

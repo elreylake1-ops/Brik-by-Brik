@@ -20,6 +20,8 @@ Phase 3A-0 is closed. Phase 3A-1 has begun with orchestration integration readin
 
 Phase 3A-1 is closed. The Phase 2 to Phase 3 orchestration bridge is proven in tests but remains unwired to runtime UI. Recommended next phase is Phase 3B-0 Evidence Intake Contract Foundation.
 
+Phase 3B-0 has begun with evidence intake contract planning only. No evidence ingestion, AI, scraping, persistence, or UI wiring is approved.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.
