@@ -34,6 +34,8 @@ Phase 3C-0 is closed. The advisory merge layer is planned, typed, fixture-locked
 
 Phase 3D-0 has begun with runtime review surface planning only. No route, UI, runtime wiring, AI, scraping, persistence, CRM, or deterministic behavior changes are approved.
 
+Phase 3D-0 developer-only `/phase-3-dev-review` route skeleton has been created using locked fixtures only. It is not linked from existing routes and does not alter calculator, Phase 2 review, governance, or deterministic behavior.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.

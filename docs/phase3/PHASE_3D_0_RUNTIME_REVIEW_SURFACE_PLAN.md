@@ -144,3 +144,14 @@ Status: complete.
 - route decision documented
 - safety constraints defined
 - no route/UI implementation added
+
+## Step 4 -- Non-Linked Developer Route Skeleton
+
+Status: complete.
+
+- `/phase-3-dev-review` route created
+- fixture-only data source
+- not linked from existing routes
+- no user input/actions
+- advisory-only display
+- no runtime behavior changes to calculator or Phase 2 routes
