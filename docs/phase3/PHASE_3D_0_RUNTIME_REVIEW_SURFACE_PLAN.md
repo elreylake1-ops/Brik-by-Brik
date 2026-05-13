@@ -127,3 +127,12 @@ Must not use:
 **Phase 3D-0 Step 2 -- Runtime Review Surface Type/Fixture Readiness**
 
 Step 2 should define route fixture pairings and display-section contracts only, with no route implementation yet.
+
+## Step 2 -- Type and Fixture Readiness
+
+Status: complete.
+
+- display contract types added
+- fixture pair data added
+- guardrail tests added
+- no route/UI implementation added
