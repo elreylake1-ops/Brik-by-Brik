@@ -4,10 +4,22 @@ import { describe, expect, it } from "vitest"
 import { mapPhase2OutputToPhase3Snapshot } from "@/lib/engine/phase3-adapter"
 import { buildPhase3Orchestration } from "@/lib/engine/phase3-orchestrator"
 import type { Phase2AnalysisOutput } from "@/types/phase2"
+import type { Phase3DeterministicSnapshot } from "@/types/phase3-orchestration"
 
 function loadPhase2Fixture(fileName: string): Phase2AnalysisOutput {
   const fixturePath = path.resolve(process.cwd(), "tests", "fixtures", "phase2", fileName)
   return JSON.parse(readFileSync(fixturePath, "utf8")) as Phase2AnalysisOutput
+}
+
+function loadAdapterFixture(fileName: string): Phase3DeterministicSnapshot {
+  const fixturePath = path.resolve(
+    process.cwd(),
+    "__tests__",
+    "fixtures",
+    "phase3-adapter",
+    fileName
+  )
+  return JSON.parse(readFileSync(fixturePath, "utf8")) as Phase3DeterministicSnapshot
 }
 
 describe("phase3 phase2 snapshot adapter", () => {
@@ -103,10 +115,9 @@ describe("phase3 phase2 snapshot adapter", () => {
     } as unknown as Phase2AnalysisOutput
 
     const snapshot = mapPhase2OutputToPhase3Snapshot(malformed)
+    const expected = loadAdapterFixture("phase2-missing-optionals-snapshot.json")
 
-    expect(snapshot.blockedBy).toEqual([])
-    expect(snapshot.missingCriticalEvidence).toEqual([])
-    expect(snapshot.riskFlags).toEqual([])
+    expect(snapshot).toEqual(expected)
   })
 
   it("adapter output can be passed into buildPhase3Orchestration", () => {
@@ -153,5 +164,85 @@ describe("phase3 phase2 snapshot adapter", () => {
         (task) => task.id === "manual-review-routing" && task.status === "in_progress"
       )
     ).toBe(true)
+  })
+
+  it("matches locked no-deal adapter snapshot fixture", () => {
+    const blockedSample = loadPhase2Fixture("sample-governance-blocked-output.json")
+    const snapshot = mapPhase2OutputToPhase3Snapshot(blockedSample)
+    const expected = loadAdapterFixture("phase2-no-deal-snapshot.json")
+
+    expect(snapshot).toEqual(expected)
+  })
+
+  it("matches locked review-required evidence-gap adapter snapshot fixture", () => {
+    const sample = loadPhase2Fixture("sample-phase2-output.json")
+    const withEvidenceGap = {
+      ...sample,
+      governance: {
+        ...sample.governance,
+        state: "REVIEW_REQUIRED",
+        finalClassification: "REVIEW_REQUIRED",
+        reviewRequired: true,
+      },
+      evidenceStatus: {
+        ...sample.evidenceStatus,
+        missingCriticalEvidence: ["proof_of_funds"],
+      },
+    } as Phase2AnalysisOutput
+
+    const snapshot = mapPhase2OutputToPhase3Snapshot(withEvidenceGap)
+    const expected = loadAdapterFixture("phase2-review-required-evidence-gap-snapshot.json")
+
+    expect(snapshot).toEqual(expected)
+  })
+
+  it("matches locked clean proceed adapter snapshot fixture", () => {
+    const sample = loadPhase2Fixture("sample-phase2-output.json")
+    const cleanProceed = {
+      ...sample,
+      governance: {
+        ...sample.governance,
+        state: "PASS",
+        finalClassification: "WARM",
+        reviewRequired: false,
+      },
+      riskRadar: {
+        ...sample.riskRadar,
+        riskFlags: [],
+      },
+      evidenceStatus: {
+        ...sample.evidenceStatus,
+        missingCriticalEvidence: [],
+      },
+    } as Phase2AnalysisOutput
+
+    const snapshot = mapPhase2OutputToPhase3Snapshot(cleanProceed)
+    const expected = loadAdapterFixture("phase2-clean-proceed-snapshot.json")
+
+    expect(snapshot).toEqual(expected)
+  })
+
+  it("matches locked missing optionals adapter snapshot fixture", () => {
+    const sample = loadPhase2Fixture("sample-phase2-output.json")
+    const missingOptionals = {
+      ...sample,
+      governance: {
+        ...sample.governance,
+        blockedBy: undefined,
+      },
+      evidenceStatus: {
+        ...sample.evidenceStatus,
+        missingCriticalEvidence: undefined,
+      },
+      riskRadar: {
+        ...sample.riskRadar,
+        riskFlags: undefined,
+      },
+    } as unknown as Phase2AnalysisOutput
+
+    const snapshot = mapPhase2OutputToPhase3Snapshot(missingOptionals)
+    const expected = loadAdapterFixture("phase2-missing-optionals-snapshot.json")
+
+    expect(snapshot).toEqual(expected)
   })
 })

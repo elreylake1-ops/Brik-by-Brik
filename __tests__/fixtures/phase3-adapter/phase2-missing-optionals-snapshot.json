@@ -1,0 +1,9 @@
+{
+  "governanceState": "REVIEW_REQUIRED",
+  "finalClassification": "REVIEW_REQUIRED",
+  "fatalRisk": false,
+  "reviewRequired": true,
+  "missingCriticalEvidence": [],
+  "blockedBy": [],
+  "riskFlags": []
+}

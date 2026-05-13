@@ -109,3 +109,14 @@ Summary:
 - risk flags are flattened deterministically in stable order using a code-first rule (fallback to label only when code is absent)
 - accepted limitations are not inferred from Phase 2 `limitations` output because no safe exact code mapping exists in current contracts
 - no UI wiring or runtime route integration has been added in this step
+
+## Step 3 - Adapter Fixture Locking
+
+Phase 3A-1 Step 3 adds locked adapter output fixtures and exact comparison tests.
+
+Summary:
+
+- representative adapter snapshot fixtures are added under `__tests__/fixtures/phase3-adapter/`
+- exact JSON comparison tests are added to protect adapter output contract stability
+- bridge stability is protected for no-deal, review-required evidence-gap, clean proceed, and missing-optionals cases
+- no UI/runtime wiring is added in this step

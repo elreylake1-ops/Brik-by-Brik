@@ -1,0 +1,13 @@
+{
+  "governanceState": "REVIEW_REQUIRED",
+  "finalClassification": "REVIEW_REQUIRED",
+  "fatalRisk": false,
+  "reviewRequired": true,
+  "missingCriticalEvidence": [
+    "proof_of_funds"
+  ],
+  "blockedBy": [],
+  "riskFlags": [
+    "FINANCE_ASSUMPTION"
+  ]
+}

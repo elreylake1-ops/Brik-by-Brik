@@ -1,0 +1,9 @@
+{
+  "governanceState": "PASS",
+  "finalClassification": "WARM",
+  "fatalRisk": false,
+  "reviewRequired": false,
+  "missingCriticalEvidence": [],
+  "blockedBy": [],
+  "riskFlags": []
+}

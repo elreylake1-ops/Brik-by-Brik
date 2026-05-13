@@ -1,0 +1,13 @@
+{
+  "governanceState": "BLOCKED",
+  "finalClassification": "NO_DEAL",
+  "fatalRisk": true,
+  "reviewRequired": false,
+  "missingCriticalEvidence": [],
+  "blockedBy": [
+    "STRUCTURAL_FATAL"
+  ],
+  "riskFlags": [
+    "STRUCTURAL_FATAL"
+  ]
+}
