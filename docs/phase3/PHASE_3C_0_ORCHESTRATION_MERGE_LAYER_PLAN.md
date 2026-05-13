@@ -187,3 +187,14 @@ Status: complete.
 - capital protection priority represented in fixture expectations
 - no merge implementation added
 - no runtime wiring added
+
+## Step 4 -- Pure Merge Function Implemented
+
+Status: complete.
+
+- merge module added: `lib/engine/phase3-orchestration-merge.ts`
+- pure deterministic merge behavior implemented with no side effects
+- exact locked fixture comparisons added for merge outputs
+- capital protection priority enforced over evidence routes
+- no runtime wiring added
+- no governance override behavior added
