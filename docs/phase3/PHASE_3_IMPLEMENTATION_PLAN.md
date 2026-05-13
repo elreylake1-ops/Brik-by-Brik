@@ -32,6 +32,8 @@ Phase 3C-0 has begun with orchestration merge layer planning only. No merge impl
 
 Phase 3C-0 is closed. The advisory merge layer is planned, typed, fixture-locked, and implemented as a pure function, but remains unwired to runtime behavior. Recommended next phase is Phase 3D-0 Runtime Review Surface Planning.
 
+Phase 3D-0 has begun with runtime review surface planning only. No route, UI, runtime wiring, AI, scraping, persistence, CRM, or deterministic behavior changes are approved.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.
