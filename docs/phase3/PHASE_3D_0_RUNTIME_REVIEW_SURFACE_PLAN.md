@@ -136,3 +136,11 @@ Status: complete.
 - fixture pair data added
 - guardrail tests added
 - no route/UI implementation added
+
+## Step 3 -- Developer Review Route Decision
+
+Status: complete.
+
+- route decision documented
+- safety constraints defined
+- no route/UI implementation added
