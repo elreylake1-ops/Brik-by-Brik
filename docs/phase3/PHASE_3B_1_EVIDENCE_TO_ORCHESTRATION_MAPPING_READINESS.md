@@ -241,3 +241,7 @@ Not built in this step:
 - no persistence expansion
 
 Test result: 252 tests passing.
+
+---
+
+Phase 3B-1 closure report created; evidence-to-orchestration hint layer is ready for review before the next controlled phase.
