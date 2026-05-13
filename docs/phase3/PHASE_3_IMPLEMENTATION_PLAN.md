@@ -18,6 +18,8 @@ First approved implementation scope is Phase 3A-0 orchestration foundation only.
 
 Phase 3A-0 is closed. Phase 3A-1 has begun with orchestration integration readiness only; no UI wiring, intelligence, AI, scraping, or persistence has been approved.
 
+Phase 3A-1 is closed. The Phase 2 to Phase 3 orchestration bridge is proven in tests but remains unwired to runtime UI. Recommended next phase is Phase 3B-0 Evidence Intake Contract Foundation.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.
