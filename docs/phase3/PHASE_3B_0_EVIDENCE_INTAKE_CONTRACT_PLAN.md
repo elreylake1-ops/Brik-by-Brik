@@ -147,3 +147,14 @@ Recommended next step:
 **Phase 3B-0 Step 2 — Create Evidence Contract Types Only**
 
 Step 2 should create type definitions and tests only, with no runtime wiring.
+
+## Step 2 - Evidence Contract Types
+
+Phase 3B-0 Step 2 adds evidence contract types and type-level test coverage only.
+
+Summary:
+
+- evidence category, status, source, and confidence unions are created in `types/phase3-evidence.ts`
+- advisory evidence item and evidence bundle contracts are created for future integration
+- no runtime evidence ingestion or routing wiring is added in this step
+- `future_ai_extracted` and `future_integration` are reserved source labels only
