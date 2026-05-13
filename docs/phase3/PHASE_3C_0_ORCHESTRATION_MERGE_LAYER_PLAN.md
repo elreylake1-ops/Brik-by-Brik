@@ -198,3 +198,5 @@ Status: complete.
 - capital protection priority enforced over evidence routes
 - no runtime wiring added
 - no governance override behavior added
+
+Phase 3C-0 closure report created; advisory merge layer is ready for review before any runtime surface planning.

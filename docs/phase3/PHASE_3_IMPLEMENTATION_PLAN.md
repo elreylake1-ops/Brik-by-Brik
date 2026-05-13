@@ -30,6 +30,8 @@ Phase 3B-1 is closed. Evidence-to-orchestration hint contracts, fixtures, and pu
 
 Phase 3C-0 has begun with orchestration merge layer planning only. No merge implementation, runtime wiring, UI, AI, scraping, persistence, or governance changes are approved.
 
+Phase 3C-0 is closed. The advisory merge layer is planned, typed, fixture-locked, and implemented as a pure function, but remains unwired to runtime behavior. Recommended next phase is Phase 3D-0 Runtime Review Surface Planning.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.
