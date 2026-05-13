@@ -24,6 +24,8 @@ Phase 3B-0 has begun with evidence intake contract planning only. No evidence in
 
 Phase 3B-0 is closed. Evidence contracts are planned, typed, validated, fixture-locked, and remain unwired to runtime behavior. Recommended next phase is Phase 3B-1 Evidence to Orchestration Mapping Readiness.
 
+Phase 3B-1 has begun with evidence-to-orchestration mapping readiness only. No adapter implementation, runtime wiring, UI, AI, scraping, persistence, or governance changes are approved.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.
