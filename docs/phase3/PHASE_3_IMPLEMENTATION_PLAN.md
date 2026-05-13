@@ -16,6 +16,8 @@ Phase 2 acceptance has been received.
 
 First approved implementation scope is Phase 3A-0 orchestration foundation only.
 
+Phase 3A-0 is closed. Phase 3A-1 has begun with orchestration integration readiness only; no UI wiring, intelligence, AI, scraping, or persistence has been approved.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.
