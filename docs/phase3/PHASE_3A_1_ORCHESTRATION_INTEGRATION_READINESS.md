@@ -120,3 +120,13 @@ Summary:
 - exact JSON comparison tests are added to protect adapter output contract stability
 - bridge stability is protected for no-deal, review-required evidence-gap, clean proceed, and missing-optionals cases
 - no UI/runtime wiring is added in this step
+
+## Step 4 - Live Validation Runner Probe
+
+Phase 3A-1 Step 4 validates the live runner compatibility path in non-UI helper/tests.
+
+Summary:
+
+- live Phase 2 validation runner compatibility is checked using full scenario `actualOutput` records
+- adapter and orchestration compatibility path is validated end-to-end in tests
+- no UI/runtime route wiring is added in this step
