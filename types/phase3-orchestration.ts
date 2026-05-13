@@ -1,4 +1,5 @@
 import type { FinalDealClassification, GovernanceState } from "@/types/phase2"
+import type { EvidenceOrchestrationHintTrigger } from "@/types/phase3-evidence"
 
 export const PHASE3_WORKFLOW_STATES = [
   "intake",
@@ -201,4 +202,59 @@ export type Phase3OrchestrationOutput = {
   escalation: Phase3EscalationSummary
   tasks: readonly Phase3Task[]
   metadata: Phase3OrchestrationMetadata
+}
+
+// Merge-layer contracts are advisory-only shape definitions.
+// They do not implement merge behavior, modify deterministic outputs,
+// authorize governance overrides, or imply persistence/UI rendering.
+export const PHASE3_MERGE_SOURCES = [
+  "deterministic_snapshot",
+  "evidence_hint",
+  "accepted_limitations",
+  "orchestrator_guardrail",
+] as const
+
+export type Phase3MergeSource = typeof PHASE3_MERGE_SOURCES[number]
+
+export type Phase3MergeWarning = {
+  id: string
+  source: Phase3MergeSource
+  message: string
+  relatedTaskId?: string
+  relatedEvidenceItemId?: string
+  advisoryOnly: true
+}
+
+export type Phase3MergedTask = {
+  id: string
+  source: Phase3MergeSource
+  title: string
+  description: string
+  category: Phase3TaskCategory
+  trigger: Phase3TaskTrigger | EvidenceOrchestrationHintTrigger
+  priority: Phase3TaskPriority
+  status: Phase3TaskStatus
+  escalationRoute: GovernanceEscalationRoute
+  blocksProgression: boolean
+  advisoryOnly: true
+}
+
+export type Phase3MergeResultMetadata = {
+  deterministicTaskCount: number
+  evidenceHintCount: number
+  mergedTaskCount: number
+  warningCount: number
+  reviewRequired: boolean
+  advisoryOnly: true
+}
+
+export type Phase3MergedOrchestrationOutput = {
+  workflowState: Phase3WorkflowState
+  globalDealState: GlobalDealState
+  primaryEscalationRoute: GovernanceEscalationRoute
+  secondaryEscalationRoutes: readonly GovernanceEscalationRoute[]
+  tasks: readonly Phase3MergedTask[]
+  warnings: readonly Phase3MergeWarning[]
+  metadata: Phase3MergeResultMetadata
+  advisoryOnly: true
 }

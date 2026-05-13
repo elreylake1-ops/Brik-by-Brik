@@ -168,3 +168,12 @@ Step 2 scope:
 - type-level tests confirming contract shape and `advisoryOnly: true`
 
 No merge function, no runtime wiring, and no UI changes should be added in Step 2.
+
+## Step 2 -- Merge Layer Type Contracts
+
+Status: complete.
+
+- merge source, warning, task, metadata, and merged output contracts added
+- advisory-only guardrail comments added
+- no merge implementation added
+- no runtime wiring added
