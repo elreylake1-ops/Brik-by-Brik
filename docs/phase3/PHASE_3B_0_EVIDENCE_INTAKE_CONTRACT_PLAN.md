@@ -170,3 +170,14 @@ Summary:
 - validation remains advisory and contract-level only
 - no governance decisioning or runtime wiring is added in this step
 - reserved future source labels produce warnings only
+
+## Step 4 - Evidence Validation Output Fixture Locking
+
+Phase 3B-0 Step 4 locks representative validation outputs for evidence bundle contract behavior.
+
+Summary:
+
+- validation-output fixtures are added under `__tests__/fixtures/phase3-evidence-validation/`
+- exact comparison tests are added in `__tests__/phase3-evidence-contract.test.ts`
+- warning text and review-required behavior are locked for drift protection
+- no runtime wiring or governance decisioning is added in this step

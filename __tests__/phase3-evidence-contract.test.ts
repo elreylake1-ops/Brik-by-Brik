@@ -2,7 +2,11 @@ import { readFileSync } from "node:fs"
 import path from "node:path"
 import { describe, expect, it } from "vitest"
 import { validatePhase3EvidenceBundle } from "@/lib/engine/phase3-evidence-contract"
-import type { Phase3EvidenceBundle, Phase3EvidenceItem } from "@/types/phase3-evidence"
+import type {
+  Phase3EvidenceBundle,
+  Phase3EvidenceBundleValidationResult,
+  Phase3EvidenceItem,
+} from "@/types/phase3-evidence"
 
 function loadFixture(fileName: string): Phase3EvidenceBundle {
   const fixturePath = path.resolve(
@@ -13,6 +17,17 @@ function loadFixture(fileName: string): Phase3EvidenceBundle {
     fileName
   )
   return JSON.parse(readFileSync(fixturePath, "utf8")) as Phase3EvidenceBundle
+}
+
+function loadValidationFixture(fileName: string): Phase3EvidenceBundleValidationResult {
+  const fixturePath = path.resolve(
+    process.cwd(),
+    "__tests__",
+    "fixtures",
+    "phase3-evidence-validation",
+    fileName
+  )
+  return JSON.parse(readFileSync(fixturePath, "utf8")) as Phase3EvidenceBundleValidationResult
 }
 
 function createItem(overrides?: Partial<Phase3EvidenceItem>): Phase3EvidenceItem {
@@ -29,6 +44,73 @@ function createItem(overrides?: Partial<Phase3EvidenceItem>): Phase3EvidenceItem
 }
 
 describe("phase3 evidence contract validation", () => {
+  it("matches locked validation output fixture for weak comparable evidence", () => {
+    const bundle = loadFixture("weak-comparable-evidence.json")
+    const expected = loadValidationFixture("weak-comparable-evidence-validation.json")
+    const result = validatePhase3EvidenceBundle(bundle)
+
+    expect(result).toEqual(expected)
+  })
+
+  it("matches locked validation output fixture for conflicting legal evidence", () => {
+    const bundle = loadFixture("conflicting-legal-evidence.json")
+    const expected = loadValidationFixture("conflicting-legal-evidence-validation.json")
+    const result = validatePhase3EvidenceBundle(bundle)
+
+    expect(result).toEqual(expected)
+  })
+
+  it("matches locked validation output fixture for accepted operator note evidence", () => {
+    const bundle = loadFixture("accepted-operator-note.json")
+    const expected = loadValidationFixture("accepted-operator-note-validation.json")
+    const result = validatePhase3EvidenceBundle(bundle)
+
+    expect(result).toEqual(expected)
+  })
+
+  it("matches locked validation output fixture for missing lender evidence", () => {
+    const bundle = loadFixture("missing-lender-evidence.json")
+    const expected = loadValidationFixture("missing-lender-evidence-validation.json")
+    const result = validatePhase3EvidenceBundle(bundle)
+
+    expect(result).toEqual(expected)
+  })
+
+  it("validation output field order and warning order are stable", () => {
+    const bundle = loadFixture("accepted-operator-note.json")
+    const result = validatePhase3EvidenceBundle(bundle)
+
+    expect(Object.keys(result)).toEqual(["valid", "errors", "warnings", "requiresReview"])
+    expect(result.warnings).toEqual([
+      "accepted evidence is advisory only and does not imply deterministic approval: ev-note-accepted-1",
+    ])
+  })
+
+  it("repeated validation for the same fixture returns identical results", () => {
+    const bundle = loadFixture("accepted-operator-note.json")
+    const first = validatePhase3EvidenceBundle(bundle)
+    const second = validatePhase3EvidenceBundle(bundle)
+
+    expect(second).toEqual(first)
+  })
+
+  it("reserved future source warning text remains stable", () => {
+    const bundle: Phase3EvidenceBundle = {
+      items: [createItem({ id: "reserved-ai-1", source: "future_ai_extracted" })],
+      missingCriticalEvidence: [],
+      conflictingEvidence: [],
+      reviewRequired: false,
+      confidence: "unknown",
+      advisoryOnly: true,
+    }
+
+    const result = validatePhase3EvidenceBundle(bundle)
+    expect(result.valid).toBe(true)
+    expect(result.warnings).toEqual([
+      "reserved source label only: reserved-ai-1 uses future_ai_extracted",
+    ])
+  })
+
   it("loads and validates weak comparable evidence fixture", () => {
     const bundle = loadFixture("weak-comparable-evidence.json")
     const result = validatePhase3EvidenceBundle(bundle)
@@ -158,6 +240,16 @@ describe("phase3 evidence contract validation", () => {
     const result = validatePhase3EvidenceBundle(bundle)
     expect(result.valid).toBe(true)
     expect(result.warnings.some((warning) => warning.includes("reserved source label only"))).toBe(true)
+  })
+
+  it("weak, conflicting, and missing review behavior remains locked", () => {
+    const weak = validatePhase3EvidenceBundle(loadFixture("weak-comparable-evidence.json"))
+    const conflicting = validatePhase3EvidenceBundle(loadFixture("conflicting-legal-evidence.json"))
+    const missing = validatePhase3EvidenceBundle(loadFixture("missing-lender-evidence.json"))
+
+    expect(weak.requiresReview).toBe(true)
+    expect(conflicting.requiresReview).toBe(true)
+    expect(missing.requiresReview).toBe(true)
   })
 
   it("validation does not mutate input", () => {

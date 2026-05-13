@@ -1,0 +1,8 @@
+{
+  "valid": true,
+  "errors": [],
+  "warnings": [
+    "accepted evidence is advisory only and does not imply deterministic approval: ev-note-accepted-1"
+  ],
+  "requiresReview": false
+}
