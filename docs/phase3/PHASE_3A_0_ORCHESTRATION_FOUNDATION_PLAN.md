@@ -81,3 +81,16 @@ Scope summary:
 - manual review orientation for evidence and governance escalations
 - accepted limitations are awareness-only and non-blocking by themselves
 - tasks remain advisory and do not alter deterministic engine results
+
+## Step 4 - Governance Escalation Routing
+
+Phase 3A-0 Step 4 hardens escalation routing for deterministic and review-safe orchestration behavior.
+
+Scope summary:
+
+- deterministic routing priority with explicit guardrail behavior for unsupported states
+- capital protection route priority for deterministic blocked or no-deal outcomes
+- evidence-gap routing remains manual-review oriented, with explicit valuation, legal, and lender review routes only when related evidence gaps are present
+- accepted limitations remain awareness-only and do not trigger escalation by themselves
+- escalation remains advisory workflow routing only and cannot override deterministic decisions
+- deterministic engine remains the source of truth for governance and final classification

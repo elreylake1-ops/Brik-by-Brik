@@ -1,6 +1,6 @@
 import type {
   GlobalDealState,
-  GovernanceEscalationRoute,
+  Phase3EscalationSummary,
   Phase3AcceptedLimitation,
   Phase3DeterministicSnapshot,
   Phase3OrchestrationMetadata,
@@ -20,12 +20,36 @@ function toGovernanceStateValue(result: Phase3DeterministicSnapshot): string {
   return String(result.governanceState)
 }
 
+function normalizeEvidenceTokens(values: readonly string[]): string[] {
+  return values.map((value) => value.toLowerCase())
+}
+
+function hasAnyKeyword(tokens: readonly string[], keywords: readonly string[]): boolean {
+  return tokens.some((token) => keywords.some((keyword) => token.includes(keyword)))
+}
+
+function hasUnsupportedDeterministicState(result: Phase3DeterministicSnapshot): boolean {
+  const finalClassification = toFinalClassificationValue(result)
+  const governanceState = toGovernanceStateValue(result)
+  const supportedClassifications = ["HOT", "WARM", "MARGINAL", "NO_DEAL", "REVIEW_REQUIRED"]
+  const supportedGovernanceStates = ["PASS", "REVIEW_REQUIRED", "BLOCKED"]
+
+  return (
+    !supportedClassifications.includes(finalClassification) ||
+    !supportedGovernanceStates.includes(governanceState)
+  )
+}
+
 function buildGlobalDealState(result: Phase3DeterministicSnapshot): GlobalDealState {
   const finalClassification = toFinalClassificationValue(result)
   const governanceState = toGovernanceStateValue(result)
 
   if (finalClassification === "NO_DEAL" || governanceState === "BLOCKED") {
     return "no_deal"
+  }
+
+  if (hasUnsupportedDeterministicState(result)) {
+    return "review_required"
   }
 
   if (governanceState === "REVIEW_REQUIRED" || finalClassification === "REVIEW_REQUIRED" || result.reviewRequired) {
@@ -43,32 +67,152 @@ function buildGlobalDealState(result: Phase3DeterministicSnapshot): GlobalDealSt
   return "review_required"
 }
 
-function buildEscalationRoute(result: Phase3DeterministicSnapshot): GovernanceEscalationRoute {
-  if (result.missingCriticalEvidence.length > 0) {
-    return "evidence_gap"
+function buildEvidenceGapRoute(evidenceGaps: readonly string[]): Phase3EscalationSummary {
+  const evidenceTokens = normalizeEvidenceTokens(evidenceGaps)
+  const hasValuationGap = hasAnyKeyword(evidenceTokens, [
+    "valuation",
+    "gdv",
+    "comparable",
+    "comp",
+    "sold",
+    "price",
+  ])
+  const hasLenderGap = hasAnyKeyword(evidenceTokens, [
+    "lender",
+    "refinance",
+    "refi",
+    "bridge",
+    "loan",
+    "ltv",
+  ])
+  const hasLegalGap = hasAnyKeyword(evidenceTokens, [
+    "legal",
+    "survey",
+    "structural",
+    "title",
+    "lease",
+    "planning",
+  ])
+
+  if (hasValuationGap) {
+    return {
+      route: "valuation_review",
+      severity: "high",
+      reason: "valuation_evidence_gap",
+      source: "evidence_gap_analysis",
+      requiresManualReview: true,
+      advisoryOnly: true,
+    }
+  }
+
+  if (hasLenderGap) {
+    return {
+      route: "lender_review",
+      severity: "high",
+      reason: "lender_evidence_gap",
+      source: "evidence_gap_analysis",
+      requiresManualReview: true,
+      advisoryOnly: true,
+    }
+  }
+
+  if (hasLegalGap) {
+    return {
+      route: "legal_review",
+      severity: "high",
+      reason: "legal_evidence_gap",
+      source: "evidence_gap_analysis",
+      requiresManualReview: true,
+      advisoryOnly: true,
+    }
+  }
+
+  return {
+    route: "evidence_gap",
+    severity: "high",
+    reason: "evidence_gap_generic",
+    source: "evidence_gap_analysis",
+    requiresManualReview: true,
+    advisoryOnly: true,
+  }
+}
+
+function buildEscalationSummary(
+  result: Phase3DeterministicSnapshot,
+  globalDealState: GlobalDealState,
+  evidenceGaps: readonly string[]
+): Phase3EscalationSummary {
+  if (globalDealState === "no_deal") {
+    return {
+      route: "capital_protection",
+      severity: "critical",
+      reason: "capital_protection_block",
+      source: "deterministic_snapshot",
+      requiresManualReview: true,
+      advisoryOnly: true,
+    }
+  }
+
+  if (evidenceGaps.length > 0) {
+    return buildEvidenceGapRoute(evidenceGaps)
   }
 
   if (result.riskFlags.some((flag) => flag.toLowerCase().includes("structural"))) {
-    return "structural_risk"
+    return {
+      route: "structural_risk",
+      severity: "high",
+      reason: "structural_risk_detected",
+      source: "deterministic_snapshot",
+      requiresManualReview: true,
+      advisoryOnly: true,
+    }
   }
 
-  if (result.fatalRisk || result.blockedBy.some((reason) => reason.toLowerCase().includes("capital"))) {
-    return "capital_protection"
+  if (hasUnsupportedDeterministicState(result)) {
+    return {
+      route: "manual_review",
+      severity: "high",
+      reason: "unknown_state_guardrail",
+      source: "orchestrator_guardrail",
+      requiresManualReview: true,
+      advisoryOnly: true,
+    }
   }
 
   if (result.reviewRequired || result.governanceState === "REVIEW_REQUIRED") {
-    return "manual_review"
+    return {
+      route: "manual_review",
+      severity: "medium",
+      reason: "governance_review_required",
+      source: "deterministic_snapshot",
+      requiresManualReview: true,
+      advisoryOnly: true,
+    }
   }
 
-  return "none"
+  return {
+    route: "none",
+    severity: "none",
+    reason: "none",
+    source: "deterministic_snapshot",
+    requiresManualReview: false,
+    advisoryOnly: true,
+  }
 }
 
 function buildWorkflowState(
   globalDealState: GlobalDealState,
-  route: GovernanceEscalationRoute
+  route: Phase3EscalationSummary["route"]
 ): Phase3WorkflowState {
   if (globalDealState === "no_deal") return "blocked"
-  if (route === "evidence_gap") return "evidence_review"
+  if (
+    route === "evidence_gap" ||
+    route === "valuation_review" ||
+    route === "lender_review" ||
+    route === "legal_review"
+  ) {
+    return "evidence_review"
+  }
   return "governance_review"
 }
 
@@ -94,13 +238,22 @@ function buildTasksWithoutDeterministicResult(): Phase3Task[] {
 
 function buildTasksWithDeterministicResult(
   globalDealState: GlobalDealState,
-  route: GovernanceEscalationRoute,
+  escalation: Phase3EscalationSummary,
   evidenceGaps: string[],
   acceptedWithLimitations: boolean
 ): Phase3Task[] {
   const reviewRequired = globalDealState === "review_required"
   const noDeal = globalDealState === "no_deal"
-  const needsManualReview = route === "evidence_gap" || route === "manual_review"
+  const route = escalation.route
+  const needsManualReview =
+    escalation.requiresManualReview ||
+    route === "evidence_gap" ||
+    route === "manual_review" ||
+    route === "valuation_review" ||
+    route === "lender_review" ||
+    route === "legal_review" ||
+    route === "structural_risk" ||
+    route === "capital_protection"
   const hasEvidenceGap = evidenceGaps.length > 0
 
   return [
@@ -145,7 +298,7 @@ function buildTasksWithDeterministicResult(
       source: "deterministic_snapshot",
       priority: hasEvidenceGap ? "critical" : "low",
       status: hasEvidenceGap ? "in_progress" : "not_applicable",
-      route: hasEvidenceGap ? "evidence_gap" : "none",
+      route: hasEvidenceGap ? route : "none",
       reason:
         hasEvidenceGap
           ? `Missing critical evidence: ${evidenceGaps.join(", ")}`
@@ -265,6 +418,14 @@ export function buildPhase3Orchestration(
       workflowState: "intake",
       globalDealState: "draft",
       governanceEscalationRoute: "none",
+      escalation: {
+        route: "none",
+        severity: "none",
+        reason: "none",
+        source: "orchestrator_guardrail",
+        requiresManualReview: false,
+        advisoryOnly: true,
+      },
       tasks: buildTasksWithoutDeterministicResult(),
       metadata,
     }
@@ -272,8 +433,9 @@ export function buildPhase3Orchestration(
 
   const evidenceGaps = [...new Set(deterministicResult.missingCriticalEvidence)]
   const globalDealState = buildGlobalDealState(deterministicResult)
-  const governanceEscalationRoute = buildEscalationRoute(deterministicResult)
-  const workflowState = buildWorkflowState(globalDealState, governanceEscalationRoute)
+  const escalation = buildEscalationSummary(deterministicResult, globalDealState, evidenceGaps)
+  const governanceEscalationRoute = escalation.route
+  const workflowState = buildWorkflowState(globalDealState, escalation.route)
   const metadata: Phase3OrchestrationMetadata = {
     deterministicResultProvided,
     acceptedLimitations,
@@ -291,9 +453,10 @@ export function buildPhase3Orchestration(
     workflowState,
     globalDealState,
     governanceEscalationRoute,
+    escalation,
     tasks: buildTasksWithDeterministicResult(
       globalDealState,
-      governanceEscalationRoute,
+      escalation,
       evidenceGaps,
       acceptedWithLimitations
     ),

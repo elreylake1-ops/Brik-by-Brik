@@ -39,6 +39,38 @@ export const GOVERNANCE_ESCALATION_ROUTES = [
 
 export type GovernanceEscalationRoute = typeof GOVERNANCE_ESCALATION_ROUTES[number]
 
+export const PHASE3_ESCALATION_SEVERITIES = [
+  "none",
+  "low",
+  "medium",
+  "high",
+  "critical",
+] as const
+
+export type Phase3EscalationSeverity = typeof PHASE3_ESCALATION_SEVERITIES[number]
+
+export const PHASE3_ESCALATION_REASONS = [
+  "none",
+  "capital_protection_block",
+  "evidence_gap_generic",
+  "valuation_evidence_gap",
+  "lender_evidence_gap",
+  "legal_evidence_gap",
+  "structural_risk_detected",
+  "governance_review_required",
+  "unknown_state_guardrail",
+] as const
+
+export type Phase3EscalationReason = typeof PHASE3_ESCALATION_REASONS[number]
+
+export const PHASE3_ESCALATION_SOURCES = [
+  "deterministic_snapshot",
+  "evidence_gap_analysis",
+  "orchestrator_guardrail",
+] as const
+
+export type Phase3EscalationSource = typeof PHASE3_ESCALATION_SOURCES[number]
+
 export const PHASE3_TASK_STATUSES = [
   "pending",
   "in_progress",
@@ -153,10 +185,20 @@ export type Phase3OrchestrationMetadata = {
   evidenceGaps: readonly string[]
 }
 
+export type Phase3EscalationSummary = {
+  route: GovernanceEscalationRoute
+  severity: Phase3EscalationSeverity
+  reason: Phase3EscalationReason
+  source: Phase3EscalationSource
+  requiresManualReview: boolean
+  advisoryOnly: true
+}
+
 export type Phase3OrchestrationOutput = {
   workflowState: Phase3WorkflowState
   globalDealState: GlobalDealState
   governanceEscalationRoute: GovernanceEscalationRoute
+  escalation: Phase3EscalationSummary
   tasks: readonly Phase3Task[]
   metadata: Phase3OrchestrationMetadata
 }
