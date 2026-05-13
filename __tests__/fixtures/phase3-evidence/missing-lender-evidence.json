@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "ev-lender-missing-1",
+      "category": "lender_refinance_evidence",
+      "status": "missing",
+      "source": "unknown",
+      "confidence": "unknown",
+      "label": "Lender refinance evidence missing",
+      "stableCode": "LENDER_MISSING_001",
+      "relatedField": "refinanceAssumptions",
+      "issues": ["no_term_sheet", "no_lender_confirmation"],
+      "warnings": ["manual_lender_review"],
+      "advisoryOnly": true
+    }
+  ],
+  "missingCriticalEvidence": ["refinance_term_sheet"],
+  "conflictingEvidence": [],
+  "reviewRequired": true,
+  "confidence": "low",
+  "advisoryOnly": true
+}

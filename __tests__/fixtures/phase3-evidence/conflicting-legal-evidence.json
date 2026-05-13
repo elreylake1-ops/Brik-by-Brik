@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "ev-legal-conflict-1",
+      "category": "legal_survey_evidence",
+      "status": "conflicting",
+      "source": "third_party_document",
+      "confidence": "low",
+      "label": "Legal and survey evidence conflict",
+      "stableCode": "LEGAL_CONFLICT_001",
+      "relatedField": "legalChecks",
+      "issues": ["title_plan_mismatch", "boundary_conflict"],
+      "warnings": ["manual_review_required"],
+      "advisoryOnly": true
+    }
+  ],
+  "missingCriticalEvidence": [],
+  "conflictingEvidence": ["title_plan_mismatch", "boundary_conflict"],
+  "reviewRequired": true,
+  "confidence": "low",
+  "advisoryOnly": true
+}

@@ -158,3 +158,15 @@ Summary:
 - advisory evidence item and evidence bundle contracts are created for future integration
 - no runtime evidence ingestion or routing wiring is added in this step
 - `future_ai_extracted` and `future_integration` are reserved source labels only
+
+## Step 3 - Evidence Fixtures and Contract Validation
+
+Phase 3B-0 Step 3 adds representative evidence fixtures and a pure contract validation helper.
+
+Summary:
+
+- evidence fixtures are added under `__tests__/fixtures/phase3-evidence/`
+- pure validation helper is added at `lib/engine/phase3-evidence-contract.ts`
+- validation remains advisory and contract-level only
+- no governance decisioning or runtime wiring is added in this step
+- reserved future source labels produce warnings only

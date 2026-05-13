@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "id": "ev-note-accepted-1",
+      "category": "operator_note",
+      "status": "accepted",
+      "source": "operator_entered",
+      "confidence": "medium",
+      "label": "Operator note accepted for context",
+      "summary": "Seller timeline note captured for manual reference.",
+      "stableCode": "OP_NOTE_001",
+      "advisoryOnly": true
+    }
+  ],
+  "missingCriticalEvidence": [],
+  "conflictingEvidence": [],
+  "reviewRequired": false,
+  "confidence": "medium",
+  "advisoryOnly": true
+}

@@ -1,66 +1,135 @@
+import { readFileSync } from "node:fs"
+import path from "node:path"
 import { describe, expect, it } from "vitest"
-import type {
-  Phase3EvidenceBundle,
-  Phase3EvidenceItem,
-  EvidenceSource,
-} from "@/types/phase3-evidence"
+import { validatePhase3EvidenceBundle } from "@/lib/engine/phase3-evidence-contract"
+import type { Phase3EvidenceBundle, Phase3EvidenceItem } from "@/types/phase3-evidence"
 
-function makeEvidenceItem(overrides?: Partial<Phase3EvidenceItem>): Phase3EvidenceItem {
+function loadFixture(fileName: string): Phase3EvidenceBundle {
+  const fixturePath = path.resolve(
+    process.cwd(),
+    "__tests__",
+    "fixtures",
+    "phase3-evidence",
+    fileName
+  )
+  return JSON.parse(readFileSync(fixturePath, "utf8")) as Phase3EvidenceBundle
+}
+
+function createItem(overrides?: Partial<Phase3EvidenceItem>): Phase3EvidenceItem {
   return {
-    id: "ev-1",
-    category: "comparable_evidence",
+    id: "ev-base-1",
+    category: "operator_note",
     status: "provided",
     source: "operator_entered",
     confidence: "medium",
-    label: "Comparable sold evidence",
+    label: "Base evidence item",
     advisoryOnly: true,
     ...overrides,
   }
 }
 
-describe("phase3 evidence contracts", () => {
-  it("supports a valid evidence item object shape", () => {
-    const item = makeEvidenceItem({
-      stableCode: "COMP_SOLD_001",
-      relatedField: "gdvRealistic",
-      issues: ["stale_sold_date"],
-      warnings: ["operator_entered_value"],
-    })
+describe("phase3 evidence contract validation", () => {
+  it("loads and validates weak comparable evidence fixture", () => {
+    const bundle = loadFixture("weak-comparable-evidence.json")
+    const result = validatePhase3EvidenceBundle(bundle)
 
-    expect(item.id).toBe("ev-1")
-    expect(item.category).toBe("comparable_evidence")
-    expect(item.status).toBe("provided")
-    expect(item.source).toBe("operator_entered")
-    expect(item.advisoryOnly).toBe(true)
+    expect(result.valid).toBe(true)
+    expect(result.requiresReview).toBe(true)
+    expect(bundle.reviewRequired).toBe(true)
   })
 
-  it("supports a valid evidence bundle object shape", () => {
+  it("loads and validates conflicting legal evidence fixture", () => {
+    const bundle = loadFixture("conflicting-legal-evidence.json")
+    const result = validatePhase3EvidenceBundle(bundle)
+
+    expect(result.valid).toBe(true)
+    expect(result.requiresReview).toBe(true)
+    expect(bundle.reviewRequired).toBe(true)
+  })
+
+  it("loads and validates accepted operator note fixture as non-decisioning", () => {
+    const bundle = loadFixture("accepted-operator-note.json")
+    const result = validatePhase3EvidenceBundle(bundle)
+
+    expect(result.valid).toBe(true)
+    expect(result.requiresReview).toBe(false)
+    expect(
+      result.warnings.some((warning) =>
+        warning.includes("accepted evidence is advisory only and does not imply deterministic approval")
+      )
+    ).toBe(true)
+  })
+
+  it("loads and validates missing lender evidence fixture", () => {
+    const bundle = loadFixture("missing-lender-evidence.json")
+    const result = validatePhase3EvidenceBundle(bundle)
+
+    expect(result.valid).toBe(true)
+    expect(result.requiresReview).toBe(true)
+    expect(bundle.reviewRequired).toBe(true)
+  })
+
+  it("weak comparable evidence requires review", () => {
+    const bundle: Phase3EvidenceBundle = {
+      items: [createItem({ id: "ev-weak-1", category: "comparable_evidence", status: "weak" })],
+      missingCriticalEvidence: ["comparable_date"],
+      conflictingEvidence: [],
+      reviewRequired: true,
+      confidence: "low",
+      advisoryOnly: true,
+    }
+
+    const result = validatePhase3EvidenceBundle(bundle)
+    expect(result.valid).toBe(true)
+    expect(result.requiresReview).toBe(true)
+  })
+
+  it("conflicting legal evidence requires review", () => {
     const bundle: Phase3EvidenceBundle = {
       items: [
-        makeEvidenceItem(),
-        makeEvidenceItem({
-          id: "ev-2",
+        createItem({
+          id: "ev-legal-1",
           category: "legal_survey_evidence",
-          status: "weak",
-          confidence: "low",
+          status: "conflicting",
         }),
       ],
-      missingCriticalEvidence: ["survey_report"],
+      missingCriticalEvidence: [],
+      conflictingEvidence: ["boundary_conflict"],
+      reviewRequired: true,
+      confidence: "low",
+      advisoryOnly: true,
+    }
+
+    const result = validatePhase3EvidenceBundle(bundle)
+    expect(result.valid).toBe(true)
+    expect(result.requiresReview).toBe(true)
+  })
+
+  it("missing lender evidence requires review", () => {
+    const bundle: Phase3EvidenceBundle = {
+      items: [
+        createItem({
+          id: "ev-lender-1",
+          category: "lender_refinance_evidence",
+          status: "missing",
+          source: "unknown",
+        }),
+      ],
+      missingCriticalEvidence: ["refinance_term_sheet"],
       conflictingEvidence: [],
       reviewRequired: true,
       confidence: "low",
       advisoryOnly: true,
     }
 
-    expect(bundle.items).toHaveLength(2)
-    expect(bundle.reviewRequired).toBe(true)
-    expect(bundle.advisoryOnly).toBe(true)
+    const result = validatePhase3EvidenceBundle(bundle)
+    expect(result.valid).toBe(true)
+    expect(result.requiresReview).toBe(true)
   })
 
-  it("requires advisoryOnly true on evidence item and bundle contracts", () => {
-    const item = makeEvidenceItem()
+  it("duplicate item IDs produce warning", () => {
     const bundle: Phase3EvidenceBundle = {
-      items: [item],
+      items: [createItem({ id: "dup-1" }), createItem({ id: "dup-1", label: "Duplicate id item" })],
       missingCriticalEvidence: [],
       conflictingEvidence: [],
       reviewRequired: false,
@@ -68,104 +137,88 @@ describe("phase3 evidence contracts", () => {
       advisoryOnly: true,
     }
 
-    expect(item.advisoryOnly).toBe(true)
-    expect(bundle.advisoryOnly).toBe(true)
+    const result = validatePhase3EvidenceBundle(bundle)
+    expect(result.valid).toBe(true)
+    expect(result.warnings.some((warning) => warning.includes("duplicate item id detected"))).toBe(true)
   })
 
-  it("allows future_ai_extracted as reserved source label with no behavior", () => {
-    const source: EvidenceSource = "future_ai_extracted"
-    const item = makeEvidenceItem({
-      id: "ev-ai-reserved",
-      source,
-      label: "Reserved source label only",
-    })
-
-    expect(item.source).toBe("future_ai_extracted")
-    expect(item.advisoryOnly).toBe(true)
-  })
-
-  it("allows future_integration as reserved source label with no behavior", () => {
-    const source: EvidenceSource = "future_integration"
-    const item = makeEvidenceItem({
-      id: "ev-int-reserved",
-      source,
-      label: "Reserved integration label only",
-    })
-
-    expect(item.source).toBe("future_integration")
-    expect(item.advisoryOnly).toBe(true)
-  })
-
-  it("supports reviewRequired true for weak or conflicting evidence", () => {
-    const weakItem = makeEvidenceItem({
-      id: "ev-weak",
-      status: "weak",
-      confidence: "low",
-    })
-    const conflictingItem = makeEvidenceItem({
-      id: "ev-conflict",
-      status: "conflicting",
-      issues: ["valuation_mismatch"],
-      confidence: "low",
-    })
+  it("reserved future source labels produce warning only, not failure", () => {
     const bundle: Phase3EvidenceBundle = {
-      items: [weakItem, conflictingItem],
-      missingCriticalEvidence: ["title_document"],
-      conflictingEvidence: ["valuation_mismatch"],
-      reviewRequired: true,
-      confidence: "low",
-      advisoryOnly: true,
-    }
-
-    expect(bundle.reviewRequired).toBe(true)
-    expect(bundle.confidence).toBe("low")
-  })
-
-  it("accepted evidence does not imply deterministic approval", () => {
-    const acceptedItem = makeEvidenceItem({
-      id: "ev-accepted",
-      status: "accepted",
-      confidence: "high",
-    })
-    const bundle: Phase3EvidenceBundle = {
-      items: [acceptedItem],
+      items: [
+        createItem({ id: "reserved-ai-1", source: "future_ai_extracted" }),
+        createItem({ id: "reserved-int-1", source: "future_integration" }),
+      ],
       missingCriticalEvidence: [],
       conflictingEvidence: [],
       reviewRequired: false,
-      confidence: "high",
+      confidence: "unknown",
       advisoryOnly: true,
     }
 
-    expect(bundle.items[0]?.status).toBe("accepted")
-    expect(bundle.advisoryOnly).toBe(true)
-    expect("finalClassification" in bundle).toBe(false)
+    const result = validatePhase3EvidenceBundle(bundle)
+    expect(result.valid).toBe(true)
+    expect(result.warnings.some((warning) => warning.includes("reserved source label only"))).toBe(true)
   })
 
-  it("uses readonly arrays without mutation in helper-free contract usage", () => {
-    const issues = Object.freeze(["stale_comparable"])
-    const warnings = Object.freeze(["manual_entry"])
-    const item = makeEvidenceItem({
-      id: "ev-readonly",
-      issues,
-      warnings,
-    })
-    const missingCriticalEvidence = Object.freeze(["survey"])
-    const conflictingEvidence = Object.freeze(["survey_date_mismatch"])
-    const bundle: Phase3EvidenceBundle = {
-      items: Object.freeze([item]),
-      missingCriticalEvidence,
-      conflictingEvidence,
-      reviewRequired: true,
-      confidence: "medium",
-      advisoryOnly: true,
-    }
-
+  it("validation does not mutate input", () => {
+    const bundle = loadFixture("weak-comparable-evidence.json")
     const before = JSON.stringify(bundle)
-    const seenIssue = bundle.items[0]?.issues?.[0]
-    const seenConflict = bundle.conflictingEvidence[0]
 
-    expect(seenIssue).toBe("stale_comparable")
-    expect(seenConflict).toBe("survey_date_mismatch")
+    validatePhase3EvidenceBundle(bundle)
+
     expect(JSON.stringify(bundle)).toBe(before)
+  })
+
+  it("empty bundle behavior is deterministic", () => {
+    const validEmpty: Phase3EvidenceBundle = {
+      items: [],
+      missingCriticalEvidence: [],
+      conflictingEvidence: [],
+      reviewRequired: false,
+      confidence: "unknown",
+      advisoryOnly: true,
+    }
+    const warnedEmpty: Phase3EvidenceBundle = {
+      items: [],
+      missingCriticalEvidence: [],
+      conflictingEvidence: [],
+      reviewRequired: false,
+      confidence: "medium",
+      advisoryOnly: true,
+    }
+
+    const validResult = validatePhase3EvidenceBundle(validEmpty)
+    const warnedResult = validatePhase3EvidenceBundle(warnedEmpty)
+    const repeatWarnedResult = validatePhase3EvidenceBundle(warnedEmpty)
+
+    expect(validResult.valid).toBe(true)
+    expect(validResult.warnings).toEqual([])
+    expect(warnedResult.valid).toBe(true)
+    expect(
+      warnedResult.warnings.some((warning) =>
+        warning.includes("empty evidence bundle should use confidence 'unknown'")
+      )
+    ).toBe(true)
+    expect(repeatWarnedResult).toEqual(warnedResult)
+  })
+
+  it("missing, weak, or conflicting evidence with reviewRequired false is invalid", () => {
+    const bundle: Phase3EvidenceBundle = {
+      items: [createItem({ id: "ev-invalid-1", status: "weak" })],
+      missingCriticalEvidence: [],
+      conflictingEvidence: [],
+      reviewRequired: false,
+      confidence: "low",
+      advisoryOnly: true,
+    }
+
+    const result = validatePhase3EvidenceBundle(bundle)
+
+    expect(result.valid).toBe(false)
+    expect(
+      result.errors.some((error) =>
+        error.includes("bundle.reviewRequired must be true when missing, weak, or conflicting evidence exists")
+      )
+    ).toBe(true)
   })
 })

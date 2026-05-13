@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "ev-comp-weak-1",
+      "category": "comparable_evidence",
+      "status": "weak",
+      "source": "operator_entered",
+      "confidence": "low",
+      "label": "Comparable evidence is weak",
+      "stableCode": "COMP_WEAK_001",
+      "relatedField": "gdvRealistic",
+      "issues": ["stale_comparables", "low_sample_size"],
+      "warnings": ["manual_operator_entry"],
+      "advisoryOnly": true
+    }
+  ],
+  "missingCriticalEvidence": ["recent_comparable_sale"],
+  "conflictingEvidence": [],
+  "reviewRequired": true,
+  "confidence": "low",
+  "advisoryOnly": true
+}

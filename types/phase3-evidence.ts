@@ -67,3 +67,10 @@ export type Phase3EvidenceBundle = {
   confidence: EvidenceConfidence
   advisoryOnly: true
 }
+
+export type Phase3EvidenceBundleValidationResult = {
+  valid: boolean
+  errors: readonly string[]
+  warnings: readonly string[]
+  requiresReview: boolean
+}
