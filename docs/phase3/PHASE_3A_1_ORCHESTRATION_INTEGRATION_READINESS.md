@@ -95,3 +95,17 @@ Recommended smallest next implementation step:
 **Phase 3A-1 Step 2 - create a pure adapter for Phase 2 output to `Phase3DeterministicSnapshot`**.
 
 This should proceed only with deterministic field mapping and tests, and still without runtime wiring to `app/page.tsx` or Phase 3 UI exposure.
+
+## Step 2 - Pure Adapter Implemented
+
+Adapter path:
+
+- `lib/engine/phase3-adapter.ts`
+- export: `mapPhase2OutputToPhase3Snapshot(output: Phase2AnalysisOutput): Phase3DeterministicSnapshot`
+
+Summary:
+
+- direct mapping is implemented for governance state, final classification, fatal risk, reviewRequired, missingCriticalEvidence, and blockedBy
+- risk flags are flattened deterministically in stable order using a code-first rule (fallback to label only when code is absent)
+- accepted limitations are not inferred from Phase 2 `limitations` output because no safe exact code mapping exists in current contracts
+- no UI wiring or runtime route integration has been added in this step
