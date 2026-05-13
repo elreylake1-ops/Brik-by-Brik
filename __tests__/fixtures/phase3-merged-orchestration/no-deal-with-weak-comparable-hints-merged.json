@@ -1,0 +1,129 @@
+{
+  "workflowState": "blocked",
+  "globalDealState": "no_deal",
+  "primaryEscalationRoute": "capital_protection",
+  "secondaryEscalationRoutes": [
+    "valuation_review",
+    "evidence_gap",
+    "manual_review"
+  ],
+  "tasks": [
+    {
+      "id": "deterministic-analysis",
+      "source": "deterministic_snapshot",
+      "title": "Deterministic analysis complete",
+      "description": "Deterministic snapshot is available for orchestration workflow routing.",
+      "category": "deterministic",
+      "trigger": "no_escalation_required",
+      "priority": "critical",
+      "status": "completed",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "governance-review",
+      "source": "deterministic_snapshot",
+      "title": "Governance review task",
+      "description": "Confirm deterministic governance state and ensure escalation decision is traceable.",
+      "category": "governance",
+      "trigger": "no_escalation_required",
+      "priority": "low",
+      "status": "completed",
+      "escalationRoute": "capital_protection",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "evidence-review",
+      "source": "deterministic_snapshot",
+      "title": "Evidence review tasks",
+      "description": "Review deterministic evidence gap list and request required missing support.",
+      "category": "evidence",
+      "trigger": "no_escalation_required",
+      "priority": "low",
+      "status": "not_applicable",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "manual-review-routing",
+      "source": "orchestrator_guardrail",
+      "title": "Manual review routing",
+      "description": "Route escalated deterministic cases to manual reviewer challenge workflow.",
+      "category": "manual_review",
+      "trigger": "evidence_gap_detected",
+      "priority": "high",
+      "status": "in_progress",
+      "escalationRoute": "manual_review",
+      "blocksProgression": true,
+      "advisoryOnly": true
+    },
+    {
+      "id": "capital-protection-stop",
+      "source": "deterministic_snapshot",
+      "title": "Capital protection stop review",
+      "description": "Record deterministic stop state for blocked or no-deal outcomes.",
+      "category": "governance",
+      "trigger": "capital_protection_block",
+      "priority": "critical",
+      "status": "blocked",
+      "escalationRoute": "capital_protection",
+      "blocksProgression": true,
+      "advisoryOnly": true
+    },
+    {
+      "id": "accepted-limitations-awareness",
+      "source": "accepted_limitations",
+      "title": "Accepted limitations awareness",
+      "description": "Surface accepted operational limitations without changing deterministic deal decisions.",
+      "category": "limitations_awareness",
+      "trigger": "no_escalation_required",
+      "priority": "low",
+      "status": "not_applicable",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "hint-comp-weak-001",
+      "source": "evidence_hint",
+      "title": "Weak comparable evidence review",
+      "description": "Comparable evidence is weak. Advisory review required before confidence is treated as clean.",
+      "category": "evidence",
+      "trigger": "weak_evidence",
+      "priority": "high",
+      "status": "in_progress",
+      "escalationRoute": "valuation_review",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    }
+  ],
+  "warnings": [
+    {
+      "id": "warn-det-capital-protection-priority",
+      "source": "orchestrator_guardrail",
+      "message": "Capital protection remains primary and must not be downgraded by evidence hints.",
+      "relatedTaskId": "capital-protection-stop",
+      "advisoryOnly": true
+    },
+    {
+      "id": "warn-weak-comp-001",
+      "source": "evidence_hint",
+      "message": "Weak comparable evidence is advisory and does not soften deterministic no_deal outcome.",
+      "relatedTaskId": "hint-comp-weak-001",
+      "relatedEvidenceItemId": "ev-comp-weak-1",
+      "advisoryOnly": true
+    }
+  ],
+  "metadata": {
+    "deterministicTaskCount": 6,
+    "evidenceHintCount": 1,
+    "mergedTaskCount": 7,
+    "warningCount": 2,
+    "reviewRequired": true,
+    "advisoryOnly": true
+  },
+  "advisoryOnly": true
+}

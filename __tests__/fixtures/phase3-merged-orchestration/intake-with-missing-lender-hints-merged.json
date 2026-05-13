@@ -1,0 +1,63 @@
+{
+  "workflowState": "intake",
+  "globalDealState": "draft",
+  "primaryEscalationRoute": "none",
+  "secondaryEscalationRoutes": [
+    "lender_review",
+    "evidence_gap"
+  ],
+  "tasks": [
+    {
+      "id": "deterministic-analysis",
+      "source": "orchestrator_guardrail",
+      "title": "Run deterministic analysis",
+      "description": "Run deterministic calculation and governance engines before orchestration progression.",
+      "category": "deterministic",
+      "trigger": "missing_deterministic_snapshot",
+      "priority": "critical",
+      "status": "pending",
+      "escalationRoute": "none",
+      "blocksProgression": true,
+      "advisoryOnly": true
+    },
+    {
+      "id": "hint-lender-missing-001",
+      "source": "evidence_hint",
+      "title": "Missing lender evidence review",
+      "description": "Lender refinance evidence is missing. Advisory review should be queued for lender validation.",
+      "category": "evidence",
+      "trigger": "missing_evidence",
+      "priority": "high",
+      "status": "pending",
+      "escalationRoute": "lender_review",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    }
+  ],
+  "warnings": [
+    {
+      "id": "warn-intake-deterministic-pending",
+      "source": "orchestrator_guardrail",
+      "message": "Deterministic snapshot is not yet available; merged output remains intake-only advisory state.",
+      "relatedTaskId": "deterministic-analysis",
+      "advisoryOnly": true
+    },
+    {
+      "id": "warn-lender-missing-001",
+      "source": "evidence_hint",
+      "message": "Missing lender evidence is advisory until deterministic analysis is completed.",
+      "relatedTaskId": "hint-lender-missing-001",
+      "relatedEvidenceItemId": "ev-lender-missing-1",
+      "advisoryOnly": true
+    }
+  ],
+  "metadata": {
+    "deterministicTaskCount": 1,
+    "evidenceHintCount": 1,
+    "mergedTaskCount": 2,
+    "warningCount": 2,
+    "reviewRequired": true,
+    "advisoryOnly": true
+  },
+  "advisoryOnly": true
+}

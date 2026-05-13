@@ -177,3 +177,13 @@ Status: complete.
 - advisory-only guardrail comments added
 - no merge implementation added
 - no runtime wiring added
+
+## Step 3 -- Merged Output Fixture Planning
+
+Status: complete.
+
+- expected merged output fixtures added
+- merge target shape clarified
+- capital protection priority represented in fixture expectations
+- no merge implementation added
+- no runtime wiring added

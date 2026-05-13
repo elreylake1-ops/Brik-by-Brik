@@ -1,0 +1,121 @@
+{
+  "workflowState": "evidence_review",
+  "globalDealState": "review_required",
+  "primaryEscalationRoute": "legal_review",
+  "secondaryEscalationRoutes": [
+    "evidence_gap",
+    "manual_review"
+  ],
+  "tasks": [
+    {
+      "id": "deterministic-analysis",
+      "source": "deterministic_snapshot",
+      "title": "Deterministic analysis complete",
+      "description": "Deterministic snapshot is available for orchestration workflow routing.",
+      "category": "deterministic",
+      "trigger": "no_escalation_required",
+      "priority": "critical",
+      "status": "completed",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "governance-review",
+      "source": "deterministic_snapshot",
+      "title": "Governance review task",
+      "description": "Confirm deterministic governance state and ensure escalation decision is traceable.",
+      "category": "governance",
+      "trigger": "review_required_state",
+      "priority": "high",
+      "status": "in_progress",
+      "escalationRoute": "evidence_gap",
+      "blocksProgression": true,
+      "advisoryOnly": true
+    },
+    {
+      "id": "evidence-review",
+      "source": "deterministic_snapshot",
+      "title": "Evidence review tasks",
+      "description": "Review deterministic evidence gap list and request required missing support.",
+      "category": "evidence",
+      "trigger": "evidence_gap_detected",
+      "priority": "critical",
+      "status": "in_progress",
+      "escalationRoute": "evidence_gap",
+      "blocksProgression": true,
+      "advisoryOnly": true
+    },
+    {
+      "id": "manual-review-routing",
+      "source": "orchestrator_guardrail",
+      "title": "Manual review routing",
+      "description": "Route escalated deterministic cases to manual reviewer challenge workflow.",
+      "category": "manual_review",
+      "trigger": "evidence_gap_detected",
+      "priority": "high",
+      "status": "in_progress",
+      "escalationRoute": "manual_review",
+      "blocksProgression": true,
+      "advisoryOnly": true
+    },
+    {
+      "id": "capital-protection-stop",
+      "source": "deterministic_snapshot",
+      "title": "Capital protection stop review",
+      "description": "Record deterministic stop state for blocked or no-deal outcomes.",
+      "category": "governance",
+      "trigger": "no_escalation_required",
+      "priority": "low",
+      "status": "not_applicable",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "accepted-limitations-awareness",
+      "source": "accepted_limitations",
+      "title": "Accepted limitations awareness",
+      "description": "Surface accepted operational limitations without changing deterministic deal decisions.",
+      "category": "limitations_awareness",
+      "trigger": "no_escalation_required",
+      "priority": "low",
+      "status": "not_applicable",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "hint-legal-conflict-001",
+      "source": "evidence_hint",
+      "title": "Legal conflict evidence review",
+      "description": "Legal and survey evidence conflict detected. Advisory manual legal review is required.",
+      "category": "manual_review",
+      "trigger": "conflicting_evidence",
+      "priority": "high",
+      "status": "in_progress",
+      "escalationRoute": "legal_review",
+      "blocksProgression": true,
+      "advisoryOnly": true
+    }
+  ],
+  "warnings": [
+    {
+      "id": "warn-legal-conflict-001",
+      "source": "evidence_hint",
+      "message": "Conflicting legal evidence requires manual legal review and cannot be auto-resolved.",
+      "relatedTaskId": "hint-legal-conflict-001",
+      "relatedEvidenceItemId": "ev-legal-conflict-1",
+      "advisoryOnly": true
+    }
+  ],
+  "metadata": {
+    "deterministicTaskCount": 6,
+    "evidenceHintCount": 1,
+    "mergedTaskCount": 7,
+    "warningCount": 1,
+    "reviewRequired": true,
+    "advisoryOnly": true
+  },
+  "advisoryOnly": true
+}

@@ -1,0 +1,109 @@
+{
+  "workflowState": "governance_review",
+  "globalDealState": "proceed_candidate",
+  "primaryEscalationRoute": "none",
+  "secondaryEscalationRoutes": [],
+  "tasks": [
+    {
+      "id": "deterministic-analysis",
+      "source": "deterministic_snapshot",
+      "title": "Deterministic analysis complete",
+      "description": "Deterministic snapshot is available for orchestration workflow routing.",
+      "category": "deterministic",
+      "trigger": "no_escalation_required",
+      "priority": "critical",
+      "status": "completed",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "governance-review",
+      "source": "deterministic_snapshot",
+      "title": "Governance review task",
+      "description": "Confirm deterministic governance state and ensure escalation decision is traceable.",
+      "category": "governance",
+      "trigger": "no_escalation_required",
+      "priority": "low",
+      "status": "completed",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "evidence-review",
+      "source": "deterministic_snapshot",
+      "title": "Evidence review tasks",
+      "description": "Review deterministic evidence gap list and request required missing support.",
+      "category": "evidence",
+      "trigger": "no_escalation_required",
+      "priority": "low",
+      "status": "not_applicable",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "manual-review-routing",
+      "source": "orchestrator_guardrail",
+      "title": "Manual review routing",
+      "description": "Route escalated deterministic cases to manual reviewer challenge workflow.",
+      "category": "manual_review",
+      "trigger": "no_escalation_required",
+      "priority": "low",
+      "status": "not_applicable",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "capital-protection-stop",
+      "source": "deterministic_snapshot",
+      "title": "Capital protection stop review",
+      "description": "Record deterministic stop state for blocked or no-deal outcomes.",
+      "category": "governance",
+      "trigger": "no_escalation_required",
+      "priority": "low",
+      "status": "not_applicable",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "accepted-limitations-awareness",
+      "source": "accepted_limitations",
+      "title": "Accepted limitations awareness",
+      "description": "Surface accepted operational limitations without changing deterministic deal decisions.",
+      "category": "limitations_awareness",
+      "trigger": "accepted_limitations_present",
+      "priority": "medium",
+      "status": "in_progress",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    },
+    {
+      "id": "hint-op-note-001",
+      "source": "evidence_hint",
+      "title": "Accepted operator note awareness",
+      "description": "Accepted operator note is awareness-only and has no deterministic approval effect.",
+      "category": "limitations_awareness",
+      "trigger": "accepted_evidence_awareness",
+      "priority": "low",
+      "status": "in_progress",
+      "escalationRoute": "none",
+      "blocksProgression": false,
+      "advisoryOnly": true
+    }
+  ],
+  "warnings": [],
+  "metadata": {
+    "deterministicTaskCount": 6,
+    "evidenceHintCount": 1,
+    "mergedTaskCount": 7,
+    "warningCount": 0,
+    "reviewRequired": false,
+    "advisoryOnly": true
+  },
+  "advisoryOnly": true
+}
