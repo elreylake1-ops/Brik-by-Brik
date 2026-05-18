@@ -40,6 +40,8 @@ Phase 3D-0 is closed. A non-linked `/phase-3-dev-review` fixture-only developer 
 
 Client has approved Phase 3A-2 Authority & State Governance Layer. Phase 3A-2 has begun with authority/state governance planning and audit only. No runtime enforcement, AI, scraping, persistence, UI expansion, or deterministic behavior changes are approved.
 
+Phase 3A-2 is closed. The authority/state governance constitutional layer is planned, typed, validated, and fixture-locked, but remains unenforced at runtime. Recommended next step is client review before any authority enforcement readiness work.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.
