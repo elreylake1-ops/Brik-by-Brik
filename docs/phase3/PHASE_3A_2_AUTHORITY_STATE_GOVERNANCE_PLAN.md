@@ -234,3 +234,13 @@ AI may not:
 Recommended next step: **Phase 3A-2 Step 2 — Authority Governance Type Contracts Only**.
 
 Step 2 should define type-level authority contracts and tests only, with no runtime enforcement yet.
+
+## Step 2 - Authority Governance Type Contracts
+
+Status: complete.
+
+- authority layer and authority-state type contracts added
+- doctrine constant added (`PHASE3_AUTHORITY_DOCTRINE`)
+- state ownership rule contract added
+- no runtime enforcement added
+- no engine/orchestrator/UI wiring added
