@@ -38,6 +38,8 @@ Phase 3D-0 developer-only `/phase-3-dev-review` route skeleton has been created 
 
 Phase 3D-0 is closed. A non-linked `/phase-3-dev-review` fixture-only developer route exists for internal advisory review only. It does not alter calculator, Phase 2 review, governance, or deterministic behavior.
 
+Client has approved Phase 3A-2 Authority & State Governance Layer. Phase 3A-2 has begun with authority/state governance planning and audit only. No runtime enforcement, AI, scraping, persistence, UI expansion, or deterministic behavior changes are approved.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.
