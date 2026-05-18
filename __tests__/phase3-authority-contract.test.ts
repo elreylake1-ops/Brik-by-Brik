@@ -5,6 +5,7 @@ import {
   PHASE3_AUTHORITY_DOCTRINE,
   PHASE3_AUTHORITY_HIERARCHY,
   PHASE3_ESCALATION_PRIORITY,
+  type Phase3AuthorityValidationResult,
   type Phase3AuthorityDoctrine,
 } from "@/types/phase3-authority"
 import * as authorityContractModule from "@/lib/engine/phase3-authority-contract"
@@ -19,6 +20,17 @@ function loadAuthorityFixture(): Phase3AuthorityDoctrine {
     "authority-doctrine.json"
   )
   return JSON.parse(readFileSync(fixturePath, "utf8")) as Phase3AuthorityDoctrine
+}
+
+function loadAuthorityValidationFixture(): Phase3AuthorityValidationResult {
+  const fixturePath = path.resolve(
+    process.cwd(),
+    "__tests__",
+    "fixtures",
+    "phase3-authority",
+    "authority-doctrine-validation.json"
+  )
+  return JSON.parse(readFileSync(fixturePath, "utf8")) as Phase3AuthorityValidationResult
 }
 
 describe("phase3 authority contracts", () => {
@@ -135,6 +147,14 @@ describe("phase3 authority contracts", () => {
     expect(result.advisoryOnly).toBe(true)
   })
 
+  it("matches exact locked validation output fixture", () => {
+    const doctrineFixture = loadAuthorityFixture()
+    const validationResult = validatePhase3AuthorityDoctrine(doctrineFixture)
+    const expectedValidation = loadAuthorityValidationFixture()
+
+    expect(validationResult).toEqual(expectedValidation)
+  })
+
   it("invalid hierarchy returns error", () => {
     const invalid = {
       ...PHASE3_AUTHORITY_DOCTRINE,
@@ -224,6 +244,39 @@ describe("phase3 authority contracts", () => {
     const first = validatePhase3AuthorityDoctrine(PHASE3_AUTHORITY_DOCTRINE)
     const second = validatePhase3AuthorityDoctrine(PHASE3_AUTHORITY_DOCTRINE)
     expect(first).toEqual(second)
+  })
+
+  it("validation output field order is stable", () => {
+    const result = validatePhase3AuthorityDoctrine(PHASE3_AUTHORITY_DOCTRINE)
+    expect(Object.keys(result)).toEqual(["valid", "errors", "warnings", "advisoryOnly"])
+  })
+
+  it("validation output has advisoryOnly true", () => {
+    const result = validatePhase3AuthorityDoctrine(PHASE3_AUTHORITY_DOCTRINE)
+    expect(result.advisoryOnly).toBe(true)
+  })
+
+  it("validation output contains no runtime/enforcement-like fields", () => {
+    const result = validatePhase3AuthorityDoctrine(PHASE3_AUTHORITY_DOCTRINE)
+    const keys = Object.keys(result)
+    const forbiddenKeys = ["execute", "apply", "mutate", "override", "persist", "fetch", "api", "aiModel"]
+
+    for (const forbidden of forbiddenKeys) {
+      expect(keys).not.toContain(forbidden)
+    }
+  })
+
+  it("invalid doctrine outputs are tested but not fixture-locked", () => {
+    const invalid = {
+      ...PHASE3_AUTHORITY_DOCTRINE,
+      permanentRule: "invalid doctrine text",
+    } as Phase3AuthorityDoctrine
+
+    const invalidResult = validatePhase3AuthorityDoctrine(invalid)
+    const lockedValidation = loadAuthorityValidationFixture()
+
+    expect(invalidResult.valid).toBe(false)
+    expect(invalidResult).not.toEqual(lockedValidation)
   })
 
   it("helper does not expose apply/enforce/mutate behavior", () => {
