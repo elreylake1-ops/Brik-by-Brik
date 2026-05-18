@@ -1,0 +1,80 @@
+{
+  "doctrineName": "phase3_authority_state_governance",
+  "permanentRule": "Advisory outputs may increase review burden, but they may not reduce deterministic risk.",
+  "hierarchy": [
+    "deterministic_governance",
+    "capital_protection",
+    "deal_classification",
+    "workflow_orchestration",
+    "evidence_advisory",
+    "ui_presentation",
+    "future_ai_assistance"
+  ],
+  "authoritativeOutputs": [
+    "true_mao",
+    "finance_calculation",
+    "capital_protection",
+    "governance_threshold",
+    "deal_classification",
+    "decision_gate",
+    "fatal_risk_detection",
+    "deterministic_final_result"
+  ],
+  "advisoryOutputs": [
+    "evidence_hint",
+    "review_suggestion",
+    "workflow_routing",
+    "advisory_task",
+    "investor_summary",
+    "ai_commentary",
+    "evidence_confidence_indicator",
+    "merged_advisory_output",
+    "developer_review_surface_output"
+  ],
+  "escalationPriority": [
+    "fatal",
+    "reject",
+    "manual_review_required",
+    "conditional",
+    "strong_opportunity"
+  ],
+  "stateOwnershipRules": [
+    {
+      "stateName": "true_mao",
+      "owningLayer": "deterministic_engine",
+      "authorityLevel": "authoritative",
+      "mayBeModifiedBy": ["deterministic_engine", "governance_layer"],
+      "mayNotBeModifiedBy": ["orchestrator", "evidence_layer", "advisory_layer", "ui_layer", "future_ai_layer"],
+      "safeFailAction": "preserve_deterministic_result",
+      "advisoryOnly": false
+    },
+    {
+      "stateName": "finance_result",
+      "owningLayer": "deterministic_engine",
+      "authorityLevel": "authoritative",
+      "mayBeModifiedBy": ["deterministic_engine", "governance_layer"],
+      "mayNotBeModifiedBy": ["orchestrator", "evidence_layer", "advisory_layer", "ui_layer", "future_ai_layer"],
+      "safeFailAction": "preserve_deterministic_result",
+      "advisoryOnly": false
+    },
+    {
+      "stateName": "final_classification",
+      "owningLayer": "governance_layer",
+      "authorityLevel": "authoritative",
+      "mayBeModifiedBy": ["governance_layer", "deterministic_engine"],
+      "mayNotBeModifiedBy": ["orchestrator", "evidence_layer", "advisory_layer", "ui_layer", "future_ai_layer"],
+      "safeFailAction": "block_advisory_upgrade",
+      "advisoryOnly": false
+    },
+    {
+      "stateName": "fatal_risk",
+      "owningLayer": "governance_layer",
+      "authorityLevel": "authoritative",
+      "mayBeModifiedBy": ["governance_layer", "deterministic_engine"],
+      "mayNotBeModifiedBy": ["orchestrator", "evidence_layer", "advisory_layer", "ui_layer", "future_ai_layer"],
+      "safeFailAction": "require_manual_review",
+      "advisoryOnly": false
+    }
+  ],
+  "advisoryOnly": true
+}

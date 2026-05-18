@@ -244,3 +244,13 @@ Status: complete.
 - state ownership rule contract added
 - no runtime enforcement added
 - no engine/orchestrator/UI wiring added
+
+## Step 3 - Authority Doctrine Fixtures and Validation
+
+Status: complete.
+
+- doctrine fixture added
+- pure validation helper added
+- validation is contract-level only
+- no runtime enforcement added
+- no engine/orchestrator/UI wiring added

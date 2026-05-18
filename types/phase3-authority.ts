@@ -99,6 +99,13 @@ export type Phase3AuthorityDoctrine = {
   advisoryOnly: true
 }
 
+export type Phase3AuthorityValidationResult = {
+  valid: boolean
+  errors: readonly string[]
+  warnings: readonly string[]
+  advisoryOnly: true
+}
+
 export const PHASE3_AUTHORITY_HIERARCHY: readonly Phase3AuthorityLayer[] = [
   "deterministic_governance",
   "capital_protection",
