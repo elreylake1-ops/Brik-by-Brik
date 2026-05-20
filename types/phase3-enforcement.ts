@@ -325,3 +325,71 @@ export const PHASE3A4_SAFE_RUNTIME_MODE_CONTRACT: Phase3A4SafeRuntimeModeContrac
   allowsAutomatedOfferAction: false,
   advisoryOnly: true,
 }
+
+// --- Phase 3A-4 Conflict visualization and enforcement telemetry contracts ---
+// Contracts only: no runtime conflict detection behavior is implemented yet.
+// No telemetry storage or persistence is added in this file.
+// Conflict visualization supports future developer review/debugging only.
+// Telemetry fields are future analytics/QA metadata only.
+
+export const PHASE3A4_CONFLICT_TYPES = [
+  "workflow_governance_mismatch",
+  "capital_protection_scoring_conflict",
+  "fatal_risk_advisory_conflict",
+  "deterministic_classification_evidence_conflict",
+  "deterministic_output_ai_conflict",
+  "authority_enforcement_ui_conflict",
+] as const
+
+export type Phase3A4ConflictType = typeof PHASE3A4_CONFLICT_TYPES[number]
+
+export const PHASE3A4_CONFLICT_WINNERS = [
+  "governance",
+  "capital_protection",
+  "fatal_risk",
+  "deterministic_classification",
+  "deterministic_output",
+  "authority_enforcement",
+] as const
+
+export type Phase3A4ConflictWinner = typeof PHASE3A4_CONFLICT_WINNERS[number]
+
+export const PHASE3A4_BLOCKED_LAYERS = [
+  "workflow",
+  "scoring",
+  "advisory_output",
+  "evidence_hint",
+  "ai_commentary",
+  "ui_presentation",
+] as const
+
+export type Phase3A4BlockedLayer = typeof PHASE3A4_BLOCKED_LAYERS[number]
+
+export type Phase3A4ConflictVisualization = {
+  conflictDetected: boolean
+  conflictType: Phase3A4ConflictType
+  authoritativeWinner: Phase3A4ConflictWinner
+  blockedLayer: Phase3A4BlockedLayer
+  reason: string
+  advisoryOnly: true
+}
+
+export type Phase3A4EnforcementTelemetry = {
+  violationCount: number
+  blockedOverrideCount: number
+  escalationConflictCount: number
+  advisoryContainmentCount: number
+  loopBreakerTriggered: boolean
+  manualReviewEscalations: number
+  advisoryOnly: true
+}
+
+export const PHASE3A4_ZERO_ENFORCEMENT_TELEMETRY: Phase3A4EnforcementTelemetry = {
+  violationCount: 0,
+  blockedOverrideCount: 0,
+  escalationConflictCount: 0,
+  advisoryContainmentCount: 0,
+  loopBreakerTriggered: false,
+  manualReviewEscalations: 0,
+  advisoryOnly: true,
+}

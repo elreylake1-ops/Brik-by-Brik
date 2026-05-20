@@ -76,3 +76,5 @@ Status note: Step 1C architecture readiness audit created. Phase 3A-4 is ready f
 Status note: Step 2 severity tiers and precedence matrix contracts added. No runtime wiring or precedence resolution behavior added.
 
 Status note: Step 3 safe runtime mode and governance version metadata contracts added. No runtime sandbox behavior, persistence, or workflow mutation added.
+
+Status note: Step 4 conflict visualization and telemetry contracts added. No runtime detection, logging, telemetry storage, or persistence added.
