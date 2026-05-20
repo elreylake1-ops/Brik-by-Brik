@@ -390,6 +390,43 @@ Future `Phase3ViolationRecord` fields:
 - no changes to existing deterministic engine behavior
 - no changes to existing orchestrator behavior
 
+## Step 2 — Runtime Enforcement Type Contracts
+
+**Status: Complete**
+
+Delivered in `types/phase3-enforcement.ts` and `__tests__/phase3-enforcement-contract.test.ts`.
+
+### Contracts Delivered
+
+- `PHASE3_ENFORCEMENT_SYSTEMS` — 7 planned enforcement system identifiers (const array + union type)
+- `PHASE3_VIOLATION_TYPES` — 12 violation categories from violation matrix (const array + union type)
+- `PHASE3_ENFORCEMENT_SEVERITIES` — fatal, high, medium, low (const array + union type)
+- `PHASE3_RUNTIME_SAFE_FAIL_ACTIONS` — 7 safe-fail actions (const array + union type)
+- `PHASE3_ENFORCEMENT_OUTCOMES` — 5 enforcement outcomes (const array + union type)
+- `Phase3AuthorityViolation` — enforcement audit record, `advisoryOnly: true`
+- `Phase3EnforcementResult` — safe-fail decision output, `advisoryOnly: true`
+- `Phase3EscalationEnforcementRule` — escalation downgrade rule, `advisoryOnly: true`
+- `Phase3OrchestrationGuardrail` — orchestration boundary descriptor, `advisoryOnly: true`
+- `Phase3UIGovernanceRule` — UI presentation constraint, `advisoryOnly: true`
+
+### Boundaries Confirmed
+
+- No enforcement functions
+- No engine wiring
+- No UI changes
+- No persistence
+- No runtime behavior
+- All exported values are readonly const arrays or type definitions only
+
+### What Remains
+
+- Enforcement engine implementation (`lib/engine/phase3-authority-enforcement.ts`) — not approved
+- Violation audit persistence — not approved
+- UI enforcement behavior — not approved
+- Any enforcement wiring to orchestrator, merge layer, or review surface — not approved
+
+---
+
 ## Recommended Next Step
 
 Recommended next implementation step:
