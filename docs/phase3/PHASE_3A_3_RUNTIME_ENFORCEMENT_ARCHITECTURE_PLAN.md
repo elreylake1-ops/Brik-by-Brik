@@ -8,6 +8,8 @@ No enforcement is implemented in this step. This is an architecture planning doc
 
 Phase 3A-3 prepares the enforcement design so that future implementation is controlled, tested, and does not introduce governance weakening through rushed wiring.
 
+**Phase 3A-3 is closed.** Runtime enforcement readiness is planned, typed, fixture-locked, implemented as a pure enforcement engine, and probe-tested against existing Phase 3 outputs. It remains unwired to runtime behavior. Closure report: `docs/phase3/PHASE_3A_3_CLOSURE_REPORT.md`. Ready for client review before any runtime wiring.
+
 ## Purpose
 
 This phase exists to prevent orchestration, advisory, workflow, UI, AI, or integration layers from weakening deterministic governance authority at runtime.
