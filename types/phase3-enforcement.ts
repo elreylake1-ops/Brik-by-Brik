@@ -265,3 +265,63 @@ export const PHASE3A4_PRECEDENCE_MATRIX: Phase3A4PrecedenceMatrix = {
   rules: PHASE3A4_PRECEDENCE_RULES,
   advisoryOnly: true,
 }
+
+// --- Phase 3A-4 Safe runtime mode and governance version metadata contracts ---
+// Contracts only: no runtime sandbox behavior is implemented yet.
+// No persistence or external actions are added by this file.
+// Version metadata is traceability metadata only.
+// No runtime wiring exists in this contract layer.
+
+export const PHASE3A4_RUNTIME_MODES = ["safe_runtime_mode"] as const
+
+export type Phase3A4RuntimeMode = typeof PHASE3A4_RUNTIME_MODES[number]
+
+export const PHASE3A4_SANDBOX_RULES = [
+  "no_persistence",
+  "no_external_actions",
+  "no_live_workflow_mutation",
+  "no_crm_action",
+  "no_automated_offer_action",
+] as const
+
+export type Phase3A4RuntimeSandboxRule = typeof PHASE3A4_SANDBOX_RULES[number]
+
+export type Phase3A4GovernanceVersionMetadata = {
+  governanceVersion: string
+  doctrineVersion: string
+  enforcementVersion: string
+  runtimeIntegrationVersion: string
+  advisoryOnly: true
+}
+
+export type Phase3A4SafeRuntimeModeContract = {
+  runtimeMode: Phase3A4RuntimeMode
+  sandboxRules: readonly Phase3A4RuntimeSandboxRule[]
+  governanceVersion: Phase3A4GovernanceVersionMetadata
+  allowsPersistence: false
+  allowsExternalActions: false
+  allowsLiveWorkflowMutation: false
+  allowsCrmAction: false
+  allowsAutomatedOfferAction: false
+  advisoryOnly: true
+}
+
+export const PHASE3A4_GOVERNANCE_VERSION_METADATA: Phase3A4GovernanceVersionMetadata = {
+  governanceVersion: "phase-3A-4",
+  doctrineVersion: "phase-3A-2",
+  enforcementVersion: "phase-3A-3",
+  runtimeIntegrationVersion: "phase-3A-4",
+  advisoryOnly: true,
+}
+
+export const PHASE3A4_SAFE_RUNTIME_MODE_CONTRACT: Phase3A4SafeRuntimeModeContract = {
+  runtimeMode: "safe_runtime_mode",
+  sandboxRules: PHASE3A4_SANDBOX_RULES,
+  governanceVersion: PHASE3A4_GOVERNANCE_VERSION_METADATA,
+  allowsPersistence: false,
+  allowsExternalActions: false,
+  allowsLiveWorkflowMutation: false,
+  allowsCrmAction: false,
+  allowsAutomatedOfferAction: false,
+  advisoryOnly: true,
+}
