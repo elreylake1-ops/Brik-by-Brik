@@ -427,6 +427,51 @@ Delivered in `types/phase3-enforcement.ts` and `__tests__/phase3-enforcement-con
 
 ---
 
+## Step 5 — Pure Enforcement Engine Implemented
+
+**Status: Complete**
+
+Delivered in:
+- `types/phase3-enforcement.ts` — `Phase3EnforcementScenario` type added
+- `lib/engine/phase3-authority-enforcement.ts` — pure enforcement engine
+- `__tests__/fixtures/phase3-enforcement-engine/` — 5 locked output fixtures
+- `__tests__/phase3-authority-enforcement.test.ts` — enforcement engine tests
+- `docs/phase3/PHASE_3A_3_AUTHORITY_ENFORCEMENT_ENGINE.md` — engine documentation
+
+### Pure Enforcement Engine Added
+
+`evaluatePhase3AuthorityEnforcementScenario(scenario: Phase3EnforcementScenario): Phase3EnforcementResult`
+
+Engine evaluates authority hierarchy position of `attemptedLayer` vs `protectedAuthority` using `PHASE3_AUTHORITY_LAYERS` index. Lower-authority layer attempting to override higher-authority layer → violation. Equal or higher → clean `passed` result.
+
+### Deterministic Scenario Evaluation
+
+- `safeFailAction` maps deterministically to `outcome`
+- `violationId` is stable: `v-${scenarioId}`
+- No timestamps, no random values, no external calls
+- All outputs carry `advisoryOnly: true`
+
+### Exact Output Fixtures Added
+
+- `advisory-overrides-governance-enforcement.json` → `blocked`
+- `workflow-overrides-capital-protection-enforcement.json` → `blocked`
+- `escalation-downgrade-enforcement.json` → `blocked`
+- `ui-softens-fatal-classification-enforcement.json` → `review_required`
+- `clean-enforcement-scenario.json` → `passed`
+
+### Validation Helper Reused
+
+All 5 engine outputs pass `validatePhase3EnforcementResult()`.
+
+### Boundaries Confirmed
+
+- No runtime wiring added
+- No engine/orchestrator/UI integration added
+- No previously-locked fixture changed
+- 450 tests passing, lint clean, build clean
+
+---
+
 ## Step 4 — Enforcement Validation Output Fixture Locking
 
 **Status: Complete**

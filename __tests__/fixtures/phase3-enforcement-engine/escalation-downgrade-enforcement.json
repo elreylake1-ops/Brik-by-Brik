@@ -1,0 +1,22 @@
+{
+  "valid": false,
+  "outcome": "blocked",
+  "violations": [
+    {
+      "violationId": "v-escalation-downgrade",
+      "violationType": "merged_output_downgrades_escalation",
+      "detectedBy": "escalation_priority_engine",
+      "severity": "fatal",
+      "attemptedOverride": "merge layer attempted to replace capital_protection route with valuation_review",
+      "protectedAuthority": "capital_protection",
+      "safeFailAction": "preserve_deterministic_result",
+      "outcome": "blocked",
+      "advisoryOnly": true
+    }
+  ],
+  "warnings": [
+    "enforcement advisory: this enforcement result is advisory-only and not wired to runtime behavior"
+  ],
+  "safeFailActions": ["preserve_deterministic_result"],
+  "advisoryOnly": true
+}

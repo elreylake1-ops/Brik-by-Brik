@@ -1,0 +1,22 @@
+{
+  "valid": false,
+  "outcome": "review_required",
+  "violations": [
+    {
+      "violationId": "v-ui-softens-fatal-classification",
+      "violationType": "ui_softens_fatal_classification",
+      "detectedBy": "ui_governance_enforcement",
+      "severity": "high",
+      "attemptedOverride": "review surface rendered NO_DEAL without prominent capital protection warning",
+      "protectedAuthority": "capital_protection",
+      "safeFailAction": "increase_review_burden",
+      "outcome": "review_required",
+      "advisoryOnly": true
+    }
+  ],
+  "warnings": [
+    "enforcement advisory: this enforcement result is advisory-only and not wired to runtime behavior"
+  ],
+  "safeFailActions": ["increase_review_burden"],
+  "advisoryOnly": true
+}

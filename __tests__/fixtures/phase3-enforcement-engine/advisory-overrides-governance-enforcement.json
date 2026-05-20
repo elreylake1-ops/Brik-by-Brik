@@ -1,0 +1,22 @@
+{
+  "valid": false,
+  "outcome": "blocked",
+  "violations": [
+    {
+      "violationId": "v-advisory-overrides-governance",
+      "violationType": "advisory_overrides_governance",
+      "detectedBy": "authority_enforcement_engine",
+      "severity": "fatal",
+      "attemptedOverride": "evidence hint attempted to override finalClassification to proceed_candidate",
+      "protectedAuthority": "deterministic_governance",
+      "safeFailAction": "block_advisory_upgrade",
+      "outcome": "blocked",
+      "advisoryOnly": true
+    }
+  ],
+  "warnings": [
+    "enforcement advisory: this enforcement result is advisory-only and not wired to runtime behavior"
+  ],
+  "safeFailActions": ["block_advisory_upgrade"],
+  "advisoryOnly": true
+}

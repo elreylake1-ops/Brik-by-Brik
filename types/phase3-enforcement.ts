@@ -1,4 +1,6 @@
 // Phase 3 enforcement contracts are type definitions only.
+// Phase3EnforcementScenario is a pure input type for the enforcement engine.
+// No runtime wiring. No app/route/database imports allowed from this file.
 // They do not enforce runtime behavior and do not change deterministic outputs.
 // No enforcement functions exist in this file.
 // Enforcement must fail closed: IF UNCERTAIN → BLOCK, DOWNGRADE OR ESCALATE.
@@ -130,6 +132,22 @@ export type Phase3UIGovernanceRule = {
   ruleId: string
   requiredPresentation: string
   forbiddenPresentation: string
+  safeFailAction: Phase3RuntimeSafeFailAction
+  advisoryOnly: true
+}
+
+// --- Enforcement scenario ---
+// Input type for the pure enforcement engine.
+// Describes an attempted authority override for evaluation.
+// Advisory-only — no runtime wiring. No app/route/database fields.
+export type Phase3EnforcementScenario = {
+  scenarioId: string
+  attemptedLayer: string
+  protectedAuthority: string
+  attemptedAction: string
+  violationType: Phase3ViolationType
+  detectedBy: Phase3EnforcementSystem
+  severity: Phase3EnforcementSeverity
   safeFailAction: Phase3RuntimeSafeFailAction
   advisoryOnly: true
 }

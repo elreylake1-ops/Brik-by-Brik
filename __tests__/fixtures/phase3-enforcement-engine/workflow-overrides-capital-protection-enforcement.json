@@ -1,0 +1,22 @@
+{
+  "valid": false,
+  "outcome": "blocked",
+  "violations": [
+    {
+      "violationId": "v-workflow-overrides-capital-protection",
+      "violationType": "workflow_overrides_capital_protection",
+      "detectedBy": "state_hierarchy_enforcement",
+      "severity": "fatal",
+      "attemptedOverride": "orchestrator attempted to set globalDealState to proceed_candidate on NO_DEAL result",
+      "protectedAuthority": "capital_protection",
+      "safeFailAction": "preserve_deterministic_result",
+      "outcome": "blocked",
+      "advisoryOnly": true
+    }
+  ],
+  "warnings": [
+    "enforcement advisory: this enforcement result is advisory-only and not wired to runtime behavior"
+  ],
+  "safeFailActions": ["preserve_deterministic_result"],
+  "advisoryOnly": true
+}
