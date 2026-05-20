@@ -532,3 +532,76 @@ export type Phase3A4GovernanceDriftFixtureCase = {
   expectedDetection: Phase3A4GovernanceDriftDetection
   advisoryOnly: true
 }
+
+// --- Phase 3A-4 Controlled runtime simulation harness contracts (Step 8B) ---
+// Contracts and fixtures only in this step.
+// No executable simulation runner is added.
+// No runtime wiring, persistence, API, AI, scraping, CRM, or integration behavior is added.
+
+export const SIMULATION_RUNTIME_MODES = ["fixture_only", "sandbox_only"] as const
+
+export type SimulationRuntimeMode = typeof SIMULATION_RUNTIME_MODES[number]
+
+export const SIMULATION_SCENARIO_IDS = [
+  "clean_scenario_passes",
+  "workflow_tries_to_override_reject",
+  "advisory_tries_to_soften_fatal",
+  "human_override_missing_reason",
+  "repeated_escalation_loop",
+  "sandbox_prevents_mutation",
+  "governance_version_present",
+  "precedence_matrix_resolves",
+  "telemetry_increments_after_violation",
+  "advisory_drift_detected",
+] as const
+
+export type SimulationScenarioId = typeof SIMULATION_SCENARIO_IDS[number]
+
+export const SIMULATION_EXPECTED_OUTCOMES = [
+  "pass",
+  "blocked",
+  "escalated",
+  "safe_failed",
+  "drift_detected",
+  "loop_breaker_triggered",
+] as const
+
+export type SimulationExpectedOutcome = typeof SIMULATION_EXPECTED_OUTCOMES[number]
+
+export type ControlledSimulationInput = {
+  simulationId: string
+  scenarioId: SimulationScenarioId
+  runtimeMode: SimulationRuntimeMode
+  governanceVersion: string
+  deterministicState: string
+  advisoryState: string
+  workflowState: string
+  humanOverrideState?: string
+  telemetryState?: string
+  driftState?: string
+  notes?: string
+}
+
+export type ControlledSimulationExpectedOutput = {
+  simulationId: string
+  runtimeMode: SimulationRuntimeMode
+  governanceVersion: string
+  scenarioName: string
+  enforcementOutcome: string
+  conflictDetected: boolean
+  driftDetected: boolean
+  loopBreakerTriggered: boolean
+  telemetrySummary: string
+  safeFailAction: string
+  advisoryOnly: true
+  expectedResult: SimulationExpectedOutcome
+}
+
+export type ControlledSimulationFixture = {
+  id: string
+  name: string
+  description: string
+  input: ControlledSimulationInput
+  expectedOutput: ControlledSimulationExpectedOutput
+  lockedBoundaryNotes: readonly string[]
+}
