@@ -1,0 +1,11 @@
+{
+  "violationId": "v-escalation-001",
+  "violationType": "merged_output_downgrades_escalation",
+  "detectedBy": "escalation_priority_engine",
+  "severity": "fatal",
+  "attemptedOverride": "merge layer selected valuation_review route, displacing active capital_protection route",
+  "protectedAuthority": "capital_protection escalation route",
+  "safeFailAction": "preserve_deterministic_result",
+  "outcome": "blocked",
+  "advisoryOnly": true
+}

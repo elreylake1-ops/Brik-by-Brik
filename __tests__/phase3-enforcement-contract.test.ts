@@ -1,11 +1,13 @@
-// Phase 3A-3 Step 2 — Runtime Enforcement Type Contract Tests
+// Phase 3A-3 Step 2 + Step 3 — Runtime Enforcement Type Contract Tests
 // Advisory-only. No runtime enforcement is implemented.
-// Tests confirm contract shape, field invariants, and governance boundaries only.
+// Tests confirm contract shape, field invariants, governance boundaries, and validation helper behavior.
 
 import { describe, it, expect } from "vitest"
+import { readFileSync } from "fs"
+import { join } from "path"
+import { validatePhase3EnforcementResult } from "../lib/engine/phase3-enforcement-contract"
+import type { Phase3EnforcementResult, Phase3AuthorityViolation } from "../types/phase3-enforcement"
 import type {
-  Phase3AuthorityViolation,
-  Phase3EnforcementResult,
   Phase3EscalationEnforcementRule,
   Phase3OrchestrationGuardrail,
   Phase3UIGovernanceRule,
@@ -281,6 +283,276 @@ describe("Enforcement contract runtime boundary", () => {
     const mod = await import("../types/phase3-enforcement")
     for (const value of Object.values(mod)) {
       expect(typeof value === "string" || Array.isArray(value)).toBe(true)
+    }
+  })
+})
+
+// --- Step 3: Fixture loading helpers ---
+
+const FIXTURE_BASE = join(__dirname, "fixtures", "phase3-enforcement")
+
+function loadViolationFixture(name: string): Phase3AuthorityViolation {
+  return JSON.parse(readFileSync(join(FIXTURE_BASE, name), "utf-8")) as Phase3AuthorityViolation
+}
+
+function loadResultFixture(name: string): Phase3EnforcementResult {
+  return JSON.parse(readFileSync(join(FIXTURE_BASE, name), "utf-8")) as Phase3EnforcementResult
+}
+
+// --- Step 3: Fixture validation tests ---
+
+describe("Enforcement fixtures — violation shape", () => {
+  it("advisory-overrides-governance-violation fixture is structurally valid", () => {
+    const v = loadViolationFixture("advisory-overrides-governance-violation.json")
+    expect(v.violationType).toBe("advisory_overrides_governance")
+    expect(v.detectedBy).toBe("authority_enforcement_engine")
+    expect(v.severity).toBe("fatal")
+    expect(v.safeFailAction).toBe("block_advisory_upgrade")
+    expect(v.outcome).toBe("blocked")
+    expect(v.advisoryOnly).toBe(true)
+  })
+
+  it("workflow-overrides-capital-protection-violation fixture is structurally valid", () => {
+    const v = loadViolationFixture("workflow-overrides-capital-protection-violation.json")
+    expect(v.violationType).toBe("workflow_overrides_capital_protection")
+    expect(v.detectedBy).toBe("state_hierarchy_enforcement")
+    expect(v.severity).toBe("fatal")
+    expect(v.safeFailAction).toBe("preserve_deterministic_result")
+    expect(v.outcome).toBe("blocked")
+    expect(v.advisoryOnly).toBe(true)
+  })
+
+  it("escalation-downgrade-violation fixture is structurally valid", () => {
+    const v = loadViolationFixture("escalation-downgrade-violation.json")
+    expect(v.violationType).toBe("merged_output_downgrades_escalation")
+    expect(v.detectedBy).toBe("escalation_priority_engine")
+    expect(v.severity).toBe("fatal")
+    expect(v.safeFailAction).toBe("preserve_deterministic_result")
+    expect(v.outcome).toBe("blocked")
+    expect(v.advisoryOnly).toBe(true)
+  })
+
+  it("ui-softens-fatal-classification-violation fixture is structurally valid", () => {
+    const v = loadViolationFixture("ui-softens-fatal-classification-violation.json")
+    expect(v.violationType).toBe("ui_softens_fatal_classification")
+    expect(v.detectedBy).toBe("ui_governance_enforcement")
+    expect(v.severity).toBe("high")
+    expect(v.safeFailAction).toBe("increase_review_burden")
+    expect(v.outcome).toBe("escalated")
+    expect(v.advisoryOnly).toBe(true)
+  })
+})
+
+describe("Enforcement fixtures — result shape", () => {
+  it("valid-enforcement-result-clean fixture loads and is structurally valid", () => {
+    const r = loadResultFixture("valid-enforcement-result-clean.json")
+    expect(r.valid).toBe(true)
+    expect(r.outcome).toBe("passed")
+    expect(r.violations).toHaveLength(0)
+    expect(r.warnings).toHaveLength(0)
+    expect(r.safeFailActions).toHaveLength(0)
+    expect(r.advisoryOnly).toBe(true)
+  })
+
+  it("enforcement-result-with-violations fixture loads and is structurally valid", () => {
+    const r = loadResultFixture("enforcement-result-with-violations.json")
+    expect(r.valid).toBe(false)
+    expect(r.outcome).toBe("blocked")
+    expect(r.violations.length).toBeGreaterThan(0)
+    expect(r.warnings.length).toBeGreaterThan(0)
+    expect(r.safeFailActions.length).toBeGreaterThan(0)
+    expect(r.advisoryOnly).toBe(true)
+  })
+})
+
+// --- Step 3: Validation helper tests ---
+
+describe("validatePhase3EnforcementResult — clean result", () => {
+  it("validates clean enforcement result successfully", () => {
+    const r = loadResultFixture("valid-enforcement-result-clean.json")
+    const result = validatePhase3EnforcementResult(r)
+    expect(result.valid).toBe(true)
+    expect(result.errors).toHaveLength(0)
+    expect(result.advisoryOnly).toBe(true)
+  })
+})
+
+describe("validatePhase3EnforcementResult — result with violations", () => {
+  it("validates enforcement result with violations as structurally valid", () => {
+    const r = loadResultFixture("enforcement-result-with-violations.json")
+    const result = validatePhase3EnforcementResult(r)
+    expect(result.valid).toBe(true)
+    expect(result.errors).toHaveLength(0)
+    expect(result.advisoryOnly).toBe(true)
+  })
+})
+
+describe("validatePhase3EnforcementResult — advisoryOnly guard", () => {
+  it("returns error when advisoryOnly is false", () => {
+    const r = {
+      ...loadResultFixture("valid-enforcement-result-clean.json"),
+      advisoryOnly: false as unknown as true,
+    }
+    const result = validatePhase3EnforcementResult(r)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some(e => e.includes("advisoryOnly"))).toBe(true)
+    expect(result.advisoryOnly).toBe(true)
+  })
+
+  it("returns error when violation advisoryOnly is false", () => {
+    const violation = {
+      ...loadViolationFixture("advisory-overrides-governance-violation.json"),
+      advisoryOnly: false as unknown as true,
+    }
+    const r: Phase3EnforcementResult = {
+      valid: false,
+      outcome: "blocked",
+      violations: [violation],
+      warnings: ["advisory upgrade blocked"],
+      safeFailActions: ["block_advisory_upgrade"],
+      advisoryOnly: true,
+    }
+    const result = validatePhase3EnforcementResult(r)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some(e => e.includes("advisoryOnly"))).toBe(true)
+  })
+})
+
+describe("validatePhase3EnforcementResult — fatal/high + passed outcome", () => {
+  it("returns error when fatal violation exists with passed outcome", () => {
+    const violation = loadViolationFixture("advisory-overrides-governance-violation.json")
+    const r: Phase3EnforcementResult = {
+      valid: false,
+      outcome: "passed",
+      violations: [violation],
+      warnings: [],
+      safeFailActions: ["block_advisory_upgrade"],
+      advisoryOnly: true,
+    }
+    const result = validatePhase3EnforcementResult(r)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some(e => e.includes("passed"))).toBe(true)
+  })
+
+  it("returns error when high severity violation exists with passed outcome", () => {
+    const violation = loadViolationFixture("ui-softens-fatal-classification-violation.json")
+    const r: Phase3EnforcementResult = {
+      valid: false,
+      outcome: "passed",
+      violations: [violation],
+      warnings: [],
+      safeFailActions: ["increase_review_burden"],
+      advisoryOnly: true,
+    }
+    const result = validatePhase3EnforcementResult(r)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some(e => e.includes("passed"))).toBe(true)
+  })
+})
+
+describe("validatePhase3EnforcementResult — safeFailAction coverage", () => {
+  it("returns error when violation safeFailAction is missing from result.safeFailActions", () => {
+    const violation = loadViolationFixture("advisory-overrides-governance-violation.json")
+    const r: Phase3EnforcementResult = {
+      valid: false,
+      outcome: "blocked",
+      violations: [violation],
+      warnings: ["advisory upgrade blocked"],
+      safeFailActions: [],
+      advisoryOnly: true,
+    }
+    const result = validatePhase3EnforcementResult(r)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some(e => e.includes("safeFailAction"))).toBe(true)
+  })
+})
+
+describe("validatePhase3EnforcementResult — invalid fields", () => {
+  it("returns error when valid is false and violations and warnings are empty", () => {
+    const r: Phase3EnforcementResult = {
+      valid: false,
+      outcome: "blocked",
+      violations: [],
+      warnings: [],
+      safeFailActions: [],
+      advisoryOnly: true,
+    }
+    const result = validatePhase3EnforcementResult(r)
+    expect(result.valid).toBe(false)
+    expect(result.errors.length).toBeGreaterThan(0)
+  })
+
+  it("returns error for unknown violationType", () => {
+    const violation = {
+      ...loadViolationFixture("advisory-overrides-governance-violation.json"),
+      violationType: "not_a_real_violation_type" as unknown as Phase3AuthorityViolation["violationType"],
+    }
+    const r: Phase3EnforcementResult = {
+      valid: false,
+      outcome: "blocked",
+      violations: [violation],
+      warnings: ["test"],
+      safeFailActions: ["block_advisory_upgrade"],
+      advisoryOnly: true,
+    }
+    const result = validatePhase3EnforcementResult(r)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some(e => e.includes("violationType"))).toBe(true)
+  })
+
+  it("returns error for unknown detectedBy system", () => {
+    const violation = {
+      ...loadViolationFixture("advisory-overrides-governance-violation.json"),
+      detectedBy: "unknown_system" as unknown as Phase3AuthorityViolation["detectedBy"],
+    }
+    const r: Phase3EnforcementResult = {
+      valid: false,
+      outcome: "blocked",
+      violations: [violation],
+      warnings: ["test"],
+      safeFailActions: ["block_advisory_upgrade"],
+      advisoryOnly: true,
+    }
+    const result = validatePhase3EnforcementResult(r)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some(e => e.includes("detectedBy"))).toBe(true)
+  })
+
+  it("returns error for forbidden runtime key on result", () => {
+    const r = {
+      ...loadResultFixture("valid-enforcement-result-clean.json"),
+      execute: () => {},
+    } as unknown as Phase3EnforcementResult
+    const result = validatePhase3EnforcementResult(r)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some(e => e.includes("execute"))).toBe(true)
+  })
+})
+
+describe("validatePhase3EnforcementResult — immutability and determinism", () => {
+  it("does not mutate input", () => {
+    const r = loadResultFixture("enforcement-result-with-violations.json")
+    const snapshot = JSON.stringify(r)
+    validatePhase3EnforcementResult(r)
+    expect(JSON.stringify(r)).toBe(snapshot)
+  })
+
+  it("produces identical output on repeated calls (deterministic)", () => {
+    const r = loadResultFixture("enforcement-result-with-violations.json")
+    const first = validatePhase3EnforcementResult(r)
+    const second = validatePhase3EnforcementResult(r)
+    expect(first).toEqual(second)
+  })
+})
+
+describe("validatePhase3EnforcementResult — helper export surface", () => {
+  it("does not export apply, enforce, execute, or mutate functions", async () => {
+    const mod = await import("../lib/engine/phase3-enforcement-contract")
+    const keys = Object.keys(mod)
+    const forbidden = ["apply", "enforce", "execute", "mutate", "persist", "handler"]
+    for (const f of forbidden) {
+      const match = keys.find(k => k === f)
+      expect(match).toBeUndefined()
     }
   })
 })

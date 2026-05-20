@@ -1,0 +1,11 @@
+{
+  "violationId": "v-ui-001",
+  "violationType": "ui_softens_fatal_classification",
+  "detectedBy": "ui_governance_enforcement",
+  "severity": "high",
+  "attemptedOverride": "review surface rendered NO_DEAL verdict without capital protection warning block",
+  "protectedAuthority": "ui.capital_protection_warning_visibility",
+  "safeFailAction": "increase_review_burden",
+  "outcome": "escalated",
+  "advisoryOnly": true
+}

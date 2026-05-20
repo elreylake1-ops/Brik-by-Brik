@@ -1,0 +1,11 @@
+{
+  "violationId": "v-workflow-001",
+  "violationType": "workflow_overrides_capital_protection",
+  "detectedBy": "state_hierarchy_enforcement",
+  "severity": "fatal",
+  "attemptedOverride": "orchestrator set globalDealState to proceed_candidate on active NO_DEAL governance result",
+  "protectedAuthority": "capital_protection",
+  "safeFailAction": "preserve_deterministic_result",
+  "outcome": "blocked",
+  "advisoryOnly": true
+}

@@ -1,0 +1,34 @@
+{
+  "valid": false,
+  "outcome": "blocked",
+  "violations": [
+    {
+      "violationId": "v-advisory-001",
+      "violationType": "advisory_overrides_governance",
+      "detectedBy": "authority_enforcement_engine",
+      "severity": "fatal",
+      "attemptedOverride": "evidence hint attempted to set finalClassification to proceed_candidate on NO_DEAL result",
+      "protectedAuthority": "deterministic_governance.finalClassification",
+      "safeFailAction": "block_advisory_upgrade",
+      "outcome": "blocked",
+      "advisoryOnly": true
+    },
+    {
+      "violationId": "v-escalation-001",
+      "violationType": "merged_output_downgrades_escalation",
+      "detectedBy": "escalation_priority_engine",
+      "severity": "fatal",
+      "attemptedOverride": "merge layer selected valuation_review route, displacing active capital_protection route",
+      "protectedAuthority": "capital_protection escalation route",
+      "safeFailAction": "preserve_deterministic_result",
+      "outcome": "blocked",
+      "advisoryOnly": true
+    }
+  ],
+  "warnings": [
+    "capital_protection route restored; advisory route appended as secondary",
+    "advisory upgrade blocked: deterministic governance result preserved"
+  ],
+  "safeFailActions": ["block_advisory_upgrade", "preserve_deterministic_result"],
+  "advisoryOnly": true
+}

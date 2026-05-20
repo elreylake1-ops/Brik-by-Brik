@@ -427,6 +427,43 @@ Delivered in `types/phase3-enforcement.ts` and `__tests__/phase3-enforcement-con
 
 ---
 
+## Step 3 — Enforcement Fixtures and Contract Validation
+
+**Status: Complete**
+
+Delivered in:
+- `__tests__/fixtures/phase3-enforcement/` — 6 JSON fixtures
+- `lib/engine/phase3-enforcement-contract.ts` — pure validation helper
+- `docs/phase3/PHASE_3A_3_ENFORCEMENT_CONTRACT_VALIDATION.md` — step documentation
+- `__tests__/phase3-enforcement-contract.test.ts` — Step 3 tests appended
+
+### Enforcement Fixtures Added
+
+- `advisory-overrides-governance-violation.json` — fatal, `advisory_overrides_governance`
+- `workflow-overrides-capital-protection-violation.json` — fatal, `workflow_overrides_capital_protection`
+- `escalation-downgrade-violation.json` — fatal, `merged_output_downgrades_escalation`
+- `ui-softens-fatal-classification-violation.json` — high, `ui_softens_fatal_classification`
+- `valid-enforcement-result-clean.json` — clean passing result
+- `enforcement-result-with-violations.json` — blocked result with two fatal violations
+
+### Pure Validation Helper Added
+
+`validatePhase3EnforcementResult()` exported from `lib/engine/phase3-enforcement-contract.ts`.
+
+Validates: `advisoryOnly` boundary, array shapes, known enum values, `valid/false` consistency, fatal/high+passed incompatibility, safeFailAction coverage, and forbidden runtime keys.
+
+### Boundaries Confirmed
+
+- No runtime enforcement implementation added
+- No engine wiring added
+- No orchestrator wiring added
+- No UI enforcement behavior added
+- No persistence added
+- All new code carries `advisoryOnly: true`
+- 413 tests passing, lint clean, build clean
+
+---
+
 ## Recommended Next Step
 
 Recommended next implementation step:

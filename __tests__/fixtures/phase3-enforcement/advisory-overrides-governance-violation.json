@@ -1,0 +1,11 @@
+{
+  "violationId": "v-advisory-001",
+  "violationType": "advisory_overrides_governance",
+  "detectedBy": "authority_enforcement_engine",
+  "severity": "fatal",
+  "attemptedOverride": "evidence hint attempted to set finalClassification to proceed_candidate on NO_DEAL result",
+  "protectedAuthority": "deterministic_governance.finalClassification",
+  "safeFailAction": "block_advisory_upgrade",
+  "outcome": "blocked",
+  "advisoryOnly": true
+}
