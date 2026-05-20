@@ -46,6 +46,8 @@ Client approved Phase 3A-2 as the constitutional authority baseline. Phase 3A-3 
 
 Phase 3A-3 is closed. Runtime enforcement readiness is planned, typed, fixture-locked, implemented as a pure enforcement engine, and probe-tested against existing Phase 3 outputs. It remains unwired to runtime behavior. Recommended next step is client review before any authority enforcement runtime wiring.
 
+Phase 3A-4 has begun with SOP intake and scope boundary only. No runtime wiring, types, fixtures, enforcement logic, persistence, AI, scraping, CRM, UI, or deterministic behavior changes are approved.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.
