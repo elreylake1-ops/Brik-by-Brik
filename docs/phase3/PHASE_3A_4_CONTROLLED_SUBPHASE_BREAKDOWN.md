@@ -84,3 +84,5 @@ Status note: Step 5 human override governance contracts added. No runtime overri
 Status note: Step 6 loop breaker and deadlock guard contracts added. No runtime loop detection, workflow mutation, persistence, or logging added.
 
 Status note: Step 7 governance drift detection contracts and fixtures added. No runtime drift detection, AI logic, persistence, or logging added.
+
+Status note: Step 8A controlled runtime simulation harness plan created. No simulation code, runtime wiring, persistence, or workflow mutation added.
