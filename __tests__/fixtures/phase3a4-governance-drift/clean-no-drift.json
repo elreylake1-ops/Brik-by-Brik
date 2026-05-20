@@ -1,0 +1,13 @@
+{
+  "caseId": "clean-no-drift",
+  "description": "No governance drift detected for aligned advisory output.",
+  "expectedDetection": {
+    "driftDetected": false,
+    "driftType": "advisory_authority_drift",
+    "action": "preserve_deterministic_result",
+    "reason": "No advisory/UI/workflow/AI weakening of deterministic governance detected.",
+    "protectedAuthority": "deterministic_governance",
+    "advisoryOnly": true
+  },
+  "advisoryOnly": true
+}

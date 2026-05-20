@@ -492,3 +492,43 @@ export type Phase3A4DeadlockGuardContract = {
   manualReviewRequired: boolean
   advisoryOnly: true
 }
+
+// --- Phase 3A-4 Governance drift detection contracts ---
+// Contracts and fixtures only: no runtime drift detection behavior is implemented yet.
+// No AI logic is added in this step.
+// No persistence or runtime logging is added.
+// Future drift detection must block or escalate when advisory/UI/workflow/AI weakens deterministic governance.
+
+export const PHASE3A4_GOVERNANCE_DRIFT_TYPES = [
+  "advisory_authority_drift",
+  "ui_fatal_softening_drift",
+  "workflow_reject_bypass_drift",
+  "ai_governance_approval_drift",
+] as const
+
+export type Phase3A4GovernanceDriftType = typeof PHASE3A4_GOVERNANCE_DRIFT_TYPES[number]
+
+export const PHASE3A4_GOVERNANCE_DRIFT_ACTIONS = [
+  "block_and_log",
+  "escalate_review",
+  "preserve_deterministic_result",
+  "require_manual_review",
+] as const
+
+export type Phase3A4GovernanceDriftAction = typeof PHASE3A4_GOVERNANCE_DRIFT_ACTIONS[number]
+
+export type Phase3A4GovernanceDriftDetection = {
+  driftDetected: boolean
+  driftType: Phase3A4GovernanceDriftType
+  action: Phase3A4GovernanceDriftAction
+  reason: string
+  protectedAuthority: string
+  advisoryOnly: true
+}
+
+export type Phase3A4GovernanceDriftFixtureCase = {
+  caseId: string
+  description: string
+  expectedDetection: Phase3A4GovernanceDriftDetection
+  advisoryOnly: true
+}

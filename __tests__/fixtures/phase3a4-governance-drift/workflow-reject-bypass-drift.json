@@ -1,0 +1,13 @@
+{
+  "caseId": "workflow-reject-bypass-drift",
+  "description": "Workflow progression attempted despite reject state.",
+  "expectedDetection": {
+    "driftDetected": true,
+    "driftType": "workflow_reject_bypass_drift",
+    "action": "require_manual_review",
+    "reason": "Workflow attempted progression while governance remained reject/blocked.",
+    "protectedAuthority": "deal_classification",
+    "advisoryOnly": true
+  },
+  "advisoryOnly": true
+}

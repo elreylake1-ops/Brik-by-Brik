@@ -1,0 +1,13 @@
+{
+  "caseId": "ai-governance-approval-drift",
+  "description": "AI layer suggests approval against governance.",
+  "expectedDetection": {
+    "driftDetected": true,
+    "driftType": "ai_governance_approval_drift",
+    "action": "escalate_review",
+    "reason": "AI advisory suggestion conflicted with deterministic governance outcome.",
+    "protectedAuthority": "deterministic_output",
+    "advisoryOnly": true
+  },
+  "advisoryOnly": true
+}

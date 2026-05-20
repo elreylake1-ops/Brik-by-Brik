@@ -1,0 +1,13 @@
+{
+  "caseId": "advisory-authority-drift",
+  "description": "Advisory output weakens deterministic risk signal.",
+  "expectedDetection": {
+    "driftDetected": true,
+    "driftType": "advisory_authority_drift",
+    "action": "block_and_log",
+    "reason": "Advisory layer attempted to reduce deterministic risk severity.",
+    "protectedAuthority": "deterministic_governance",
+    "advisoryOnly": true
+  },
+  "advisoryOnly": true
+}

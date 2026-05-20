@@ -1,0 +1,13 @@
+{
+  "caseId": "ui-fatal-softening-drift",
+  "description": "UI softens fatal deterministic outcome.",
+  "expectedDetection": {
+    "driftDetected": true,
+    "driftType": "ui_fatal_softening_drift",
+    "action": "preserve_deterministic_result",
+    "reason": "UI presentation attempted to soften fatal classification.",
+    "protectedAuthority": "capital_protection",
+    "advisoryOnly": true
+  },
+  "advisoryOnly": true
+}
