@@ -427,6 +427,47 @@ Delivered in `types/phase3-enforcement.ts` and `__tests__/phase3-enforcement-con
 
 ---
 
+## Step 6 — Enforcement Probe Against Existing Phase 3 Outputs
+
+**Status: Complete**
+
+Delivered in:
+- `types/phase3-enforcement.ts` — `Phase3EnforcementProbeResult` type added
+- `lib/validation/run-phase3-enforcement-probe.ts` — pure enforcement probe
+- `__tests__/fixtures/phase3-enforcement-probe/` — 2 locked probe fixtures
+- `__tests__/phase3-enforcement-probe.test.ts` — probe tests
+- `docs/phase3/PHASE_3A_3_ENFORCEMENT_PROBE.md` — probe documentation
+
+### Pure Enforcement Probe Added
+
+`runPhase3EnforcementProbe(): Phase3EnforcementProbeResult`
+
+Evaluates 8 scenarios: 4 clean chain integrity checks (existing merged outputs) + 4 intentionally bad scenarios.
+
+### Existing Phase 3 Outputs Checked
+
+- `no-deal-with-weak-comparable-hints-merged.json` → capital_protection preserved → passed
+- `review-required-with-legal-conflict-hints-merged.json` → legal_review preserved → passed
+- `clean-proceed-with-accepted-operator-note-merged.json` → advisory contained → passed
+- `intake-with-missing-lender-hints-merged.json` → missing lender hint contained → passed
+
+### Intentionally Bad Scenarios Detected
+
+- `advisory_overrides_governance` → blocked
+- `workflow_overrides_capital_protection` → blocked
+- `ui_softens_fatal_classification` → review_required
+- `advisory_route_replaces_capital_protection` → blocked
+
+### Boundaries Confirmed
+
+- No runtime wiring added
+- No engine/orchestrator/UI integration added
+- All probe outputs pass `validatePhase3EnforcementResult()`
+- All outputs carry `advisoryOnly: true`
+- 472 tests passing, lint clean, build clean
+
+---
+
 ## Step 5 — Pure Enforcement Engine Implemented
 
 **Status: Complete**

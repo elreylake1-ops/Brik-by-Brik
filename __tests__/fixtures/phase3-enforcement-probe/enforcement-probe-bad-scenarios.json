@@ -1,0 +1,90 @@
+[
+  {
+    "valid": false,
+    "outcome": "blocked",
+    "violations": [
+      {
+        "violationId": "v-probe-bad-advisory-overrides-governance",
+        "violationType": "advisory_overrides_governance",
+        "detectedBy": "authority_enforcement_engine",
+        "severity": "fatal",
+        "attemptedOverride": "advisory layer attempted to override deterministic governance finalClassification",
+        "protectedAuthority": "deterministic_governance",
+        "safeFailAction": "block_advisory_upgrade",
+        "outcome": "blocked",
+        "advisoryOnly": true
+      }
+    ],
+    "warnings": [
+      "enforcement advisory: this enforcement result is advisory-only and not wired to runtime behavior"
+    ],
+    "safeFailActions": ["block_advisory_upgrade"],
+    "advisoryOnly": true
+  },
+  {
+    "valid": false,
+    "outcome": "blocked",
+    "violations": [
+      {
+        "violationId": "v-probe-bad-workflow-overrides-capital-protection",
+        "violationType": "workflow_overrides_capital_protection",
+        "detectedBy": "state_hierarchy_enforcement",
+        "severity": "fatal",
+        "attemptedOverride": "workflow orchestration attempted to override capital protection signal on blocked deal",
+        "protectedAuthority": "capital_protection",
+        "safeFailAction": "preserve_deterministic_result",
+        "outcome": "blocked",
+        "advisoryOnly": true
+      }
+    ],
+    "warnings": [
+      "enforcement advisory: this enforcement result is advisory-only and not wired to runtime behavior"
+    ],
+    "safeFailActions": ["preserve_deterministic_result"],
+    "advisoryOnly": true
+  },
+  {
+    "valid": false,
+    "outcome": "review_required",
+    "violations": [
+      {
+        "violationId": "v-probe-bad-ui-softens-fatal",
+        "violationType": "ui_softens_fatal_classification",
+        "detectedBy": "ui_governance_enforcement",
+        "severity": "high",
+        "attemptedOverride": "UI presentation layer attempted to soften fatal no_deal classification display",
+        "protectedAuthority": "capital_protection",
+        "safeFailAction": "increase_review_burden",
+        "outcome": "review_required",
+        "advisoryOnly": true
+      }
+    ],
+    "warnings": [
+      "enforcement advisory: this enforcement result is advisory-only and not wired to runtime behavior"
+    ],
+    "safeFailActions": ["increase_review_burden"],
+    "advisoryOnly": true
+  },
+  {
+    "valid": false,
+    "outcome": "blocked",
+    "violations": [
+      {
+        "violationId": "v-probe-bad-advisory-route-replaces-capital-protection",
+        "violationType": "advisory_route_replaces_capital_protection",
+        "detectedBy": "escalation_priority_engine",
+        "severity": "fatal",
+        "attemptedOverride": "advisory evidence route attempted to replace capital_protection as primary escalation route",
+        "protectedAuthority": "capital_protection",
+        "safeFailAction": "preserve_deterministic_result",
+        "outcome": "blocked",
+        "advisoryOnly": true
+      }
+    ],
+    "warnings": [
+      "enforcement advisory: this enforcement result is advisory-only and not wired to runtime behavior"
+    ],
+    "safeFailActions": ["preserve_deterministic_result"],
+    "advisoryOnly": true
+  }
+]

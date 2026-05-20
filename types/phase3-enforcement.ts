@@ -136,6 +136,18 @@ export type Phase3UIGovernanceRule = {
   advisoryOnly: true
 }
 
+// --- Enforcement probe result ---
+// Aggregate output of the pure enforcement probe.
+// Advisory-only — no runtime wiring. No app/route/database fields.
+export type Phase3EnforcementProbeResult = {
+  scenarioCount: number
+  passedCount: number
+  violationCount: number
+  results: readonly Phase3EnforcementResult[]
+  warnings: readonly string[]
+  advisoryOnly: true
+}
+
 // --- Enforcement scenario ---
 // Input type for the pure enforcement engine.
 // Describes an attempted authority override for evaluation.

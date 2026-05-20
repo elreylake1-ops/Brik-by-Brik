@@ -1,0 +1,7 @@
+{
+  "scenarioCount": 8,
+  "passedCount": 4,
+  "violationCount": 4,
+  "warnings": ["enforcement probe is advisory-only and not wired to runtime behavior"],
+  "advisoryOnly": true
+}
