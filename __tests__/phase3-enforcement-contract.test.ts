@@ -279,10 +279,15 @@ describe("Enforcement contract runtime boundary", () => {
     }
   })
 
-  it("all exported values are readonly const arrays or strings (no class instances, no closures)", async () => {
+  it("all exported values are readonly const arrays, strings, or plain contract objects", async () => {
     const mod = await import("../types/phase3-enforcement")
     for (const value of Object.values(mod)) {
-      expect(typeof value === "string" || Array.isArray(value)).toBe(true)
+      const isAllowedPlainObject =
+        value !== null &&
+        typeof value === "object" &&
+        !Array.isArray(value) &&
+        Object.getPrototypeOf(value) === Object.prototype
+      expect(typeof value === "string" || Array.isArray(value) || isAllowedPlainObject).toBe(true)
     }
   })
 })

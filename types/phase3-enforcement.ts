@@ -163,3 +163,105 @@ export type Phase3EnforcementScenario = {
   safeFailAction: Phase3RuntimeSafeFailAction
   advisoryOnly: true
 }
+
+// --- Phase 3A-4 Severity and precedence contracts ---
+// Contracts only: no runtime precedence resolution behavior is implemented yet.
+// CRITICAL and FATAL tiers are blocking tiers for future runtime enforcement wiring.
+// Precedence rules protect deterministic governance authority from lower-authority layers.
+// No AI behavior is added by this file.
+
+export const PHASE3A4_SEVERITY_TIERS = [
+  "info",
+  "warning",
+  "high",
+  "critical",
+  "fatal",
+] as const
+
+export type Phase3A4SeverityTier = typeof PHASE3A4_SEVERITY_TIERS[number]
+
+export const PHASE3A4_BLOCKING_SEVERITY_TIERS = ["critical", "fatal"] as const
+
+export type Phase3A4PrecedenceLayer =
+  | "governance"
+  | "capital_protection"
+  | "fatal_risk"
+  | "deterministic_classification"
+  | "deterministic_output"
+  | "authority_enforcement"
+  | "workflow"
+  | "scoring"
+  | "evidence_hint"
+  | "advisory_output"
+  | "ai_commentary"
+  | "ui_presentation"
+
+export type Phase3A4PrecedenceRule = {
+  ruleId: string
+  winner: Phase3A4PrecedenceLayer
+  loser: Phase3A4PrecedenceLayer
+  reason: string
+  blocksProgression: boolean
+  advisoryOnly: true
+}
+
+export type Phase3A4PrecedenceMatrix = {
+  rules: readonly Phase3A4PrecedenceRule[]
+  advisoryOnly: true
+}
+
+export const PHASE3A4_PRECEDENCE_RULES: readonly Phase3A4PrecedenceRule[] = [
+  {
+    ruleId: "governance-beats-workflow",
+    winner: "governance",
+    loser: "workflow",
+    reason: "Governance authority cannot be downgraded or replaced by workflow routing.",
+    blocksProgression: true,
+    advisoryOnly: true,
+  },
+  {
+    ruleId: "capital-protection-beats-scoring",
+    winner: "capital_protection",
+    loser: "scoring",
+    reason: "Capital protection remains dominant over scoring or confidence outputs.",
+    blocksProgression: true,
+    advisoryOnly: true,
+  },
+  {
+    ruleId: "fatal-risk-beats-advisory-output",
+    winner: "fatal_risk",
+    loser: "advisory_output",
+    reason: "Fatal risk signals cannot be softened by advisory output layers.",
+    blocksProgression: true,
+    advisoryOnly: true,
+  },
+  {
+    ruleId: "deterministic-classification-beats-evidence-hint",
+    winner: "deterministic_classification",
+    loser: "evidence_hint",
+    reason: "Evidence hints are advisory and cannot override deterministic classification.",
+    blocksProgression: true,
+    advisoryOnly: true,
+  },
+  {
+    ruleId: "deterministic-output-beats-ai-commentary",
+    winner: "deterministic_output",
+    loser: "ai_commentary",
+    reason: "AI commentary is advisory-only and cannot override deterministic outputs.",
+    blocksProgression: true,
+    advisoryOnly: true,
+  },
+  {
+    ruleId: "authority-enforcement-beats-ui-presentation",
+    winner: "authority_enforcement",
+    loser: "ui_presentation",
+    reason: "UI presentation cannot bypass or soften enforcement authority decisions.",
+    blocksProgression: true,
+    advisoryOnly: true,
+  },
+] as const
+
+export const PHASE3A4_PRECEDENCE_MATRIX: Phase3A4PrecedenceMatrix = {
+  rules: PHASE3A4_PRECEDENCE_RULES,
+  advisoryOnly: true,
+}
