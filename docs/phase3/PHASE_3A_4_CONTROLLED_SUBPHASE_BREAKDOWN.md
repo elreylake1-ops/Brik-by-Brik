@@ -80,3 +80,5 @@ Status note: Step 3 safe runtime mode and governance version metadata contracts 
 Status note: Step 4 conflict visualization and telemetry contracts added. No runtime detection, logging, telemetry storage, or persistence added.
 
 Status note: Step 5 human override governance contracts added. No runtime override behavior, approval workflow, persistence, or auth wiring added.
+
+Status note: Step 6 loop breaker and deadlock guard contracts added. No runtime loop detection, workflow mutation, persistence, or logging added.

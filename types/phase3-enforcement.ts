@@ -440,3 +440,55 @@ export type Phase3A4HumanOverrideValidation = {
   warnings: readonly string[]
   advisoryOnly: true
 }
+
+// --- Phase 3A-4 Loop breaker and deadlock guard contracts ---
+// Contracts only: no runtime loop detection behavior is implemented yet.
+// No workflow mutation is added by this file.
+// No persistence or runtime logging is added in this contract layer.
+// Threshold handling is a contract shape only in this step.
+// Future threshold-exceeded result must block progression and require manual review.
+
+export const PHASE3A4_LOOP_RISK_TYPES = [
+  "repeated_same_escalation",
+  "repeated_failed_transition",
+  "unresolved_advisory_loop",
+  "workflow_stuck_between_states",
+  "recurring_manual_review_trigger",
+] as const
+
+export type Phase3A4LoopRiskType = typeof PHASE3A4_LOOP_RISK_TYPES[number]
+
+export const PHASE3A4_LOOP_BREAKER_STATUSES = [
+  "no_loop_detected",
+  "loop_risk_detected",
+  "manual_review_required",
+] as const
+
+export type Phase3A4LoopBreakerStatus = typeof PHASE3A4_LOOP_BREAKER_STATUSES[number]
+
+export const PHASE3A4_PROGRESSION_STATUSES = ["allowed", "blocked"] as const
+
+export type Phase3A4ProgressionStatus = typeof PHASE3A4_PROGRESSION_STATUSES[number]
+
+export const PHASE3A4_LOOP_BREAKER_REASONS = ["none", "loop_or_deadlock_risk"] as const
+
+export type Phase3A4LoopBreakerReason = typeof PHASE3A4_LOOP_BREAKER_REASONS[number]
+
+export type Phase3A4LoopBreakerContract = {
+  riskType: Phase3A4LoopRiskType
+  status: Phase3A4LoopBreakerStatus
+  progression: Phase3A4ProgressionStatus
+  reason: Phase3A4LoopBreakerReason
+  thresholdExceeded: boolean
+  manualReviewRequired: boolean
+  advisoryOnly: true
+}
+
+export type Phase3A4DeadlockGuardContract = {
+  detectedRiskTypes: readonly Phase3A4LoopRiskType[]
+  status: Phase3A4LoopBreakerStatus
+  progression: Phase3A4ProgressionStatus
+  reason: Phase3A4LoopBreakerReason
+  manualReviewRequired: boolean
+  advisoryOnly: true
+}
