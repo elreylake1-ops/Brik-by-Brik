@@ -42,6 +42,8 @@ Client has approved Phase 3A-2 Authority & State Governance Layer. Phase 3A-2 ha
 
 Phase 3A-2 is closed. The authority/state governance constitutional layer is planned, typed, validated, and fixture-locked, but remains unenforced at runtime. Recommended next step is client review before any authority enforcement readiness work.
 
+Client approved Phase 3A-2 as the constitutional authority baseline. Phase 3A-3 has begun with runtime enforcement architecture planning only. No runtime enforcement implementation, engine wiring, UI changes, AI, scraping, persistence, CRM, or deterministic behavior changes are approved.
+
 ## Blocking Rule
 
 Phase 3 remains blocked until Phase 2 operational acceptance is complete.
