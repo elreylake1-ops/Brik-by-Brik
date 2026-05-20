@@ -393,3 +393,50 @@ export const PHASE3A4_ZERO_ENFORCEMENT_TELEMETRY: Phase3A4EnforcementTelemetry =
   manualReviewEscalations: 0,
   advisoryOnly: true,
 }
+
+// --- Phase 3A-4 Human override governance contracts ---
+// Contracts only: no runtime override behavior is implemented here.
+// No persistence, authentication, or user wiring is added in this file.
+// overrideTimestamp is a supplied contract field only and is not generated here.
+// Original deterministic result must always be preserved.
+// Human override may not delete deterministic output.
+
+export const PHASE3A4_OVERRIDE_SCOPES = [
+  "review_only",
+  "proceed_with_caution",
+  "manual_exception",
+  "blocked_override_request",
+] as const
+
+export type Phase3A4OverrideScope = typeof PHASE3A4_OVERRIDE_SCOPES[number]
+
+export type Phase3A4HumanOverrideGovernance = {
+  overrideBy: string
+  overrideReason: string
+  overrideTimestamp: string
+  originalClassification: string
+  overrideClassification: string
+  riskAcknowledged: boolean
+  overrideScope: Phase3A4OverrideScope
+  reviewRequiredAfterOverride: boolean
+  originalDeterministicResultPreserved: true
+  advisoryOnly: true
+}
+
+export const PHASE3A4_HUMAN_OVERRIDE_VALIDATION_STATUSES = [
+  "valid_override_contract",
+  "missing_reason",
+  "risk_not_acknowledged",
+  "original_result_not_preserved",
+  "review_required_missing",
+] as const
+
+export type Phase3A4HumanOverrideValidationStatus =
+  typeof PHASE3A4_HUMAN_OVERRIDE_VALIDATION_STATUSES[number]
+
+export type Phase3A4HumanOverrideValidation = {
+  status: Phase3A4HumanOverrideValidationStatus
+  errors: readonly string[]
+  warnings: readonly string[]
+  advisoryOnly: true
+}

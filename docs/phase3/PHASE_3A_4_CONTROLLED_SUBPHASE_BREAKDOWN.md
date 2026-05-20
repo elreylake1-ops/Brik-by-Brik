@@ -78,3 +78,5 @@ Status note: Step 2 severity tiers and precedence matrix contracts added. No run
 Status note: Step 3 safe runtime mode and governance version metadata contracts added. No runtime sandbox behavior, persistence, or workflow mutation added.
 
 Status note: Step 4 conflict visualization and telemetry contracts added. No runtime detection, logging, telemetry storage, or persistence added.
+
+Status note: Step 5 human override governance contracts added. No runtime override behavior, approval workflow, persistence, or auth wiring added.
