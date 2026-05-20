@@ -1,4 +1,4 @@
-// Phase 3A-3 Step 2 + Step 3 — Runtime Enforcement Type Contract Tests
+// Phase 3A-3 Step 2 + Step 3 + Step 4 — Runtime Enforcement Type Contract Tests
 // Advisory-only. No runtime enforcement is implemented.
 // Tests confirm contract shape, field invariants, governance boundaries, and validation helper behavior.
 
@@ -554,5 +554,129 @@ describe("validatePhase3EnforcementResult — helper export surface", () => {
       const match = keys.find(k => k === f)
       expect(match).toBeUndefined()
     }
+  })
+})
+
+// --- Step 4: Validation output fixture locking ---
+
+const VALIDATION_OUTPUT_BASE = join(__dirname, "fixtures", "phase3-enforcement-validation")
+
+type ValidationOutput = {
+  valid: boolean
+  errors: readonly string[]
+  warnings: readonly string[]
+  advisoryOnly: true
+}
+
+function loadValidationOutputFixture(name: string): ValidationOutput {
+  return JSON.parse(readFileSync(join(VALIDATION_OUTPUT_BASE, name), "utf-8")) as ValidationOutput
+}
+
+// Wrap a single violation in a minimal Phase3EnforcementResult for validation.
+// Uses the violation's own outcome and safeFailAction so the result is internally consistent.
+function wrapViolation(violation: Phase3AuthorityViolation): Phase3EnforcementResult {
+  return {
+    valid: false,
+    outcome: violation.outcome,
+    violations: [violation],
+    warnings: [`${violation.violationType} detected`],
+    safeFailActions: [violation.safeFailAction],
+    advisoryOnly: true,
+  }
+}
+
+describe("Step 4 — Fixture-locked validation outputs: violation fixtures", () => {
+  const VIOLATION_FIXTURES: Array<{ source: string; outputFixture: string }> = [
+    {
+      source: "advisory-overrides-governance-violation.json",
+      outputFixture: "advisory-overrides-governance-violation-validation.json",
+    },
+    {
+      source: "workflow-overrides-capital-protection-violation.json",
+      outputFixture: "workflow-overrides-capital-protection-violation-validation.json",
+    },
+    {
+      source: "escalation-downgrade-violation.json",
+      outputFixture: "escalation-downgrade-violation-validation.json",
+    },
+    {
+      source: "ui-softens-fatal-classification-violation.json",
+      outputFixture: "ui-softens-fatal-classification-violation-validation.json",
+    },
+  ]
+
+  for (const { source, outputFixture } of VIOLATION_FIXTURES) {
+    it(`validation output matches locked fixture for ${source}`, () => {
+      const violation = loadViolationFixture(source)
+      const result = validatePhase3EnforcementResult(wrapViolation(violation))
+      const expected = loadValidationOutputFixture(outputFixture)
+      expect(result).toEqual(expected)
+    })
+  }
+})
+
+describe("Step 4 — Fixture-locked validation outputs: result fixtures", () => {
+  it("validation output matches locked fixture for valid-enforcement-result-clean.json", () => {
+    const r = loadResultFixture("valid-enforcement-result-clean.json")
+    const result = validatePhase3EnforcementResult(r)
+    const expected = loadValidationOutputFixture("valid-enforcement-result-clean-validation.json")
+    expect(result).toEqual(expected)
+  })
+
+  it("validation output matches locked fixture for enforcement-result-with-violations.json", () => {
+    const r = loadResultFixture("enforcement-result-with-violations.json")
+    const result = validatePhase3EnforcementResult(r)
+    const expected = loadValidationOutputFixture("enforcement-result-with-violations-validation.json")
+    expect(result).toEqual(expected)
+  })
+})
+
+describe("Step 4 — Validation output stability", () => {
+  it("all 6 locked outputs carry advisoryOnly true", () => {
+    const outputFixtures = [
+      "advisory-overrides-governance-violation-validation.json",
+      "workflow-overrides-capital-protection-violation-validation.json",
+      "escalation-downgrade-violation-validation.json",
+      "ui-softens-fatal-classification-violation-validation.json",
+      "valid-enforcement-result-clean-validation.json",
+      "enforcement-result-with-violations-validation.json",
+    ]
+    for (const name of outputFixtures) {
+      const f = loadValidationOutputFixture(name)
+      expect(f.advisoryOnly, `${name} must carry advisoryOnly: true`).toBe(true)
+    }
+  })
+
+  it("all 6 locked outputs carry no runtime or enforcement-behavior keys", () => {
+    const forbidden = ["execute", "enforce", "apply", "mutate", "persist", "fetch", "api", "aiModel", "database", "routeHandler", "handler"]
+    const outputFixtures = [
+      "advisory-overrides-governance-violation-validation.json",
+      "workflow-overrides-capital-protection-violation-validation.json",
+      "escalation-downgrade-violation-validation.json",
+      "ui-softens-fatal-classification-violation-validation.json",
+      "valid-enforcement-result-clean-validation.json",
+      "enforcement-result-with-violations-validation.json",
+    ]
+    for (const name of outputFixtures) {
+      const f = loadValidationOutputFixture(name)
+      for (const key of forbidden) {
+        expect(Object.keys(f), `${name} must not contain key "${key}"`).not.toContain(key)
+      }
+    }
+  })
+
+  it("repeated validation of the same input returns output equal to locked fixture", () => {
+    const r = loadResultFixture("enforcement-result-with-violations.json")
+    const expected = loadValidationOutputFixture("enforcement-result-with-violations-validation.json")
+    expect(validatePhase3EnforcementResult(r)).toEqual(expected)
+    expect(validatePhase3EnforcementResult(r)).toEqual(expected)
+    expect(validatePhase3EnforcementResult(r)).toEqual(expected)
+  })
+
+  it("violation fixture wrapping does not mutate violation", () => {
+    const violation = loadViolationFixture("advisory-overrides-governance-violation.json")
+    const snapshot = JSON.stringify(violation)
+    validatePhase3EnforcementResult(wrapViolation(violation))
+    expect(JSON.stringify(violation)).toBe(snapshot)
   })
 })

@@ -427,6 +427,43 @@ Delivered in `types/phase3-enforcement.ts` and `__tests__/phase3-enforcement-con
 
 ---
 
+## Step 4 — Enforcement Validation Output Fixture Locking
+
+**Status: Complete**
+
+Delivered in:
+- `__tests__/fixtures/phase3-enforcement-validation/` — 6 locked JSON validation output fixtures
+- `docs/phase3/PHASE_3A_3_ENFORCEMENT_VALIDATION_OUTPUT_EXAMPLES.md` — step documentation
+- `__tests__/phase3-enforcement-contract.test.ts` — Step 4 tests appended
+
+### Validation Output Fixtures Added
+
+- `advisory-overrides-governance-violation-validation.json`
+- `workflow-overrides-capital-protection-violation-validation.json`
+- `escalation-downgrade-violation-validation.json`
+- `ui-softens-fatal-classification-violation-validation.json`
+- `valid-enforcement-result-clean-validation.json`
+- `enforcement-result-with-violations-validation.json`
+
+All 6 lock to `{valid: true, errors: [], warnings: [], advisoryOnly: true}` — the known-good contracts all pass validation.
+
+### Exact Comparison Tests Added
+
+- 4 violation fixture tests (each wrapped in minimal result before validation)
+- 2 result fixture tests (validated directly)
+- Stability tests: advisoryOnly presence, no runtime keys, repeated output identity, no input mutation
+
+### Boundaries Confirmed
+
+- No runtime enforcement implementation added
+- No engine wiring added
+- No orchestrator wiring added
+- No UI enforcement behavior added
+- No persistence added
+- 423 tests passing, lint clean, build clean
+
+---
+
 ## Step 3 — Enforcement Fixtures and Contract Validation
 
 **Status: Complete**
