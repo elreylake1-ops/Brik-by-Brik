@@ -24,3 +24,5 @@ Covers deterministic guard outcomes per governance state, input immutability, re
 
 ## Recommended Next Step
 Phase 4A Step 3E - Guard Integration Adapters (still non-runtime-wired).
+
+Status note: Phase 4A Step 4A persistence implementation plan created. No schema, migration, persistence, API, UI, or saved deal behavior added.
