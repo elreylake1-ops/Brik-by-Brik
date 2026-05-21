@@ -52,3 +52,5 @@ This document decides the minimum migration execution path before live repositor
 
 ## Recommended Next Step
 Phase 4A Step 4H - Minimal Migration Application Notes.
+
+Status note: Phase 4A Step 4H minimal migration application notes created. No tooling, DB client, repository implementation, API, UI, or saved-deal behavior added.
