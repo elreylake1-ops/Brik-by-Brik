@@ -54,3 +54,5 @@ No blocking alignment issues found.
 
 ## Recommended Next Step
 Phase 4A Step 4D - Minimal Repository Interface Plan.
+
+Status note: Phase 4A Step 4D minimal repository interface plan created. No repository implementation, API, UI, or saved-deal behavior added.
