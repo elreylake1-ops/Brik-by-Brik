@@ -62,3 +62,5 @@ This document defines the exact narrow boundary for the first saved-deal reposit
 
 ## Recommended Next Step
 Phase 4A Step 4J - Confirm DB Target + Environment Plan.
+
+Status note: Phase 4A Step 4J DB target/environment plan created. No DB client, DB calls, repository implementation, API, UI, or saved-deal behavior added.
