@@ -26,3 +26,5 @@ Migration SQL exists, but migration execution workflow/tooling and DB adapter co
 
 ## Recommended Next Step
 Phase 4A Step 4G - Minimal Repository Adapter Skeleton with explicit TODO boundaries (still no live DB wiring until migration tooling is confirmed).
+
+Status note: Phase 4A Step 4G migration execution tooling decision created. No migration tooling, DB client, repository implementation, API, UI, or saved-deal behavior added.
