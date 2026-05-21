@@ -88,3 +88,5 @@ Status note: Step 7 governance drift detection contracts and fixtures added. No 
 Status note: Step 8A controlled runtime simulation harness plan created. No simulation code, runtime wiring, persistence, or workflow mutation added.
 
 Status note: Step 8B contracts defined, fixtures added, and shape validation tests added. No executable harness yet and no runtime wiring yet.
+
+Status note: Step 8C fixture-only validation helper added. Deterministic validation only with no executable simulation harness, no runtime wiring, and no persistence/AI/scraping/integration/UI behavior.
