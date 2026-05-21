@@ -45,3 +45,5 @@ This document defines the minimum persistence boundary for the Phase 4A single-o
 
 ## Recommended Next Step
 Phase 4A Step 2B - Minimal Table Field Plan.
+
+Status note: Phase 4A Step 2B minimal table field plan created. No schema, migration, persistence, API, UI, or TypeScript contracts added.
