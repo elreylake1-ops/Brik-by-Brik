@@ -90,3 +90,5 @@ Status note: Step 8A controlled runtime simulation harness plan created. No simu
 Status note: Step 8B contracts defined, fixtures added, and shape validation tests added. No executable harness yet and no runtime wiring yet.
 
 Status note: Step 8C fixture-only validation helper added. Deterministic validation only with no executable simulation harness, no runtime wiring, and no persistence/AI/scraping/integration/UI behavior.
+
+Status note: Step 8D pure fixture simulation runner added. Runner returns expected fixture outputs only with no live runtime enforcement, no runtime wiring, no persistence, and no UI/app route/API/AI/scraping/integration behavior.

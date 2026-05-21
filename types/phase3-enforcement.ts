@@ -605,3 +605,26 @@ export type ControlledSimulationFixture = {
   expectedOutput: ControlledSimulationExpectedOutput
   lockedBoundaryNotes: readonly string[]
 }
+
+// --- Phase 3A-4 Controlled runtime simulation runner contracts (Step 8D) ---
+// Pure fixture runner contracts only.
+// No live runtime enforcement, no persistence, no workflow wiring, and no external integrations.
+
+export type ControlledSimulationRunResult = {
+  valid: boolean
+  simulationId: string
+  scenarioId: SimulationScenarioId
+  output: ControlledSimulationExpectedOutput | null
+  errors: string[]
+  warnings: string[]
+}
+
+export type ControlledSimulationRunSummary = {
+  valid: boolean
+  fixtureCount: number
+  passedCount: number
+  failedCount: number
+  results: ControlledSimulationRunResult[]
+  errors: string[]
+  warnings: string[]
+}
