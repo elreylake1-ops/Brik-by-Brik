@@ -57,3 +57,5 @@ This document defines the minimal repository/helper surface needed before saved-
 
 ## Recommended Next Step
 Phase 4A Step 4E - Minimal Repository Helpers for Saved Deals Only.
+
+Status note: Phase 4A Step 4E repository adapter boundary check created. No repository implementation, DB calls, API, UI, or saved-deal behavior added.
