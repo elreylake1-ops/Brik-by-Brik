@@ -28,3 +28,5 @@ No existing data-access convention was found. Create a very small adapter interf
 
 ## Recommended Next Step
 Phase 4A Step 4F - Minimal Repository Adapter Interface, no live DB calls yet.
+
+Status note: Phase 4A Step 4F minimal repository adapter interface created. No repository implementation, DB calls, API, UI, migration tooling, or saved-deal behavior added.
