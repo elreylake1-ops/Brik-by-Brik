@@ -628,3 +628,40 @@ export type ControlledSimulationRunSummary = {
   errors: string[]
   warnings: string[]
 }
+
+// --- Phase 3A-4 Controlled simulation report formatter contracts (Step 8E) ---
+// Formatter contracts only. No runtime wiring, persistence, or live enforcement behavior.
+
+export const CONTROLLED_SIMULATION_REPORT_STATUSES = ["pass", "fail"] as const
+
+export type ControlledSimulationReportStatus = typeof CONTROLLED_SIMULATION_REPORT_STATUSES[number]
+
+export type ControlledSimulationReportItem = {
+  simulationId: string
+  scenarioId: SimulationScenarioId
+  scenarioName: string
+  status: ControlledSimulationReportStatus
+  runtimeMode: SimulationRuntimeMode
+  governanceVersion: string
+  enforcementOutcome: string
+  conflictDetected: boolean
+  driftDetected: boolean
+  loopBreakerTriggered: boolean
+  advisoryOnly: boolean
+  safeFailAction: string
+  expectedResult: SimulationExpectedOutcome
+  errors: string[]
+  warnings: string[]
+}
+
+export type ControlledSimulationReport = {
+  valid: boolean
+  fixtureCount: number
+  passedCount: number
+  failedCount: number
+  scenarioIds: SimulationScenarioId[]
+  items: ControlledSimulationReportItem[]
+  errors: string[]
+  warnings: string[]
+  summary: string
+}
