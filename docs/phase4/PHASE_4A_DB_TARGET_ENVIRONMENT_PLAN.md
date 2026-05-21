@@ -57,3 +57,5 @@ Do not add these variables until DB target is confirmed.
 
 ## Recommended Next Step
 Phase 4A Step 4K - DB Client Decision + Minimal Install Plan.
+
+Status note: Phase 4A Step 4K DB client decision and install plan created. No DB client, DB adapter, repository implementation, API, UI, or saved-deal behavior added.
