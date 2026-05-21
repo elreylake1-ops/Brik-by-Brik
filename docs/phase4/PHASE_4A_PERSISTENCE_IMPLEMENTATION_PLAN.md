@@ -48,3 +48,5 @@ The first implementation step after this plan should only create schema/migratio
 
 ## Recommended Next Step
 Phase 4A Step 4B - Minimal Schema/Migration Only.
+
+Status note: Phase 4A Step 4B minimal schema/migration created. No repository helpers, API routes, UI, saved deal behavior, or runtime wiring added.
