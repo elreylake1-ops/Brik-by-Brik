@@ -26,3 +26,5 @@ This step adds schema/migration artifacts only and mirrors Step 2B planned field
 
 ## Recommended Next Step
 Phase 4A Step 4C - Repository Helpers for Saved Deals Only.
+
+Status note: Phase 4A Step 4C schema/type alignment check created. No repository, API, UI, saved deal behavior, or runtime wiring added.
