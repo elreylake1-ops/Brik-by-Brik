@@ -136,3 +136,57 @@ export type AuditEvent = {
   event_payload_json: Record<string, unknown>
   created_at: string
 }
+
+// Phase 4A guard contracts are type definitions only.
+// No guard evaluation behavior is implemented in this file.
+
+export type OperatorWorkflowAction =
+  | "MOVE_PIPELINE_STATE"
+  | "CREATE_OFFER"
+  | "UPDATE_OFFER"
+  | "CREATE_TASK"
+  | "COMPLETE_TASK"
+  | "ADD_EVIDENCE"
+  | "ARCHIVE_DEAL"
+
+export type OperatorGuardDecision =
+  | "ALLOW"
+  | "BLOCK"
+  | "REQUIRE_REVIEW"
+  | "REQUIRE_TASK"
+  | "WARN"
+
+export type OperatorGuardReason =
+  | "GOVERNANCE_REJECT_OR_FATAL"
+  | "MANUAL_REVIEW_REQUIRED"
+  | "CONDITIONAL_BLOCKERS_REQUIRED"
+  | "OFFER_RATIONALE_REQUIRED"
+  | "OFFER_ABOVE_MAO"
+  | "MISSING_EVIDENCE"
+  | "UNKNOWN_GOVERNANCE_CONFLICT"
+  | "SNAPSHOT_IMMUTABLE"
+  | "ALLOWED_BY_GOVERNANCE"
+
+export type OperatorGuardInput = {
+  deal_id: string
+  current_pipeline_state: PipelineState
+  requested_pipeline_state: PipelineState | null
+  governance_state: OperatorGovernanceState
+  classification: string
+  workflow_action: OperatorWorkflowAction
+  has_manual_review_task: boolean
+  has_blocking_tasks: boolean
+  has_missing_evidence: boolean
+  offer_amount: number | null
+  max_safe_offer: number | null
+  notes: string | null
+}
+
+export type OperatorGuardResult = {
+  decision: OperatorGuardDecision
+  allowed: boolean
+  reasons: OperatorGuardReason[]
+  required_task_type: TaskType | null
+  block_message: string | null
+  warning_message: string | null
+}
