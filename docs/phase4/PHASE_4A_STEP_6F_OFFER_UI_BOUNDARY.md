@@ -44,3 +44,5 @@ This document defines the minimum safe UI boundary for adding offer/counter-offe
 
 ## Recommended Next Step
 Phase 4A Step 6G - Minimal Offer UI Only.
+
+Status note: Phase 4A Step 6G minimal offer UI created. No offer status update route, seller-response route, task, note, command view, saved-deal mutation, pipeline mutation, or engine behavior added.

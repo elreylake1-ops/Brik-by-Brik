@@ -56,6 +56,16 @@ type SavedDealDetail = {
   engine_result_json: Record<string, unknown>
 }
 
+type DealOfferListItem = {
+  id: string
+  offer_amount: number
+  offer_type: string
+  offer_status: string
+  offer_rationale: string | null
+  seller_response: string | null
+  created_at: string
+}
+
 export default function Home() {
   const PIPELINE_STATE_OPTIONS = [
     "UNDER_ANALYSIS",
@@ -87,6 +97,17 @@ export default function Home() {
   const [isUpdatingPipeline, setIsUpdatingPipeline] = useState(false)
   const [pipelineUpdateMessage, setPipelineUpdateMessage] = useState<string | null>(null)
   const [pipelineUpdateError, setPipelineUpdateError] = useState<string | null>(null)
+  const [offers, setOffers] = useState<DealOfferListItem[]>([])
+  const [isLoadingOffers, setIsLoadingOffers] = useState(false)
+  const [offersError, setOffersError] = useState<string | null>(null)
+  const [offerAmount, setOfferAmount] = useState("")
+  const [offerType, setOfferType] = useState("INITIAL")
+  const [offerStatus, setOfferStatus] = useState("DRAFT")
+  const [offerRationale, setOfferRationale] = useState("")
+  const [sellerResponse, setSellerResponse] = useState("")
+  const [isAddingOffer, setIsAddingOffer] = useState(false)
+  const [addOfferMessage, setAddOfferMessage] = useState<string | null>(null)
+  const [addOfferError, setAddOfferError] = useState<string | null>(null)
   const [selectedWalkthroughPresetId, setSelectedWalkthroughPresetId] = useState(
     CALCULATOR_WALKTHROUGH_PRESETS[0]?.id ?? ""
   )
@@ -234,6 +255,33 @@ export default function Home() {
     return parsed.toLocaleString()
   }
 
+  async function loadOffersForDeal(dealId: string) {
+    setIsLoadingOffers(true)
+    setOffersError(null)
+
+    try {
+      const response = await fetch(`/api/saved-deals/${encodeURIComponent(dealId)}/offers`)
+      const payload = await response.json()
+
+      if (!response.ok || !payload?.success || !Array.isArray(payload?.offers)) {
+        setOffers([])
+        setOffersError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "Unable to load offers at this time."
+        )
+        return
+      }
+
+      setOffers(payload.offers as DealOfferListItem[])
+    } catch {
+      setOffers([])
+      setOffersError("Unable to load offers at this time.")
+    } finally {
+      setIsLoadingOffers(false)
+    }
+  }
+
   function formatCurrency(value: number | null): string {
     if (typeof value !== "number") {
       return "N/A"
@@ -272,11 +320,74 @@ export default function Home() {
       setSelectedPipelineState(payload.deal.pipeline_state ?? "UNDER_ANALYSIS")
       setPipelineUpdateMessage(null)
       setPipelineUpdateError(null)
+      setAddOfferMessage(null)
+      setAddOfferError(null)
+      setOfferAmount("")
+      setOfferType("INITIAL")
+      setOfferStatus("DRAFT")
+      setOfferRationale("")
+      setSellerResponse("")
+      await loadOffersForDeal(id)
     } catch {
       setSelectedSavedDeal(null)
       setSelectedSavedDealError("Unable to load saved deal at this time.")
+      setOffers([])
+      setOffersError(null)
     } finally {
       setIsLoadingSelectedSavedDeal(false)
+    }
+  }
+
+  async function handleAddOffer() {
+    if (!selectedSavedDeal || isAddingOffer) {
+      return
+    }
+
+    const parsedAmount = Number(offerAmount)
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setAddOfferMessage(null)
+      setAddOfferError("Offer amount is required and must be a valid number.")
+      return
+    }
+
+    setIsAddingOffer(true)
+    setAddOfferMessage(null)
+    setAddOfferError(null)
+
+    try {
+      const response = await fetch(`/api/saved-deals/${encodeURIComponent(selectedSavedDeal.id)}/offers`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          offer_amount: parsedAmount,
+          offer_type: offerType,
+          offer_status: offerStatus,
+          offer_rationale: offerRationale.trim() || null,
+          seller_response: sellerResponse.trim() || null,
+        }),
+      })
+
+      const payload = await response.json()
+      if (!response.ok || !payload?.success) {
+        setAddOfferError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "Unable to add offer at this time."
+        )
+        return
+      }
+
+      setAddOfferMessage("Offer added.")
+      setOfferAmount("")
+      setOfferType("INITIAL")
+      setOfferStatus("DRAFT")
+      setOfferRationale("")
+      setSellerResponse("")
+      await loadOffersForDeal(selectedSavedDeal.id)
+    } catch {
+      setAddOfferError("Unable to add offer at this time.")
+    } finally {
+      setIsAddingOffer(false)
     }
   }
 
@@ -659,6 +770,108 @@ export default function Home() {
                 {pipelineUpdateError && (
                   <p className="mt-2 text-sm text-red-700">{pipelineUpdateError}</p>
                 )}
+              </div>
+
+              <div className="rounded border border-gray-200 bg-gray-50 px-3 py-3">
+                <p className="text-xs uppercase tracking-wide text-gray-500">Offers</p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-600">Offer Amount</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={offerAmount}
+                      onChange={(event) => setOfferAmount(event.target.value)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-600">Offer Type</span>
+                    <input
+                      type="text"
+                      value={offerType}
+                      onChange={(event) => setOfferType(event.target.value)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-600">Offer Status</span>
+                    <input
+                      type="text"
+                      value={offerStatus}
+                      onChange={(event) => setOfferStatus(event.target.value)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-600">Offer Rationale (optional)</span>
+                    <input
+                      type="text"
+                      value={offerRationale}
+                      onChange={(event) => setOfferRationale(event.target.value)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 sm:col-span-2">
+                    <span className="text-xs text-gray-600">Seller Response (optional)</span>
+                    <input
+                      type="text"
+                      value={sellerResponse}
+                      onChange={(event) => setSellerResponse(event.target.value)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </label>
+                </div>
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={() => void handleAddOffer()}
+                    disabled={isAddingOffer}
+                    className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isAddingOffer ? "Adding..." : "Add Offer"}
+                  </button>
+                </div>
+                {addOfferMessage && <p className="mt-2 text-sm text-green-700">{addOfferMessage}</p>}
+                {addOfferError && <p className="mt-2 text-sm text-red-700">{addOfferError}</p>}
+
+                <div className="mt-3">
+                  {isLoadingOffers ? (
+                    <p className="text-sm text-gray-500">Loading offers...</p>
+                  ) : offersError ? (
+                    <p className="text-sm text-red-700">{offersError}</p>
+                  ) : offers.length === 0 ? (
+                    <p className="text-sm text-gray-500">No offers yet.</p>
+                  ) : (
+                    <div className="overflow-x-auto rounded border border-gray-200 bg-white">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+                          <tr>
+                            <th className="px-3 py-2">Amount</th>
+                            <th className="px-3 py-2">Type</th>
+                            <th className="px-3 py-2">Status</th>
+                            <th className="px-3 py-2">Rationale</th>
+                            <th className="px-3 py-2">Seller Response</th>
+                            <th className="px-3 py-2">Created</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {offers.map((offer) => (
+                            <tr key={offer.id} className="border-t border-gray-100">
+                              <td className="px-3 py-2 text-gray-900">{formatCurrency(offer.offer_amount)}</td>
+                              <td className="px-3 py-2 text-gray-700">{offer.offer_type}</td>
+                              <td className="px-3 py-2 text-gray-700">{offer.offer_status}</td>
+                              <td className="px-3 py-2 text-gray-700">{offer.offer_rationale ?? "N/A"}</td>
+                              <td className="px-3 py-2 text-gray-700">{offer.seller_response ?? "N/A"}</td>
+                              <td className="px-3 py-2 text-gray-700">{formatSavedDealCreatedAt(offer.created_at)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
