@@ -555,6 +555,13 @@ export default function Home() {
     inputs.gdv > 0 ||
     inputs.refurbCost > 0
 
+  const latestOffer = offers.length > 0 ? offers[0] : null
+  const blockedTaskCount = tasks.filter((task) => task.task_status === "BLOCKED").length
+  const openTaskCount = tasks.filter((task) => {
+    const status = task.task_status.toUpperCase()
+    return status !== "COMPLETE" && status !== "BLOCKED"
+  }).length
+
   const selectedPresetLabel =
     CALCULATOR_WALKTHROUGH_PRESETS.find((p) => p.id === selectedWalkthroughPresetId)?.label ?? "Select preset"
 
@@ -857,6 +864,91 @@ export default function Home() {
                 <p className="mt-1 text-sm text-gray-700">
                   Stored keys: {Object.keys(selectedSavedDeal.engine_result_json ?? {}).length}
                 </p>
+              </div>
+
+              <div className="rounded border border-gray-200 bg-gray-50 px-3 py-3">
+                <h3 className="text-sm font-semibold text-gray-900">Operator Command</h3>
+                <p className="mt-1 text-xs text-gray-500">
+                  Read-only operational summary. Governance and capital protection are shown before execution status.
+                </p>
+
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded border border-gray-200 bg-white px-3 py-2 sm:col-span-2">
+                    <p className="text-xs uppercase tracking-wide text-gray-500">Governance / Capital Protection</p>
+                    <p className="mt-1 text-sm text-gray-900">
+                      Governance: {selectedSavedDeal.governance_state}
+                    </p>
+                    <p className="text-sm text-gray-900">
+                      Capital Protection: {selectedSavedDeal.capital_protection_state}
+                    </p>
+                  </div>
+
+                  <div className="rounded border border-gray-200 bg-white px-3 py-2 sm:col-span-2">
+                    <p className="text-xs uppercase tracking-wide text-gray-500">Deal Decision and Blockers</p>
+                    <p className="mt-1 text-sm text-gray-900">
+                      Address: {selectedSavedDeal.address}
+                    </p>
+                    <p className="text-sm text-gray-900">
+                      Classification: {selectedSavedDeal.classification}
+                    </p>
+                    <p className="text-sm text-gray-900">
+                      Blocked Tasks: {blockedTaskCount}
+                    </p>
+                  </div>
+
+                  <div className="rounded border border-gray-200 bg-white px-3 py-2">
+                    <p className="text-xs uppercase tracking-wide text-gray-500">Pipeline State</p>
+                    <p className="mt-1 text-sm text-gray-900">{selectedSavedDeal.pipeline_state}</p>
+                  </div>
+
+                  <div className="rounded border border-gray-200 bg-white px-3 py-2">
+                    <p className="text-xs uppercase tracking-wide text-gray-500">Offer Position</p>
+                    {isLoadingOffers ? (
+                      <p className="mt-1 text-sm text-gray-700">Loading offers...</p>
+                    ) : latestOffer ? (
+                      <>
+                        <p className="mt-1 text-sm text-gray-900">
+                          Latest Amount: {formatCurrency(latestOffer.offer_amount)}
+                        </p>
+                        <p className="text-sm text-gray-900">
+                          Latest Status: {latestOffer.offer_status}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="mt-1 text-sm text-gray-700">No offers loaded.</p>
+                    )}
+                  </div>
+
+                  <div className="rounded border border-gray-200 bg-white px-3 py-2">
+                    <p className="text-xs uppercase tracking-wide text-gray-500">Task Status</p>
+                    {isLoadingTasks ? (
+                      <p className="mt-1 text-sm text-gray-700">Loading tasks...</p>
+                    ) : (
+                      <>
+                        <p className="mt-1 text-sm text-gray-900">Open Tasks: {openTaskCount}</p>
+                        <p className="text-sm text-gray-900">Blocked Tasks: {blockedTaskCount}</p>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="rounded border border-gray-200 bg-white px-3 py-2">
+                    <p className="text-xs uppercase tracking-wide text-gray-500">Next Action</p>
+                    <p className="mt-1 text-sm text-gray-900">{selectedSavedDeal.next_action ?? "N/A"}</p>
+                  </div>
+
+                  <div className="rounded border border-gray-200 bg-white px-3 py-2">
+                    <p className="text-xs uppercase tracking-wide text-gray-500">Financial Snapshot</p>
+                    <p className="mt-1 text-sm text-gray-900">
+                      Purchase: {formatCurrency(selectedSavedDeal.purchase_price)}
+                    </p>
+                    <p className="text-sm text-gray-900">
+                      GDV Realistic: {formatCurrency(selectedSavedDeal.gdv_realistic)}
+                    </p>
+                    <p className="text-sm text-gray-900">
+                      Refurb: {formatCurrency(selectedSavedDeal.refurb_cost)}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div className="rounded border border-gray-200 bg-gray-50 px-3 py-3">
