@@ -42,6 +42,20 @@ type SavedDealListItem = {
   created_at: string
 }
 
+type SavedDealDetail = {
+  id: string
+  address: string
+  classification: string
+  governance_state: string
+  capital_protection_state: string
+  pipeline_state: string
+  purchase_price: number | null
+  gdv_realistic: number | null
+  refurb_cost: number | null
+  next_action: string | null
+  engine_result_json: Record<string, unknown>
+}
+
 export default function Home() {
   const [inputs, setInputs] = useState<DealInputs>(defaultInputs)
   const [useScope, setUseScope] = useState(false)
@@ -55,6 +69,9 @@ export default function Home() {
   const [savedDeals, setSavedDeals] = useState<SavedDealListItem[]>([])
   const [isLoadingSavedDeals, setIsLoadingSavedDeals] = useState(true)
   const [savedDealsError, setSavedDealsError] = useState<string | null>(null)
+  const [selectedSavedDeal, setSelectedSavedDeal] = useState<SavedDealDetail | null>(null)
+  const [isLoadingSelectedSavedDeal, setIsLoadingSelectedSavedDeal] = useState(false)
+  const [selectedSavedDealError, setSelectedSavedDealError] = useState<string | null>(null)
   const [selectedWalkthroughPresetId, setSelectedWalkthroughPresetId] = useState(
     CALCULATOR_WALKTHROUGH_PRESETS[0]?.id ?? ""
   )
@@ -200,6 +217,49 @@ export default function Home() {
     }
 
     return parsed.toLocaleString()
+  }
+
+  function formatCurrency(value: number | null): string {
+    if (typeof value !== "number") {
+      return "N/A"
+    }
+
+    return new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: "GBP",
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
+
+  async function handleViewSavedDeal(id: string) {
+    if (isLoadingSelectedSavedDeal) {
+      return
+    }
+
+    setIsLoadingSelectedSavedDeal(true)
+    setSelectedSavedDealError(null)
+
+    try {
+      const response = await fetch(`/api/saved-deals/${encodeURIComponent(id)}`)
+      const payload = await response.json()
+
+      if (!response.ok || !payload?.success || typeof payload?.deal !== "object" || !payload.deal) {
+        setSelectedSavedDeal(null)
+        setSelectedSavedDealError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "Unable to load saved deal at this time."
+        )
+        return
+      }
+
+      setSelectedSavedDeal(payload.deal as SavedDealDetail)
+    } catch {
+      setSelectedSavedDeal(null)
+      setSelectedSavedDealError("Unable to load saved deal at this time.")
+    } finally {
+      setIsLoadingSelectedSavedDeal(false)
+    }
   }
 
   const result = analyzeDealWithRefurb(inputs, useScope ? scope : undefined)
@@ -436,14 +496,82 @@ export default function Home() {
                       <td className="px-3 py-2 text-gray-700">{deal.pipeline_state}</td>
                       <td className="px-3 py-2 text-gray-700">{formatSavedDealCreatedAt(deal.created_at)}</td>
                       <td className="px-3 py-2">
-                        <span className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-500">
-                          View (soon)
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => void handleViewSavedDeal(deal.id)}
+                          disabled={isLoadingSelectedSavedDeal}
+                          className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          View
+                        </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-800">Saved Deal Detail</h2>
+          <p className="mt-1 text-xs text-gray-500">
+            Read-only saved deal detail. No edit, archive, pipeline, or calculator reload behavior is added in this step.
+          </p>
+
+          {isLoadingSelectedSavedDeal ? (
+            <p className="mt-4 text-sm text-gray-500">Loading saved deal detail...</p>
+          ) : selectedSavedDealError ? (
+            <p className="mt-4 text-sm text-red-700">{selectedSavedDealError}</p>
+          ) : !selectedSavedDeal ? (
+            <p className="mt-4 text-sm text-gray-500">Select a saved deal from the list to view read-only detail.</p>
+          ) : (
+            <div className="mt-4 space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Address</p>
+                  <p className="text-sm text-gray-900">{selectedSavedDeal.address}</p>
+                </div>
+                <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Classification</p>
+                  <p className="text-sm text-gray-900">{selectedSavedDeal.classification}</p>
+                </div>
+                <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Governance State</p>
+                  <p className="text-sm text-gray-900">{selectedSavedDeal.governance_state}</p>
+                </div>
+                <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Capital Protection State</p>
+                  <p className="text-sm text-gray-900">{selectedSavedDeal.capital_protection_state}</p>
+                </div>
+                <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Pipeline State</p>
+                  <p className="text-sm text-gray-900">{selectedSavedDeal.pipeline_state}</p>
+                </div>
+                <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Next Action</p>
+                  <p className="text-sm text-gray-900">{selectedSavedDeal.next_action ?? "N/A"}</p>
+                </div>
+                <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Purchase Price</p>
+                  <p className="text-sm text-gray-900">{formatCurrency(selectedSavedDeal.purchase_price)}</p>
+                </div>
+                <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">GDV Realistic</p>
+                  <p className="text-sm text-gray-900">{formatCurrency(selectedSavedDeal.gdv_realistic)}</p>
+                </div>
+                <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2 sm:col-span-2">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">Refurb Cost</p>
+                  <p className="text-sm text-gray-900">{formatCurrency(selectedSavedDeal.refurb_cost)}</p>
+                </div>
+              </div>
+
+              <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
+                <p className="text-xs uppercase tracking-wide text-gray-500">Saved Engine Snapshot</p>
+                <p className="mt-1 text-sm text-gray-700">
+                  Stored keys: {Object.keys(selectedSavedDeal.engine_result_json ?? {}).length}
+                </p>
+              </div>
             </div>
           )}
         </div>

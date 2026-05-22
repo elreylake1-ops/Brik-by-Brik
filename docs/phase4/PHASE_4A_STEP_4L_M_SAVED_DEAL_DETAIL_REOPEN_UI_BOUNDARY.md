@@ -37,3 +37,5 @@ This document defines the minimum safe boundary for opening one saved deal from 
 
 ## Recommended Next Step
 Phase 4A Step 4L-N - Minimal Saved Deal Detail/Reopen UI Only.
+
+Status note: Phase 4A Step 4L-N minimal saved deal detail/reopen UI created. No command view, pipeline, offers, tasks, notes, evidence, audit, edit, archive, or calculator reload behavior added.
