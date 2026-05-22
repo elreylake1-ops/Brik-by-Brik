@@ -58,3 +58,5 @@ Do not add env vars until the target is confirmed.
 
 ## Recommended Next Step
 Phase 4A Step 4L - Confirm DB Target With James/Karlo.
+
+Status note: Phase 4A Step 4L-A DB client and server adapter created. No repository helpers, DB CRUD, API, UI, command view, or calculator wiring added.
