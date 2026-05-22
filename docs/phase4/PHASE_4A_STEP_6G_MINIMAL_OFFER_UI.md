@@ -41,3 +41,5 @@ Add a minimal offer form and offer history UI inside the selected saved deal pan
 
 ## Recommended Next Step
 Phase 4A Step 6H - Offer status/seller-response update route boundary.
+
+Status note: Phase 4A Step 7A task engine boundary created. No task table, repository, API, UI, note, evidence, command view, or engine behavior added.
