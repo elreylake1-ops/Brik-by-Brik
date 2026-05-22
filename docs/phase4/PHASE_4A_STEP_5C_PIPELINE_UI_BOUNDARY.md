@@ -48,3 +48,5 @@ This document defines the minimum safe boundary for adding pipeline movement UI 
 
 ## Recommended Next Step
 Phase 4A Step 5D - Minimal Pipeline UI Only.
+
+Status note: Phase 4A Step 5D minimal pipeline UI created. No command view, offers, tasks, notes, evidence, audit, archive/edit, or engine behavior added.

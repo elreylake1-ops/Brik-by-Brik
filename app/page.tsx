@@ -57,6 +57,17 @@ type SavedDealDetail = {
 }
 
 export default function Home() {
+  const PIPELINE_STATE_OPTIONS = [
+    "UNDER_ANALYSIS",
+    "READY_FOR_OFFER",
+    "OFFER_SENT",
+    "NEGOTIATING",
+    "DUE_DILIGENCE",
+    "COMPLETED",
+    "REJECTED",
+    "ARCHIVED",
+  ] as const
+
   const [inputs, setInputs] = useState<DealInputs>(defaultInputs)
   const [useScope, setUseScope] = useState(false)
   const [scope, setScope] = useState<RefurbScopeInput>(defaultScope)
@@ -72,6 +83,10 @@ export default function Home() {
   const [selectedSavedDeal, setSelectedSavedDeal] = useState<SavedDealDetail | null>(null)
   const [isLoadingSelectedSavedDeal, setIsLoadingSelectedSavedDeal] = useState(false)
   const [selectedSavedDealError, setSelectedSavedDealError] = useState<string | null>(null)
+  const [selectedPipelineState, setSelectedPipelineState] = useState<string>("UNDER_ANALYSIS")
+  const [isUpdatingPipeline, setIsUpdatingPipeline] = useState(false)
+  const [pipelineUpdateMessage, setPipelineUpdateMessage] = useState<string | null>(null)
+  const [pipelineUpdateError, setPipelineUpdateError] = useState<string | null>(null)
   const [selectedWalkthroughPresetId, setSelectedWalkthroughPresetId] = useState(
     CALCULATOR_WALKTHROUGH_PRESETS[0]?.id ?? ""
   )
@@ -254,11 +269,53 @@ export default function Home() {
       }
 
       setSelectedSavedDeal(payload.deal as SavedDealDetail)
+      setSelectedPipelineState(payload.deal.pipeline_state ?? "UNDER_ANALYSIS")
+      setPipelineUpdateMessage(null)
+      setPipelineUpdateError(null)
     } catch {
       setSelectedSavedDeal(null)
       setSelectedSavedDealError("Unable to load saved deal at this time.")
     } finally {
       setIsLoadingSelectedSavedDeal(false)
+    }
+  }
+
+  async function handleUpdatePipeline() {
+    if (!selectedSavedDeal || isUpdatingPipeline) {
+      return
+    }
+
+    setIsUpdatingPipeline(true)
+    setPipelineUpdateMessage(null)
+    setPipelineUpdateError(null)
+
+    try {
+      const response = await fetch(`/api/saved-deals/${encodeURIComponent(selectedSavedDeal.id)}/pipeline`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ requested_pipeline_state: selectedPipelineState }),
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok || !payload?.success) {
+        setPipelineUpdateError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "Unable to update pipeline at this time."
+        )
+        return
+      }
+
+      setPipelineUpdateMessage(`Pipeline updated to ${payload.deal?.pipeline_state ?? selectedPipelineState}.`)
+      await Promise.all([
+        handleViewSavedDeal(selectedSavedDeal.id),
+        loadSavedDeals(),
+      ])
+    } catch {
+      setPipelineUpdateError("Unable to update pipeline at this time.")
+    } finally {
+      setIsUpdatingPipeline(false)
     }
   }
 
@@ -571,6 +628,37 @@ export default function Home() {
                 <p className="mt-1 text-sm text-gray-700">
                   Stored keys: {Object.keys(selectedSavedDeal.engine_result_json ?? {}).length}
                 </p>
+              </div>
+
+              <div className="rounded border border-gray-200 bg-gray-50 px-3 py-3">
+                <p className="text-xs uppercase tracking-wide text-gray-500">Pipeline Update</p>
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <select
+                    value={selectedPipelineState}
+                    onChange={(event) => setSelectedPipelineState(event.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:w-auto"
+                  >
+                    {PIPELINE_STATE_OPTIONS.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => void handleUpdatePipeline()}
+                    disabled={isUpdatingPipeline}
+                    className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isUpdatingPipeline ? "Updating..." : "Update Pipeline"}
+                  </button>
+                </div>
+                {pipelineUpdateMessage && (
+                  <p className="mt-2 text-sm text-green-700">{pipelineUpdateMessage}</p>
+                )}
+                {pipelineUpdateError && (
+                  <p className="mt-2 text-sm text-red-700">{pipelineUpdateError}</p>
+                )}
               </div>
             </div>
           )}
