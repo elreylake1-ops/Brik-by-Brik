@@ -20,12 +20,12 @@ These are the production handover migration files for Phase 4A.
 
 ## Schema and Tables
 Phase 4A schema namespace:
-- `lake_views_property`
+- `brik_by_brik_engine`
 
 Phase 4A tables:
-- `lake_views_property.saved_deals`
-- `lake_views_property.deal_offers`
-- `lake_views_property.deal_tasks`
+- `brik_by_brik_engine.saved_deals`
+- `brik_by_brik_engine.deal_offers`
+- `brik_by_brik_engine.deal_tasks`
 
 Notes:
 - The schema namespace isolates Phase 4A objects and prevents pollution in a shared Supabase project.
@@ -40,9 +40,9 @@ Phase 4A confirmation:
 - No multi-user/auth model added.
 
 Default relational constraints present:
-- `lake_views_property.saved_deals`: primary key on `id`.
-- `lake_views_property.deal_offers`: foreign key `deal_id` -> `lake_views_property.saved_deals(id)` with `ON DELETE CASCADE`.
-- `lake_views_property.deal_tasks`: foreign key `deal_id` -> `lake_views_property.saved_deals(id)` with `ON DELETE CASCADE`.
+- `brik_by_brik_engine.saved_deals`: primary key on `id`.
+- `brik_by_brik_engine.deal_offers`: foreign key `deal_id` -> `brik_by_brik_engine.saved_deals(id)` with `ON DELETE CASCADE`.
+- `brik_by_brik_engine.deal_tasks`: foreign key `deal_id` -> `brik_by_brik_engine.saved_deals(id)` with `ON DELETE CASCADE`.
 
 ## Required Environment Variables
 - `DATABASE_URL` is required.
@@ -67,7 +67,7 @@ For James:
    - `db/migrations/20260522_phase4a_saved_deals_table.sql`
    - `db/migrations/20260522_phase4a_deal_offers_table.sql`
    - `db/migrations/20260522_phase4a_deal_tasks_table.sql`
-4. Verify tables exist under `lake_views_property`.
+4. Verify tables exist under `brik_by_brik_engine`.
 5. Verify `public` schema has no accidental Phase 4A tables.
 6. Set `DATABASE_URL` in local/server environment to the Brik by Brik Engine — Production Database.
 7. Run Phase 4A acceptance QA against production DB.
@@ -75,10 +75,10 @@ For James:
 Verification SQL:
 
 ```sql
--- 1) list tables in lake_views_property
+-- 1) list tables in brik_by_brik_engine
 select table_schema, table_name
 from information_schema.tables
-where table_schema = 'lake_views_property'
+where table_schema = 'brik_by_brik_engine'
 order by table_name;
 ```
 
@@ -108,7 +108,7 @@ join information_schema.constraint_column_usage ccu
   on ccu.constraint_name = tc.constraint_name
  and ccu.table_schema = tc.table_schema
 where tc.constraint_type = 'FOREIGN KEY'
-  and tc.table_schema = 'lake_views_property'
+  and tc.table_schema = 'brik_by_brik_engine'
   and tc.table_name in ('deal_offers', 'deal_tasks')
 order by tc.table_name, kcu.column_name;
 ```
@@ -117,9 +117,9 @@ order by tc.table_name, kcu.column_name;
 - Test/staging data can be discarded.
 - Staging data does not need to be migrated unless James explicitly requests it.
 - If export is requested later, export only rows from:
-  - `lake_views_property.saved_deals`
-  - `lake_views_property.deal_offers`
-  - `lake_views_property.deal_tasks`
+  - `brik_by_brik_engine.saved_deals`
+  - `brik_by_brik_engine.deal_offers`
+  - `brik_by_brik_engine.deal_tasks`
 - Do not export secrets.
 
 ## Temporary/Staging Supabase Confirmation

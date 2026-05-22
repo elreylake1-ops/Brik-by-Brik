@@ -1,9 +1,9 @@
 -- Phase 4A Step 4L-B saved_deals schema adjustment
 -- Scope: add only MVP saved_deals table
 
-CREATE SCHEMA IF NOT EXISTS lake_views_property;
+CREATE SCHEMA IF NOT EXISTS brik_by_brik_engine;
 
-CREATE TABLE IF NOT EXISTS lake_views_property.saved_deals (
+CREATE TABLE IF NOT EXISTS brik_by_brik_engine.saved_deals (
   id TEXT PRIMARY KEY,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

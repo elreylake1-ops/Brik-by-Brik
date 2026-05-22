@@ -44,7 +44,7 @@ describe("phase 4a deal tasks repository", () => {
     })
 
     const [sql, params] = queryMock.mock.calls[0]
-    expect(sql).toContain("INSERT INTO lake_views_property.deal_tasks")
+    expect(sql).toContain("INSERT INTO brik_by_brik_engine.deal_tasks")
     expect(sql).toContain("deal_id")
     expect(sql).toContain("task_title")
     expect(sql).toContain("task_type")
@@ -85,7 +85,7 @@ describe("phase 4a deal tasks repository", () => {
     await listTasksForDeal("deal-abc")
 
     const [sql, params] = queryMock.mock.calls[0]
-    expect(sql).toContain("FROM lake_views_property.deal_tasks")
+    expect(sql).toContain("FROM brik_by_brik_engine.deal_tasks")
     expect(sql).toContain("WHERE deal_id = $1")
     expect(params).toEqual(["deal-abc"])
   })
@@ -95,7 +95,7 @@ describe("phase 4a deal tasks repository", () => {
     await updateTaskStatus("task-1", "OPEN")
 
     const [sql, params] = queryMock.mock.calls[0]
-    expect(sql).toContain("UPDATE lake_views_property.deal_tasks")
+    expect(sql).toContain("UPDATE brik_by_brik_engine.deal_tasks")
     expect(sql).toContain("SET task_status = $2")
     expect(sql).not.toContain("blocker_reason =")
     expect(sql).not.toContain("completed_at =")
@@ -107,7 +107,7 @@ describe("phase 4a deal tasks repository", () => {
     await markTaskBlocked("task-1", "Awaiting survey access")
 
     const [sql, params] = queryMock.mock.calls[0]
-    expect(sql).toContain("UPDATE lake_views_property.deal_tasks")
+    expect(sql).toContain("UPDATE brik_by_brik_engine.deal_tasks")
     expect(sql).toContain("SET task_status = 'BLOCKED'")
     expect(sql).toContain("blocker_reason = $2")
     expect(sql).not.toContain("completed_at =")
@@ -119,7 +119,7 @@ describe("phase 4a deal tasks repository", () => {
     await completeTask("task-1")
 
     const [sql, params] = queryMock.mock.calls[0]
-    expect(sql).toContain("UPDATE lake_views_property.deal_tasks")
+    expect(sql).toContain("UPDATE brik_by_brik_engine.deal_tasks")
     expect(sql).toContain("SET task_status = 'COMPLETE'")
     expect(sql).toContain("completed_at = NOW()")
     expect(sql).not.toContain("blocker_reason =")

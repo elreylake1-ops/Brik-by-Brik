@@ -42,7 +42,7 @@ describe("phase 4a deal offers repository", () => {
     })
 
     const [sql, params] = queryMock.mock.calls[0]
-    expect(sql).toContain("INSERT INTO lake_views_property.deal_offers")
+    expect(sql).toContain("INSERT INTO brik_by_brik_engine.deal_offers")
     expect(sql).toContain("deal_id")
     expect(sql).toContain("offer_amount")
     expect(sql).toContain("offer_type")
@@ -81,7 +81,7 @@ describe("phase 4a deal offers repository", () => {
     await listOffersForDeal("deal-abc")
 
     const [sql, params] = queryMock.mock.calls[0]
-    expect(sql).toContain("FROM lake_views_property.deal_offers")
+    expect(sql).toContain("FROM brik_by_brik_engine.deal_offers")
     expect(sql).toContain("WHERE deal_id = $1")
     expect(params).toEqual(["deal-abc"])
   })
@@ -91,7 +91,7 @@ describe("phase 4a deal offers repository", () => {
     await updateOfferStatus("offer-1", "ACCEPTED")
 
     const [sql, params] = queryMock.mock.calls[0]
-    expect(sql).toContain("UPDATE lake_views_property.deal_offers")
+    expect(sql).toContain("UPDATE brik_by_brik_engine.deal_offers")
     expect(sql).toContain("SET offer_status = $2")
     expect(sql).not.toContain("seller_response =")
     expect(params).toEqual(["offer-1", "ACCEPTED"])
@@ -102,7 +102,7 @@ describe("phase 4a deal offers repository", () => {
     await updateSellerResponse("offer-1", "accepted verbally")
 
     const [sql, params] = queryMock.mock.calls[0]
-    expect(sql).toContain("UPDATE lake_views_property.deal_offers")
+    expect(sql).toContain("UPDATE brik_by_brik_engine.deal_offers")
     expect(sql).toContain("SET seller_response = $2")
     expect(sql).not.toContain("offer_status =")
     expect(params).toEqual(["offer-1", "accepted verbally"])

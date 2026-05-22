@@ -3,7 +3,7 @@ import path from "node:path"
 import { describe, expect, it } from "vitest"
 
 describe("phase 4a migration consistency", () => {
-  it("creates lake_views_property schema and keeps FK type alignment", () => {
+  it("creates brik_by_brik_engine schema and keeps FK type alignment", () => {
     const savedDealsSql = readFileSync(
       path.resolve(process.cwd(), "db/migrations/20260522_phase4a_saved_deals_table.sql"),
       "utf8"
@@ -17,20 +17,20 @@ describe("phase 4a migration consistency", () => {
       "utf8"
     )
 
-    expect(savedDealsSql).toContain("CREATE SCHEMA IF NOT EXISTS lake_views_property;")
-    expect(savedDealsSql).toContain("CREATE TABLE IF NOT EXISTS lake_views_property.saved_deals")
+    expect(savedDealsSql).toContain("CREATE SCHEMA IF NOT EXISTS brik_by_brik_engine;")
+    expect(savedDealsSql).toContain("CREATE TABLE IF NOT EXISTS brik_by_brik_engine.saved_deals")
     expect(savedDealsSql).toContain("id TEXT PRIMARY KEY")
 
-    expect(dealOffersSql).toContain("CREATE SCHEMA IF NOT EXISTS lake_views_property;")
-    expect(dealOffersSql).toContain("CREATE TABLE IF NOT EXISTS lake_views_property.deal_offers")
+    expect(dealOffersSql).toContain("CREATE SCHEMA IF NOT EXISTS brik_by_brik_engine;")
+    expect(dealOffersSql).toContain("CREATE TABLE IF NOT EXISTS brik_by_brik_engine.deal_offers")
     expect(dealOffersSql).toContain(
-      "deal_id TEXT NOT NULL REFERENCES lake_views_property.saved_deals(id) ON DELETE CASCADE"
+      "deal_id TEXT NOT NULL REFERENCES brik_by_brik_engine.saved_deals(id) ON DELETE CASCADE"
     )
 
-    expect(dealTasksSql).toContain("CREATE SCHEMA IF NOT EXISTS lake_views_property;")
-    expect(dealTasksSql).toContain("CREATE TABLE IF NOT EXISTS lake_views_property.deal_tasks")
+    expect(dealTasksSql).toContain("CREATE SCHEMA IF NOT EXISTS brik_by_brik_engine;")
+    expect(dealTasksSql).toContain("CREATE TABLE IF NOT EXISTS brik_by_brik_engine.deal_tasks")
     expect(dealTasksSql).toContain(
-      "deal_id TEXT NOT NULL REFERENCES lake_views_property.saved_deals(id) ON DELETE CASCADE"
+      "deal_id TEXT NOT NULL REFERENCES brik_by_brik_engine.saved_deals(id) ON DELETE CASCADE"
     )
   })
 
@@ -42,7 +42,7 @@ describe("phase 4a migration consistency", () => {
 
     for (const expected of [
       "id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
-      "deal_id TEXT NOT NULL REFERENCES lake_views_property.saved_deals(id) ON DELETE CASCADE",
+      "deal_id TEXT NOT NULL REFERENCES brik_by_brik_engine.saved_deals(id) ON DELETE CASCADE",
       "offer_amount NUMERIC NOT NULL",
       "offer_type TEXT NOT NULL DEFAULT 'INITIAL'",
       "offer_status TEXT NOT NULL DEFAULT 'DRAFT'",

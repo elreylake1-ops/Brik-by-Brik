@@ -45,7 +45,7 @@ describe("phase 4a saved deals repository", () => {
     await createSavedDeal(input)
 
     const [sql, params] = queryMock.mock.calls[0]
-    expect(sql).toContain("INSERT INTO lake_views_property.saved_deals")
+    expect(sql).toContain("INSERT INTO brik_by_brik_engine.saved_deals")
     expect(params[12]).toBe(engineResult)
     expect(params[13]).toBe(riskSummary)
 
@@ -59,7 +59,7 @@ describe("phase 4a saved deals repository", () => {
     queryMock.mockResolvedValueOnce({ rows: [] })
     const result = await getSavedDealById("missing")
     expect(result).toBeNull()
-    expect(queryMock.mock.calls[0][0]).toContain("FROM lake_views_property.saved_deals")
+    expect(queryMock.mock.calls[0][0]).toContain("FROM brik_by_brik_engine.saved_deals")
   })
 
   it("listSavedDeals excludes archived by default", async () => {
@@ -85,7 +85,7 @@ describe("phase 4a saved deals repository", () => {
     await updateSavedDeal("d1", patch)
     const [sql] = queryMock.mock.calls[0]
 
-    expect(sql).toContain("UPDATE lake_views_property.saved_deals")
+    expect(sql).toContain("UPDATE brik_by_brik_engine.saved_deals")
     expect(sql).toContain("address =")
     expect(sql).toContain("classification =")
     expect(sql).toContain("risk_summary_json =")

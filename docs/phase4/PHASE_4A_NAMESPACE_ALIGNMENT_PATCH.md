@@ -4,7 +4,7 @@
 Apply Phase 4A namespace alignment so shared Supabase usage is isolated to the dedicated schema without changing feature scope.
 
 ## Schema Used
-- `lake_views_property`
+- `brik_by_brik_engine`
 
 ## Migrations Updated
 - `db/migrations/20260522_phase4a_saved_deals_table.sql`
@@ -12,21 +12,21 @@ Apply Phase 4A namespace alignment so shared Supabase usage is isolated to the d
 - `db/migrations/20260522_phase4a_deal_tasks_table.sql`
 
 Changes made:
-- added `CREATE SCHEMA IF NOT EXISTS lake_views_property;`
+- added `CREATE SCHEMA IF NOT EXISTS brik_by_brik_engine;`
 - table creation is now schema-qualified:
-  - `lake_views_property.saved_deals`
-  - `lake_views_property.deal_offers`
-  - `lake_views_property.deal_tasks`
+  - `brik_by_brik_engine.saved_deals`
+  - `brik_by_brik_engine.deal_offers`
+  - `brik_by_brik_engine.deal_tasks`
 - FK references are schema-qualified:
-  - `deal_offers.deal_id -> lake_views_property.saved_deals(id)`
-  - `deal_tasks.deal_id -> lake_views_property.saved_deals(id)`
+  - `deal_offers.deal_id -> brik_by_brik_engine.saved_deals(id)`
+  - `deal_tasks.deal_id -> brik_by_brik_engine.saved_deals(id)`
 
 ## Repository SQL Updated
 - `lib/operator-command/saved-deals-repository.ts`
 - `lib/operator-command/deal-offers-repository.ts`
 - `lib/operator-command/deal-tasks-repository.ts`
 
-All table references are now schema-qualified to `lake_views_property`.
+All table references are now schema-qualified to `brik_by_brik_engine`.
 
 ## Test Updates
 - `__tests__/saved-deals-repository.test.ts`

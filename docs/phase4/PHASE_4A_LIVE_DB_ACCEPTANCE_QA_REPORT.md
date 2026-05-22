@@ -3,7 +3,10 @@
 ## Live DB QA Status
 Pass.
 
-Live DB-backed Phase 4A acceptance QA was executed successfully against namespaced tables in `lake_views_property`.
+Live DB-backed Phase 4A acceptance QA was executed successfully against namespaced tables in `lake_views_property` (deprecated historical schema before namespace rename correction).
+
+Production namespace after naming correction:
+- `brik_by_brik_engine`
 
 ## Environment Verification
 - `DATABASE_URL` detected locally for QA session: yes

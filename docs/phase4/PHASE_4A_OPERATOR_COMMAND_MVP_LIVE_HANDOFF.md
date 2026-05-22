@@ -5,7 +5,8 @@ This document summarizes the completed Phase 4A Operator Command MVP after live 
 
 ## Live Acceptance Status
 - Phase 4A live DB QA passed.
-- Schema: `lake_views_property`.
+- Historical QA schema at time of live acceptance (deprecated): `lake_views_property`.
+- Production-target schema namespace after rename correction: `brik_by_brik_engine`.
 - Tables verified:
   - `saved_deals`
   - `deal_offers`
@@ -58,7 +59,8 @@ This document summarizes the completed Phase 4A Operator Command MVP after live 
 ## Operational Notes
 - `DATABASE_URL` is required locally/server-side.
 - `.env.local` must not be committed.
-- migrations were applied under `lake_views_property` schema.
+- historical live QA migration state used deprecated `lake_views_property` schema.
+- production handover/migration namespace is `brik_by_brik_engine`.
 - this build is single-operator focused.
 
 ## Recommended Next Step
