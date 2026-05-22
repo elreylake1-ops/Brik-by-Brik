@@ -46,3 +46,5 @@ This document defines the minimum safe boundary for adding offer/counter-offer t
 
 ## Recommended Next Step
 Phase 4A Step 6B - Minimal `deal_offers` Migration Only.
+
+Status note: Phase 4A Step 6B minimal deal_offers migration created. No offer repository, API, UI, task, note, command view, or engine behavior added.
