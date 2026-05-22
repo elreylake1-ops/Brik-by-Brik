@@ -43,3 +43,5 @@ Add a minimal task form and task history section to the selected saved deal pane
 
 ## Recommended Next Step
 Phase 4A Step 7H - Task status/block/complete route boundary.
+
+Status note: Phase 4A Step 8A operator command view boundary created. No command view UI, API route, migration, export, automation, AI, or engine behavior added.
