@@ -38,6 +38,12 @@ export default function Home() {
   const [inputs, setInputs] = useState<DealInputs>(defaultInputs)
   const [useScope, setUseScope] = useState(false)
   const [scope, setScope] = useState<RefurbScopeInput>(defaultScope)
+  const [saveAddress, setSaveAddress] = useState("")
+  const [saveListingUrl, setSaveListingUrl] = useState("")
+  const [saveNextAction, setSaveNextAction] = useState("")
+  const [isSavingDeal, setIsSavingDeal] = useState(false)
+  const [saveDealSuccessId, setSaveDealSuccessId] = useState<string | null>(null)
+  const [saveDealError, setSaveDealError] = useState<string | null>(null)
   const [selectedWalkthroughPresetId, setSelectedWalkthroughPresetId] = useState(
     CALCULATOR_WALKTHROUGH_PRESETS[0]?.id ?? ""
   )
@@ -69,6 +75,73 @@ export default function Home() {
     setInputs(presetState.inputs)
     setScope(presetState.scope)
     setUseScope(presetState.useScope)
+  }
+
+  async function handleSaveDeal() {
+    if (isSavingDeal) {
+      return
+    }
+
+    if (!saveAddress.trim()) {
+      setSaveDealSuccessId(null)
+      setSaveDealError("Address is required before saving.")
+      return
+    }
+
+    setIsSavingDeal(true)
+    setSaveDealSuccessId(null)
+    setSaveDealError(null)
+
+    const classification =
+      result.dueDiligence?.decision.dealClassification ?? result.verdict.status
+    const governanceState = result.verdict.status
+    const capitalProtectionState =
+      result.dueDiligence?.decision.capitalProtectionStatus ?? "UNKNOWN"
+    const refurbCost =
+      result.refurbSource === "generated"
+        ? (result.refurb?.totalRefurbCost ?? inputs.refurbCost)
+        : inputs.refurbCost
+    const riskSummary = {
+      riskFlags: result.dueDiligence?.decision.riskFlags ?? [],
+      warnings: result.warnings,
+    }
+
+    try {
+      const response = await fetch("/api/saved-deals", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          address: saveAddress.trim(),
+          listing_url: saveListingUrl.trim() || null,
+          purchase_price: inputs.purchasePrice,
+          gdv_realistic: inputs.gdv,
+          refurb_cost: refurbCost,
+          classification,
+          governance_state: governanceState,
+          capital_protection_state: capitalProtectionState,
+          pipeline_state: "UNDER_ANALYSIS",
+          engine_result_json: result,
+          risk_summary_json: riskSummary,
+          next_action: saveNextAction.trim() || null,
+        }),
+      })
+
+      const payload = await response.json()
+      if (!response.ok || !payload?.success) {
+        setSaveDealError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "Unable to save deal at this time."
+        )
+        return
+      }
+
+      setSaveDealSuccessId(payload.deal?.id ?? null)
+    } catch {
+      setSaveDealError("Unable to save deal at this time.")
+    } finally {
+      setIsSavingDeal(false)
+    }
   }
 
   const result = analyzeDealWithRefurb(inputs, useScope ? scope : undefined)
@@ -212,6 +285,66 @@ export default function Home() {
         )}
 
         {hasDealInput && <EngineAnalysisPanel inputs={inputs} result={result} />}
+
+        {hasDealInput && (
+          <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-800">Save Current Deal</h2>
+            <p className="mt-1 text-xs text-gray-500">
+              Saves the current analysed deal snapshot only. No reopen/list actions are added in this step.
+            </p>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <label className="flex flex-col gap-1 sm:col-span-2">
+                <span className="text-sm font-medium text-gray-600">Address</span>
+                <input
+                  type="text"
+                  value={saveAddress}
+                  onChange={(e) => setSaveAddress(e.target.value)}
+                  placeholder="Property address"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-sm font-medium text-gray-600">Listing URL (optional)</span>
+                <input
+                  type="text"
+                  value={saveListingUrl}
+                  onChange={(e) => setSaveListingUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-sm font-medium text-gray-600">Next Action (optional)</span>
+                <input
+                  type="text"
+                  value={saveNextAction}
+                  onChange={(e) => setSaveNextAction(e.target.value)}
+                  placeholder="Short action note"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </label>
+            </div>
+
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleSaveDeal}
+                disabled={isSavingDeal}
+                className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSavingDeal ? "Saving..." : "Save Deal"}
+              </button>
+
+              {saveDealSuccessId && (
+                <p className="text-sm text-green-700">Saved deal id: {saveDealSuccessId}</p>
+              )}
+              {saveDealError && <p className="text-sm text-red-700">{saveDealError}</p>}
+            </div>
+          </div>
+        )}
 
         <div className="mt-10 border-t border-gray-200 pt-6 text-center">
           <p className="text-xs text-gray-400">(c) Lake Views Property</p>

@@ -46,3 +46,5 @@ Planned mapping to:
 
 ## Recommended Next Step
 Phase 4A Step 4L-G - Minimal Save Button UI Only.
+
+Status note: Phase 4A Step 4L-G minimal save button UI created. No reopen/list UI, command view, pipeline, offers, tasks, or notes behavior added.
