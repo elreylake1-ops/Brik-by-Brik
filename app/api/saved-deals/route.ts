@@ -1,5 +1,5 @@
 ﻿import { NextResponse } from "next/server"
-import { createSavedDeal } from "@/lib/operator-command/saved-deals-repository"
+import { createSavedDeal, listSavedDeals } from "@/lib/operator-command/saved-deals-repository"
 
 type SavedDealPostBody = {
   address?: unknown
@@ -30,6 +30,21 @@ function isNullableString(value: unknown): value is string | null | undefined {
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
+export async function GET(request: Request) {
+  try {
+    const url = new URL(request.url)
+    const includeArchived = url.searchParams.get("includeArchived") === "true"
+
+    const deals = await listSavedDeals({ includeArchived })
+    return NextResponse.json({ success: true, deals }, { status: 200 })
+  } catch {
+    return NextResponse.json(
+      { success: false, error: "Unable to load saved deals at this time." },
+      { status: 500 }
+    )
+  }
 }
 
 export async function POST(request: Request) {

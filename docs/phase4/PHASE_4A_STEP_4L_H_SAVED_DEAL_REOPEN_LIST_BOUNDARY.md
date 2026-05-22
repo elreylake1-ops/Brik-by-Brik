@@ -35,3 +35,5 @@ This document defines the minimum safe boundary for listing and reopening saved 
 
 ## Recommended Next Step
 Phase 4A Step 4L-I - Implement `GET /api/saved-deals` List Only.
+
+Status note: Phase 4A Step 4L-I GET /api/saved-deals list route created. No detail route, list UI, command view, pipeline, offers, tasks, notes, evidence, or audit behavior added.
