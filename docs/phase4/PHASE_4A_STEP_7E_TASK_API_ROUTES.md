@@ -41,3 +41,5 @@ Add minimal task API routes for creating and listing task records linked to a sa
 
 ## Recommended Next Step
 Phase 4A Step 7F - Task UI Boundary.
+
+Status note: Phase 4A Step 7F task UI boundary created. No task UI, task status/block/complete UI, note, evidence, command view, saved-deal mutation, pipeline mutation, or engine behavior added.
