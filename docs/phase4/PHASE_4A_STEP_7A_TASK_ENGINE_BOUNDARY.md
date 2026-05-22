@@ -46,3 +46,5 @@ Define the minimum safe boundary for adding task and blocker tracking after save
 
 ## Recommended Next Step
 Phase 4A Step 7B - Minimal `deal_tasks` Migration Only.
+
+Status note: Phase 4A Step 7B minimal deal_tasks migration created. No task repository, API, UI, note, evidence, command view, or engine behavior added.
