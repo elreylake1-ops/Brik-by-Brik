@@ -48,3 +48,5 @@ Define the minimum safe API boundary for adding task and blocker routes after re
 
 ## Recommended Next Step
 Phase 4A Step 7E - Task POST/GET API Routes Only.
+
+Status note: Phase 4A Step 7E task POST/GET API routes created. No task UI, task status route, blocked route, complete route, note, evidence, command view, saved-deal mutation, pipeline mutation, or engine behavior added.
