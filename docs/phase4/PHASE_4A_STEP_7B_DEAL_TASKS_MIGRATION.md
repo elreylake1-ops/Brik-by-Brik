@@ -33,3 +33,5 @@ Add the minimal `deal_tasks` table schema required to start Phase 4A task/blocke
 
 ## Recommended Next Step
 Phase 4A Step 7C - Task Repository Helpers Only.
+
+Status note: Phase 4A Step 7C task repository helpers created. No task API, UI, note, evidence, command view, saved-deal mutation, pipeline mutation, or engine behavior added.
