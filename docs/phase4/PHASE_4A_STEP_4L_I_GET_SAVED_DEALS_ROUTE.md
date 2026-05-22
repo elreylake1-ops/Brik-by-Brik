@@ -31,3 +31,7 @@ Add a minimal list retrieval route for saved deals without introducing reopen/de
 
 ## Recommended Next Step
 Phase 4A Step 4L-J - Implement `GET /api/saved-deals/[id]` Detail Route Only.
+
+Status note: Phase 4A Step 4L-J GET /api/saved-deals/[id] detail route created. No UI, command view, pipeline, offers, tasks, notes, evidence, or audit behavior added.
+
+Status note: Phase 4A Step 4L-J GET /api/saved-deals/[id] detail route created. No UI, command view, pipeline, offers, tasks, notes, evidence, or audit behavior added.
