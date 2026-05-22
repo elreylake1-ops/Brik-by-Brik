@@ -46,3 +46,5 @@ This document defines the minimum safe API boundary for adding offer/counter-off
 
 ## Recommended Next Step
 Phase 4A Step 6E - Offer POST/GET API Routes Only.
+
+Status note: Phase 4A Step 6E offer POST/GET API routes created. No offer UI, task, note, command view, saved-deal mutation, pipeline mutation, or engine behavior added.
