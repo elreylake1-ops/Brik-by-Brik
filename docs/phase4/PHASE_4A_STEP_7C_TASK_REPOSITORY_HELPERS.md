@@ -32,3 +32,5 @@ Add minimal server-side `deal_tasks` repository helpers for task and blocker per
 
 ## Recommended Next Step
 Phase 4A Step 7D - Task API Route Boundary.
+
+Status note: Phase 4A Step 7D task API route boundary created. No task API route, UI, note, evidence, command view, saved-deal mutation, pipeline mutation, or engine behavior added.
