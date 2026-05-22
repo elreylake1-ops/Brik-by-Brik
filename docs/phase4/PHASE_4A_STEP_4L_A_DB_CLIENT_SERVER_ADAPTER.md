@@ -28,3 +28,5 @@
 
 ## Recommended Next Step
 Phase 4A Step 4L-B - Saved Deal Repository Helpers Only.
+
+Status note: Phase 4A Step 4L-B saved_deals repository helpers created. No offers, tasks, notes, API, UI, command view, or calculator wiring added.
