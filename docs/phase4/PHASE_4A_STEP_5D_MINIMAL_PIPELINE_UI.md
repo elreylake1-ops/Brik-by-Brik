@@ -43,3 +43,5 @@ Add minimal pipeline state controls in the selected saved deal detail panel usin
 
 ## Recommended Next Step
 Phase 4A Step 5E - Pipeline UI refinement for guard reason visibility and clearer blocked-state messaging.
+
+Status note: Phase 4A Step 6A offer engine boundary created. No offer table, repository, API, UI, task, note, command view, or engine behavior added.
