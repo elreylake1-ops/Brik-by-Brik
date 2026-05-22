@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import CalculatorForm from "@/components/CalculatorForm"
 import ResultsDisplay from "@/components/ResultsDisplay"
 import RefurbScopeForm from "@/components/RefurbScopeForm"
@@ -34,6 +34,14 @@ const defaultScope: RefurbScopeInput = {
   majorWorks: { rewire: false, boiler: false, roof: false },
 }
 
+type SavedDealListItem = {
+  id: string
+  address: string
+  classification: string
+  pipeline_state: string
+  created_at: string
+}
+
 export default function Home() {
   const [inputs, setInputs] = useState<DealInputs>(defaultInputs)
   const [useScope, setUseScope] = useState(false)
@@ -44,6 +52,9 @@ export default function Home() {
   const [isSavingDeal, setIsSavingDeal] = useState(false)
   const [saveDealSuccessId, setSaveDealSuccessId] = useState<string | null>(null)
   const [saveDealError, setSaveDealError] = useState<string | null>(null)
+  const [savedDeals, setSavedDeals] = useState<SavedDealListItem[]>([])
+  const [isLoadingSavedDeals, setIsLoadingSavedDeals] = useState(true)
+  const [savedDealsError, setSavedDealsError] = useState<string | null>(null)
   const [selectedWalkthroughPresetId, setSelectedWalkthroughPresetId] = useState(
     CALCULATOR_WALKTHROUGH_PRESETS[0]?.id ?? ""
   )
@@ -59,6 +70,43 @@ export default function Home() {
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
+
+  const loadSavedDeals = useCallback(async () => {
+    setIsLoadingSavedDeals(true)
+    setSavedDealsError(null)
+
+    try {
+      const response = await fetch("/api/saved-deals")
+      const payload = await response.json()
+
+      if (!response.ok || !payload?.success || !Array.isArray(payload?.deals)) {
+        setSavedDeals([])
+        setSavedDealsError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "Unable to load saved deals at this time."
+        )
+        return
+      }
+
+      setSavedDeals(payload.deals as SavedDealListItem[])
+    } catch {
+      setSavedDeals([])
+      setSavedDealsError("Unable to load saved deals at this time.")
+    } finally {
+      setIsLoadingSavedDeals(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const loadTimer = window.setTimeout(() => {
+      void loadSavedDeals()
+    }, 0)
+
+    return () => {
+      window.clearTimeout(loadTimer)
+    }
+  }, [loadSavedDeals])
 
   function handleChange(field: keyof DealInputs, raw: string) {
     const value = raw === "" ? 0 : Math.max(0, parseFloat(raw) || 0)
@@ -137,11 +185,21 @@ export default function Home() {
       }
 
       setSaveDealSuccessId(payload.deal?.id ?? null)
+      await loadSavedDeals()
     } catch {
       setSaveDealError("Unable to save deal at this time.")
     } finally {
       setIsSavingDeal(false)
     }
+  }
+
+  function formatSavedDealCreatedAt(value: string): string {
+    const parsed = new Date(value)
+    if (Number.isNaN(parsed.getTime())) {
+      return value
+    }
+
+    return parsed.toLocaleString()
   }
 
   const result = analyzeDealWithRefurb(inputs, useScope ? scope : undefined)
@@ -345,6 +403,50 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-800">Saved Deals</h2>
+          <p className="mt-1 text-xs text-gray-500">
+            Read-only saved deals list. Reopen/detail behavior is intentionally not added in this step.
+          </p>
+
+          {isLoadingSavedDeals ? (
+            <p className="mt-4 text-sm text-gray-500">Loading saved deals...</p>
+          ) : savedDealsError ? (
+            <p className="mt-4 text-sm text-red-700">{savedDealsError}</p>
+          ) : savedDeals.length === 0 ? (
+            <p className="mt-4 text-sm text-gray-500">No saved deals yet.</p>
+          ) : (
+            <div className="mt-4 overflow-x-auto rounded border border-gray-200">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+                  <tr>
+                    <th className="px-3 py-2">Address</th>
+                    <th className="px-3 py-2">Classification</th>
+                    <th className="px-3 py-2">Pipeline</th>
+                    <th className="px-3 py-2">Created</th>
+                    <th className="px-3 py-2">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {savedDeals.map((deal) => (
+                    <tr key={deal.id} className="border-t border-gray-100">
+                      <td className="px-3 py-2 text-gray-900">{deal.address}</td>
+                      <td className="px-3 py-2 text-gray-700">{deal.classification}</td>
+                      <td className="px-3 py-2 text-gray-700">{deal.pipeline_state}</td>
+                      <td className="px-3 py-2 text-gray-700">{formatSavedDealCreatedAt(deal.created_at)}</td>
+                      <td className="px-3 py-2">
+                        <span className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-500">
+                          View (soon)
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
 
         <div className="mt-10 border-t border-gray-200 pt-6 text-center">
           <p className="text-xs text-gray-400">(c) Lake Views Property</p>
