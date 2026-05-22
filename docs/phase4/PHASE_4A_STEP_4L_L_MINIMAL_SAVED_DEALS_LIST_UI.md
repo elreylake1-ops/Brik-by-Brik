@@ -39,3 +39,5 @@ Add a minimal read-only saved deals list UI using existing saved deals API route
 
 ## Recommended Next Step
 Phase 4A Step 4L-M - Minimal saved deal detail/reopen UI (read-only) using `GET /api/saved-deals/[id]`.
+
+Status note: Phase 4A Step 4L-M saved deal detail/reopen UI boundary created. No detail UI, command view, pipeline, offers, tasks, notes, evidence, or audit behavior added.
