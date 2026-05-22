@@ -66,6 +66,18 @@ type DealOfferListItem = {
   created_at: string
 }
 
+type DealTaskListItem = {
+  id: string
+  task_title: string
+  task_type: string
+  task_status: string
+  priority: string
+  due_date: string | null
+  blocker_reason: string | null
+  created_at: string
+  completed_at: string | null
+}
+
 export default function Home() {
   const PIPELINE_STATE_OPTIONS = [
     "UNDER_ANALYSIS",
@@ -108,6 +120,18 @@ export default function Home() {
   const [isAddingOffer, setIsAddingOffer] = useState(false)
   const [addOfferMessage, setAddOfferMessage] = useState<string | null>(null)
   const [addOfferError, setAddOfferError] = useState<string | null>(null)
+  const [tasks, setTasks] = useState<DealTaskListItem[]>([])
+  const [isLoadingTasks, setIsLoadingTasks] = useState(false)
+  const [tasksError, setTasksError] = useState<string | null>(null)
+  const [taskTitle, setTaskTitle] = useState("")
+  const [taskType, setTaskType] = useState("DUE_DILIGENCE")
+  const [taskStatus, setTaskStatus] = useState("OPEN")
+  const [taskPriority, setTaskPriority] = useState("MEDIUM")
+  const [taskDueDate, setTaskDueDate] = useState("")
+  const [taskBlockerReason, setTaskBlockerReason] = useState("")
+  const [isAddingTask, setIsAddingTask] = useState(false)
+  const [addTaskMessage, setAddTaskMessage] = useState<string | null>(null)
+  const [addTaskError, setAddTaskError] = useState<string | null>(null)
   const [selectedWalkthroughPresetId, setSelectedWalkthroughPresetId] = useState(
     CALCULATOR_WALKTHROUGH_PRESETS[0]?.id ?? ""
   )
@@ -282,6 +306,33 @@ export default function Home() {
     }
   }
 
+  async function loadTasksForDeal(dealId: string) {
+    setIsLoadingTasks(true)
+    setTasksError(null)
+
+    try {
+      const response = await fetch(`/api/saved-deals/${encodeURIComponent(dealId)}/tasks`)
+      const payload = await response.json()
+
+      if (!response.ok || !payload?.success || !Array.isArray(payload?.tasks)) {
+        setTasks([])
+        setTasksError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "Unable to load tasks at this time."
+        )
+        return
+      }
+
+      setTasks(payload.tasks as DealTaskListItem[])
+    } catch {
+      setTasks([])
+      setTasksError("Unable to load tasks at this time.")
+    } finally {
+      setIsLoadingTasks(false)
+    }
+  }
+
   function formatCurrency(value: number | null): string {
     if (typeof value !== "number") {
       return "N/A"
@@ -327,12 +378,25 @@ export default function Home() {
       setOfferStatus("DRAFT")
       setOfferRationale("")
       setSellerResponse("")
-      await loadOffersForDeal(id)
+      setAddTaskMessage(null)
+      setAddTaskError(null)
+      setTaskTitle("")
+      setTaskType("DUE_DILIGENCE")
+      setTaskStatus("OPEN")
+      setTaskPriority("MEDIUM")
+      setTaskDueDate("")
+      setTaskBlockerReason("")
+      await Promise.all([
+        loadOffersForDeal(id),
+        loadTasksForDeal(id),
+      ])
     } catch {
       setSelectedSavedDeal(null)
       setSelectedSavedDealError("Unable to load saved deal at this time.")
       setOffers([])
       setOffersError(null)
+      setTasks([])
+      setTasksError(null)
     } finally {
       setIsLoadingSelectedSavedDeal(false)
     }
@@ -388,6 +452,60 @@ export default function Home() {
       setAddOfferError("Unable to add offer at this time.")
     } finally {
       setIsAddingOffer(false)
+    }
+  }
+
+  async function handleAddTask() {
+    if (!selectedSavedDeal || isAddingTask) {
+      return
+    }
+
+    if (!taskTitle.trim()) {
+      setAddTaskMessage(null)
+      setAddTaskError("Task title is required.")
+      return
+    }
+
+    setIsAddingTask(true)
+    setAddTaskMessage(null)
+    setAddTaskError(null)
+
+    try {
+      const response = await fetch(`/api/saved-deals/${encodeURIComponent(selectedSavedDeal.id)}/tasks`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          task_title: taskTitle.trim(),
+          task_type: taskType,
+          task_status: taskStatus,
+          priority: taskPriority,
+          due_date: taskDueDate || null,
+          blocker_reason: taskBlockerReason.trim() || null,
+        }),
+      })
+
+      const payload = await response.json()
+      if (!response.ok || !payload?.success) {
+        setAddTaskError(
+          typeof payload?.error === "string"
+            ? payload.error
+            : "Unable to add task at this time."
+        )
+        return
+      }
+
+      setAddTaskMessage("Task added.")
+      setTaskTitle("")
+      setTaskType("DUE_DILIGENCE")
+      setTaskStatus("OPEN")
+      setTaskPriority("MEDIUM")
+      setTaskDueDate("")
+      setTaskBlockerReason("")
+      await loadTasksForDeal(selectedSavedDeal.id)
+    } catch {
+      setAddTaskError("Unable to add task at this time.")
+    } finally {
+      setIsAddingTask(false)
     }
   }
 
@@ -865,6 +983,121 @@ export default function Home() {
                               <td className="px-3 py-2 text-gray-700">{offer.offer_rationale ?? "N/A"}</td>
                               <td className="px-3 py-2 text-gray-700">{offer.seller_response ?? "N/A"}</td>
                               <td className="px-3 py-2 text-gray-700">{formatSavedDealCreatedAt(offer.created_at)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded border border-gray-200 bg-gray-50 px-3 py-3">
+                <p className="text-xs uppercase tracking-wide text-gray-500">Tasks</p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1 sm:col-span-2">
+                    <span className="text-xs text-gray-600">Task Title</span>
+                    <input
+                      type="text"
+                      value={taskTitle}
+                      onChange={(event) => setTaskTitle(event.target.value)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-600">Task Type</span>
+                    <input
+                      type="text"
+                      value={taskType}
+                      onChange={(event) => setTaskType(event.target.value)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-600">Task Status</span>
+                    <input
+                      type="text"
+                      value={taskStatus}
+                      onChange={(event) => setTaskStatus(event.target.value)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-600">Priority</span>
+                    <input
+                      type="text"
+                      value={taskPriority}
+                      onChange={(event) => setTaskPriority(event.target.value)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-600">Due Date (optional)</span>
+                    <input
+                      type="date"
+                      value={taskDueDate}
+                      onChange={(event) => setTaskDueDate(event.target.value)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 sm:col-span-2">
+                    <span className="text-xs text-gray-600">Blocker Reason (optional)</span>
+                    <input
+                      type="text"
+                      value={taskBlockerReason}
+                      onChange={(event) => setTaskBlockerReason(event.target.value)}
+                      className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </label>
+                </div>
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={() => void handleAddTask()}
+                    disabled={isAddingTask}
+                    className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isAddingTask ? "Adding..." : "Add Task"}
+                  </button>
+                </div>
+                {addTaskMessage && <p className="mt-2 text-sm text-green-700">{addTaskMessage}</p>}
+                {addTaskError && <p className="mt-2 text-sm text-red-700">{addTaskError}</p>}
+
+                <div className="mt-3">
+                  {isLoadingTasks ? (
+                    <p className="text-sm text-gray-500">Loading tasks...</p>
+                  ) : tasksError ? (
+                    <p className="text-sm text-red-700">{tasksError}</p>
+                  ) : tasks.length === 0 ? (
+                    <p className="text-sm text-gray-500">No tasks yet.</p>
+                  ) : (
+                    <div className="overflow-x-auto rounded border border-gray-200 bg-white">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+                          <tr>
+                            <th className="px-3 py-2">Title</th>
+                            <th className="px-3 py-2">Type</th>
+                            <th className="px-3 py-2">Status</th>
+                            <th className="px-3 py-2">Priority</th>
+                            <th className="px-3 py-2">Due Date</th>
+                            <th className="px-3 py-2">Blocker</th>
+                            <th className="px-3 py-2">Created</th>
+                            <th className="px-3 py-2">Completed</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {tasks.map((task) => (
+                            <tr key={task.id} className="border-t border-gray-100">
+                              <td className="px-3 py-2 text-gray-900">{task.task_title}</td>
+                              <td className="px-3 py-2 text-gray-700">{task.task_type}</td>
+                              <td className="px-3 py-2 text-gray-700">{task.task_status}</td>
+                              <td className="px-3 py-2 text-gray-700">{task.priority}</td>
+                              <td className="px-3 py-2 text-gray-700">{task.due_date ?? "N/A"}</td>
+                              <td className="px-3 py-2 text-gray-700">{task.blocker_reason ?? "N/A"}</td>
+                              <td className="px-3 py-2 text-gray-700">{formatSavedDealCreatedAt(task.created_at)}</td>
+                              <td className="px-3 py-2 text-gray-700">
+                                {task.completed_at ? formatSavedDealCreatedAt(task.completed_at) : "N/A"}
+                              </td>
                             </tr>
                           ))}
                         </tbody>

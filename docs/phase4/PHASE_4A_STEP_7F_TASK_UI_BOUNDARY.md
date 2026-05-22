@@ -45,3 +45,5 @@ Define the minimum safe UI boundary for adding task and blocker creation plus ta
 
 ## Recommended Next Step
 Phase 4A Step 7G - Minimal Task UI Only.
+
+Status note: Phase 4A Step 7G minimal task UI created. No task status/block/complete controls, note, evidence, command view, saved-deal mutation, pipeline mutation, or engine behavior added.
