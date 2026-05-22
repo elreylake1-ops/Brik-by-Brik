@@ -48,3 +48,5 @@ Add a minimal UI path to save the current analysed deal through existing `POST /
 
 ## Recommended Next Step
 Phase 4A Step 4L-H - Minimal Save UI Interaction Test Coverage and small UX hardening (non-functional).
+
+Status note: Phase 4A Step 4L-H saved-deal reopen/list boundary created. No GET route, list UI, reopen UI, command view, pipeline, offers, tasks, or notes behavior added.
