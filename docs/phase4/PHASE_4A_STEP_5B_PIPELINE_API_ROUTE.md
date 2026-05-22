@@ -38,3 +38,5 @@ Add a minimal governance-guarded pipeline movement API route for saved deals.
 
 ## Recommended Next Step
 Phase 4A Step 5C - Minimal pipeline UI trigger with guard outcome display.
+
+Status note: Phase 4A Step 5C pipeline UI boundary created. No pipeline UI, command view, offers, tasks, notes, evidence, audit, or engine behavior added.
