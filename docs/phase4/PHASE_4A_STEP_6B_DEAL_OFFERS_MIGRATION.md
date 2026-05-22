@@ -37,3 +37,4 @@ Add the minimal Phase 4A `deal_offers` table migration only.
 Phase 4A Step 6C - Offer repository helpers only.
 
 Status note: Phase 4A Step 6B-1 reconciled deal_offers.deal_id with saved_deals.id type. No offer repository, API, UI, task, note, command view, or engine behavior added.
+Status note: Phase 4A Step 6C offer repository helpers created. No offer API, UI, task, note, command view, saved-deal engine mutation, or calculator behavior added.
