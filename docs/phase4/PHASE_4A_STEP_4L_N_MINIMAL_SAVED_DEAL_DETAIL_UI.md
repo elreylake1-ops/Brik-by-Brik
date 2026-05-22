@@ -46,3 +46,5 @@ Add a minimal read-only saved deal detail/reopen UI using the existing saved dea
 
 ## Recommended Next Step
 Phase 4A Step 4L-O - Define command view boundary and read-only command surface plan.
+
+Status note: Phase 4A Step 5A pipeline movement boundary created. No pipeline API route, UI, offers, tasks, notes, command view, or engine behavior added.
