@@ -43,3 +43,5 @@ Implement the first saved-deal server runtime boundary using only `POST /api/sav
 
 ## Recommended Next Step
 Phase 4A Step 4L-F - Add minimal non-UI integration test coverage for route payload shaping from existing analysis result surface.
+
+Status note: Phase 4A Step 4L-F save button wiring boundary created. No UI wiring, command view, pipeline, offers, tasks, notes, or calculator logic changes added.
