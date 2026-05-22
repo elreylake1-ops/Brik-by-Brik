@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS deal_offers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  deal_id UUID NOT NULL REFERENCES saved_deals(id) ON DELETE CASCADE,
+  deal_id TEXT NOT NULL REFERENCES saved_deals(id) ON DELETE CASCADE,
   offer_amount NUMERIC NOT NULL,
   offer_type TEXT NOT NULL DEFAULT 'INITIAL',
   offer_status TEXT NOT NULL DEFAULT 'DRAFT',
