@@ -44,3 +44,5 @@ Add minimal offer API routes for creating and listing offers per saved deal.
 
 ## Recommended Next Step
 Phase 4A Step 6F - Minimal Offer UI boundary and safe wiring plan.
+
+Status note: Phase 4A Step 6F offer UI boundary created. No offer UI, status update route, seller-response route, task, note, command view, saved-deal mutation, pipeline mutation, or engine behavior added.
