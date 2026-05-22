@@ -29,3 +29,5 @@ Add a minimal saved-deal detail retrieval route without introducing reopen UI be
 
 ## Recommended Next Step
 Phase 4A Step 4L-K - Minimal saved deals list UI read-only surface.
+
+Status note: Phase 4A Step 4L-K saved deals list UI boundary created. No list UI, detail UI, command view, pipeline, offers, tasks, or notes behavior added.
