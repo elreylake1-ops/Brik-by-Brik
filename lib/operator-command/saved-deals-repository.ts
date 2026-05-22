@@ -1,4 +1,4 @@
-﻿import { query } from "@/lib/db/postgres"
+import { query } from "@/lib/db/postgres"
 
 const SAVED_DEAL_FIELDS =
   "id, created_at, updated_at, archived_at, address, listing_url, purchase_price, gdv_realistic, refurb_cost, classification, governance_state, capital_protection_state, pipeline_state, engine_result_json, risk_summary_json, next_action"
@@ -69,7 +69,7 @@ export type UpdateSavedDealPatch = Partial<
 
 export async function createSavedDeal(input: CreateSavedDealInput): Promise<SavedDealRecord> {
   const result = await query<SavedDealRecord>(
-    `INSERT INTO saved_deals (
+    `INSERT INTO lake_views_property.saved_deals (
       id,
       created_at,
       updated_at,
@@ -129,7 +129,7 @@ export async function createSavedDeal(input: CreateSavedDealInput): Promise<Save
 export async function getSavedDealById(id: string): Promise<SavedDealRecord | null> {
   const result = await query<SavedDealRecord>(
     `SELECT ${SAVED_DEAL_FIELDS}
-     FROM saved_deals
+     FROM lake_views_property.saved_deals
      WHERE id = $1
      LIMIT 1`,
     [id]
@@ -147,7 +147,7 @@ export async function listSavedDeals(options: ListSavedDealsOptions = {}): Promi
 
   const result = await query<SavedDealRecord>(
     `SELECT ${SAVED_DEAL_FIELDS}
-     FROM saved_deals
+     FROM lake_views_property.saved_deals
      ${whereClause}
      ORDER BY updated_at DESC
      LIMIT $1 OFFSET $2`,
@@ -196,7 +196,7 @@ export async function updateSavedDeal(id: string, patch: UpdateSavedDealPatch): 
   const idIndex = values.length
 
   const result = await query<SavedDealRecord>(
-    `UPDATE saved_deals
+    `UPDATE lake_views_property.saved_deals
      SET ${assignments.join(", ")}
      WHERE id = $${idIndex}
      RETURNING ${SAVED_DEAL_FIELDS}`,
@@ -208,7 +208,7 @@ export async function updateSavedDeal(id: string, patch: UpdateSavedDealPatch): 
 
 export async function archiveSavedDeal(id: string): Promise<SavedDealRecord | null> {
   const result = await query<SavedDealRecord>(
-    `UPDATE saved_deals
+    `UPDATE lake_views_property.saved_deals
      SET archived_at = NOW(),
          pipeline_state = 'ARCHIVED',
          updated_at = NOW()
@@ -225,7 +225,7 @@ export async function updateSavedDealPipelineState(
   pipelineState: string
 ): Promise<SavedDealRecord | null> {
   const result = await query<SavedDealRecord>(
-    `UPDATE saved_deals
+    `UPDATE lake_views_property.saved_deals
      SET pipeline_state = $2,
          updated_at = NOW()
      WHERE id = $1
@@ -235,3 +235,4 @@ export async function updateSavedDealPipelineState(
 
   return result.rows[0] ?? null
 }
+

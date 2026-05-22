@@ -24,7 +24,7 @@ export type CreateOfferInput = {
 
 export async function createOffer(dealId: string, input: CreateOfferInput): Promise<DealOfferRecord> {
   const result = await query<DealOfferRecord>(
-    `INSERT INTO deal_offers (
+    `INSERT INTO lake_views_property.deal_offers (
       deal_id,
       offer_amount,
       offer_type,
@@ -55,7 +55,7 @@ export async function createOffer(dealId: string, input: CreateOfferInput): Prom
 export async function listOffersForDeal(dealId: string): Promise<DealOfferRecord[]> {
   const result = await query<DealOfferRecord>(
     `SELECT ${DEAL_OFFER_FIELDS}
-     FROM deal_offers
+     FROM lake_views_property.deal_offers
      WHERE deal_id = $1
      ORDER BY created_at DESC`,
     [dealId]
@@ -66,7 +66,7 @@ export async function listOffersForDeal(dealId: string): Promise<DealOfferRecord
 
 export async function updateOfferStatus(offerId: string, status: string): Promise<DealOfferRecord | null> {
   const result = await query<DealOfferRecord>(
-    `UPDATE deal_offers
+    `UPDATE lake_views_property.deal_offers
      SET offer_status = $2
      WHERE id = $1
      RETURNING ${DEAL_OFFER_FIELDS}`,
@@ -81,7 +81,7 @@ export async function updateSellerResponse(
   sellerResponse: string | null
 ): Promise<DealOfferRecord | null> {
   const result = await query<DealOfferRecord>(
-    `UPDATE deal_offers
+    `UPDATE lake_views_property.deal_offers
      SET seller_response = $2
      WHERE id = $1
      RETURNING ${DEAL_OFFER_FIELDS}`,
@@ -90,3 +90,4 @@ export async function updateSellerResponse(
 
   return result.rows[0] ?? null
 }
+

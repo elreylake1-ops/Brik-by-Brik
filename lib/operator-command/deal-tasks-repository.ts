@@ -27,7 +27,7 @@ export type CreateTaskInput = {
 
 export async function createTask(dealId: string, input: CreateTaskInput): Promise<DealTaskRecord> {
   const result = await query<DealTaskRecord>(
-    `INSERT INTO deal_tasks (
+    `INSERT INTO lake_views_property.deal_tasks (
       deal_id,
       task_title,
       task_type,
@@ -61,7 +61,7 @@ export async function createTask(dealId: string, input: CreateTaskInput): Promis
 export async function listTasksForDeal(dealId: string): Promise<DealTaskRecord[]> {
   const result = await query<DealTaskRecord>(
     `SELECT ${DEAL_TASK_FIELDS}
-     FROM deal_tasks
+     FROM lake_views_property.deal_tasks
      WHERE deal_id = $1
      ORDER BY created_at DESC`,
     [dealId]
@@ -72,7 +72,7 @@ export async function listTasksForDeal(dealId: string): Promise<DealTaskRecord[]
 
 export async function updateTaskStatus(taskId: string, status: string): Promise<DealTaskRecord | null> {
   const result = await query<DealTaskRecord>(
-    `UPDATE deal_tasks
+    `UPDATE lake_views_property.deal_tasks
      SET task_status = $2
      WHERE id = $1
      RETURNING ${DEAL_TASK_FIELDS}`,
@@ -87,7 +87,7 @@ export async function markTaskBlocked(
   blockerReason: string | null
 ): Promise<DealTaskRecord | null> {
   const result = await query<DealTaskRecord>(
-    `UPDATE deal_tasks
+    `UPDATE lake_views_property.deal_tasks
      SET task_status = 'BLOCKED',
          blocker_reason = $2
      WHERE id = $1
@@ -100,7 +100,7 @@ export async function markTaskBlocked(
 
 export async function completeTask(taskId: string): Promise<DealTaskRecord | null> {
   const result = await query<DealTaskRecord>(
-    `UPDATE deal_tasks
+    `UPDATE lake_views_property.deal_tasks
      SET task_status = 'COMPLETE',
          completed_at = NOW()
      WHERE id = $1
@@ -110,3 +110,4 @@ export async function completeTask(taskId: string): Promise<DealTaskRecord | nul
 
   return result.rows[0] ?? null
 }
+

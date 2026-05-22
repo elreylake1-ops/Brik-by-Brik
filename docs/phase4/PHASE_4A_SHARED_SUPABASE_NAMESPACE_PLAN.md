@@ -60,3 +60,4 @@ Do not run current unqualified Phase 4A migrations in the shared Supabase projec
 Phase 4A Namespace Alignment Patch:
 - update Phase 4A migrations and repository SQL to `lake_views_property` schema
 - then run live DB QA against the shared Supabase project
+`r`nStatus note: Phase 4A namespace alignment patch completed. Migrations and repository SQL now use lake_views_property schema. No migrations applied, no feature expansion, no new API/UI, and no engine behavior added.

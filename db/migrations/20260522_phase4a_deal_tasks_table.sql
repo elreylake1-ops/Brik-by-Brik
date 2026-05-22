@@ -1,9 +1,11 @@
 -- Phase 4A Step 7B deal_tasks schema addition
 -- Scope: add only MVP deal_tasks table
 
-CREATE TABLE IF NOT EXISTS deal_tasks (
+CREATE SCHEMA IF NOT EXISTS lake_views_property;
+
+CREATE TABLE IF NOT EXISTS lake_views_property.deal_tasks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  deal_id TEXT NOT NULL REFERENCES saved_deals(id) ON DELETE CASCADE,
+  deal_id TEXT NOT NULL REFERENCES lake_views_property.saved_deals(id) ON DELETE CASCADE,
   task_title TEXT NOT NULL,
   task_type TEXT NOT NULL DEFAULT 'DUE_DILIGENCE',
   task_status TEXT NOT NULL DEFAULT 'OPEN',
