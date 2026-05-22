@@ -22,6 +22,8 @@ type SavedDealRecord = {
   next_action: string | null
 }
 
+export type { SavedDealRecord }
+
 export type CreateSavedDealInput = {
   id?: string
   created_at?: string
@@ -213,6 +215,22 @@ export async function archiveSavedDeal(id: string): Promise<SavedDealRecord | nu
      WHERE id = $1
      RETURNING ${SAVED_DEAL_FIELDS}`,
     [id]
+  )
+
+  return result.rows[0] ?? null
+}
+
+export async function updateSavedDealPipelineState(
+  id: string,
+  pipelineState: string
+): Promise<SavedDealRecord | null> {
+  const result = await query<SavedDealRecord>(
+    `UPDATE saved_deals
+     SET pipeline_state = $2,
+         updated_at = NOW()
+     WHERE id = $1
+     RETURNING ${SAVED_DEAL_FIELDS}`,
+    [id, pipelineState]
   )
 
   return result.rows[0] ?? null

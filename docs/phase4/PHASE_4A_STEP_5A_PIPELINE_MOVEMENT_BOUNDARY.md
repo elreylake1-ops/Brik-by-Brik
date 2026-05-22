@@ -35,3 +35,5 @@ This document defines the minimum safe boundary for moving a saved deal through 
 
 ## Recommended Next Step
 Phase 4A Step 5B - Pipeline API Route Only.
+
+Status note: Phase 4A Step 5B pipeline API route created. No pipeline UI, offers, tasks, notes, command view, archive/edit, or engine behavior added.
