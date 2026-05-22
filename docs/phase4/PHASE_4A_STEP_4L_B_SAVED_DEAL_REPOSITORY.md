@@ -54,3 +54,5 @@ Implement server-side saved_deals repository helpers only for Phase 4A MVP persi
 
 ## Recommended Next Step
 Phase 4A next step: wire repository usage only where explicitly approved, still keeping API/UI/calculator wiring scoped separately.
+
+Status note: Phase 4A Step 4L-C integration boundary created. No API/server action/UI/command view/pipeline/offers/tasks/notes behavior added.
