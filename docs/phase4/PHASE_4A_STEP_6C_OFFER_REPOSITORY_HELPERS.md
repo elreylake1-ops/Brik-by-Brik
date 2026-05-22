@@ -32,3 +32,5 @@ Add minimal server-side `deal_offers` repository helpers only.
 
 ## Recommended Next Step
 Phase 4A Step 6D - Offer API routes only (`POST` and `GET` for deal offers).
+
+Status note: Phase 4A Step 6D offer API route boundary created. No offer API route, UI, task, note, command view, or engine behavior added.
