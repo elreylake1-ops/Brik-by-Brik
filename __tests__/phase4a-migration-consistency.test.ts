@@ -32,6 +32,10 @@ describe("phase 4a migration consistency", () => {
     expect(dealTasksSql).toContain(
       "deal_id TEXT NOT NULL REFERENCES brik_by_brik_engine.saved_deals(id) ON DELETE CASCADE"
     )
+
+    for (const sql of [savedDealsSql, dealOffersSql, dealTasksSql]) {
+      expect(sql).not.toContain("lake_views_property")
+    }
   })
 
   it("does not introduce extra offer fields", () => {
@@ -96,5 +100,25 @@ describe("phase 4a migration consistency", () => {
     }
 
     expect(investorShieldSql).not.toContain("deal_id UUID")
+    expect(investorShieldSql).not.toContain("lake_views_property")
+  })
+
+  it("keeps current namespace handoff guidance aligned to brik_by_brik_engine", () => {
+    const localEnvSetupDoc = readFileSync(
+      path.resolve(process.cwd(), "docs/phase4/PHASE_4A_LOCAL_ENV_SETUP.md"),
+      "utf8"
+    )
+    const runtimeFixDoc = readFileSync(
+      path.resolve(process.cwd(), "docs/phase4/PHASE_4_SCHEMA_NAMESPACE_RUNTIME_FIX.md"),
+      "utf8"
+    )
+
+    expect(localEnvSetupDoc).toContain("brik_by_brik_engine")
+    expect(localEnvSetupDoc).toContain("lake_views_property")
+    expect(localEnvSetupDoc).toContain("deprecated")
+
+    expect(runtimeFixDoc).toContain("Canonical schema: `brik_by_brik_engine`")
+    expect(runtimeFixDoc).toContain("saved_deals.id` remains `TEXT`")
+    expect(runtimeFixDoc).toContain("Do not change `deal_id` columns to `UUID`.")
   })
 })

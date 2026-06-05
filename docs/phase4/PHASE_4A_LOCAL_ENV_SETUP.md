@@ -18,4 +18,5 @@ Provide a local placeholder configuration for Phase 4A Live DB Acceptance QA wit
 - Keep `.env.local` untracked/ignored.
 
 ## Phase 4A QA Reminder
-- Apply namespaced Phase 4A migrations (`lake_views_property` schema) before running live DB acceptance QA.
+- Apply the canonical Phase 4A migrations under `brik_by_brik_engine` before running live DB acceptance QA.
+- Historical QA references to `lake_views_property` are deprecated and should not be used for current Supabase runs.
