@@ -1,4 +1,6 @@
 import { query } from "@/lib/db/postgres"
+import { buildDefaultInvestorShieldChecks } from "@/lib/investor-shield/default-checks"
+import { insertInvestorShieldChecks } from "@/lib/investor-shield/investor-shield-repository"
 
 const SAVED_DEAL_FIELDS =
   "id, created_at, updated_at, archived_at, address, listing_url, purchase_price, gdv_realistic, refurb_cost, classification, governance_state, capital_protection_state, pipeline_state, engine_result_json, risk_summary_json, next_action"
@@ -123,7 +125,18 @@ export async function createSavedDeal(input: CreateSavedDealInput): Promise<Save
     ]
   )
 
-  return result.rows[0]
+  const savedDeal = result.rows[0]
+
+  try {
+    await insertInvestorShieldChecks(buildDefaultInvestorShieldChecks(savedDeal.id))
+  } catch (error) {
+    console.error("Investor Shield default check creation failed for saved deal.", {
+      savedDealId: savedDeal.id,
+      error,
+    })
+  }
+
+  return savedDeal
 }
 
 export async function getSavedDealById(id: string): Promise<SavedDealRecord | null> {

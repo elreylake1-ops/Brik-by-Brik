@@ -1,12 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { CreateSavedDealInput, UpdateSavedDealPatch } from "@/lib/operator-command/saved-deals-repository"
 
-const { queryMock } = vi.hoisted(() => ({
+const { buildDefaultInvestorShieldChecksMock, insertInvestorShieldChecksMock, queryMock } = vi.hoisted(() => ({
+  buildDefaultInvestorShieldChecksMock: vi.fn(),
+  insertInvestorShieldChecksMock: vi.fn(),
   queryMock: vi.fn(),
 }))
 
 vi.mock("@/lib/db/postgres", () => ({
   query: queryMock,
+}))
+
+vi.mock("@/lib/investor-shield/default-checks", () => ({
+  buildDefaultInvestorShieldChecks: buildDefaultInvestorShieldChecksMock,
+}))
+
+vi.mock("@/lib/investor-shield/investor-shield-repository", () => ({
+  insertInvestorShieldChecks: insertInvestorShieldChecksMock,
 }))
 
 import {
@@ -19,10 +29,12 @@ import {
 
 describe("phase 4a saved deals repository", () => {
   beforeEach(() => {
+    buildDefaultInvestorShieldChecksMock.mockReset()
+    insertInvestorShieldChecksMock.mockReset()
     queryMock.mockReset()
   })
 
-  it("createSavedDeal maps fields and preserves JSON payloads", async () => {
+  it("createSavedDeal maps fields, preserves JSON payloads, and then attempts default investor shield creation", async () => {
     const engineResult = { verdict: "CONDITIONAL", mao: 123000 }
     const riskSummary = { level: "MEDIUM", blockers: ["legal"] }
     const input: CreateSavedDealInput = {
@@ -40,7 +52,11 @@ describe("phase 4a saved deals repository", () => {
       next_action: "Review legal pack",
     }
 
-    queryMock.mockResolvedValueOnce({ rows: [{ id: "d1", ...input, created_at: "2026-05-22", updated_at: "2026-05-22", archived_at: null }] })
+    buildDefaultInvestorShieldChecksMock.mockReturnValueOnce([{ dealId: "d1", gateKey: "SOLD_COMPS" }])
+    insertInvestorShieldChecksMock.mockResolvedValueOnce([])
+    queryMock.mockResolvedValueOnce({
+      rows: [{ id: "d1", ...input, created_at: "2026-05-22", updated_at: "2026-05-22", archived_at: null }],
+    })
 
     await createSavedDeal(input)
 
@@ -51,8 +67,73 @@ describe("phase 4a saved deals repository", () => {
 
     const serialized = JSON.stringify(params)
     for (const forbidden of ["aiProvider", "scraping", "crm", "webhook", "runtimeWrite"]) {
-      expect(serialized).not.toContain(`\"${forbidden}\"`)
+      expect(serialized).not.toContain(`\\\"${forbidden}\\\"`)
     }
+
+    expect(buildDefaultInvestorShieldChecksMock).toHaveBeenCalledWith("d1")
+    expect(insertInvestorShieldChecksMock).toHaveBeenCalledWith([{ dealId: "d1", gateKey: "SOLD_COMPS" }])
+  })
+
+  it("createSavedDeal does not attempt default investor shield creation before the saved deal insert succeeds", async () => {
+    queryMock.mockRejectedValueOnce(new Error("insert failed"))
+
+    await expect(
+      createSavedDeal({
+        address: "1 Test Road",
+        classification: "CONDITIONAL",
+        governance_state: "MANUAL_REVIEW_REQUIRED",
+        capital_protection_state: "PROTECTED",
+        pipeline_state: "UNDER_ANALYSIS",
+        engine_result_json: {},
+        risk_summary_json: {},
+      })
+    ).rejects.toThrow("insert failed")
+
+    expect(buildDefaultInvestorShieldChecksMock).not.toHaveBeenCalled()
+    expect(insertInvestorShieldChecksMock).not.toHaveBeenCalled()
+  })
+
+  it("createSavedDeal stays successful when investor shield check insertion fails", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+
+    buildDefaultInvestorShieldChecksMock.mockReturnValueOnce([{ dealId: "d1", gateKey: "SOLD_COMPS" }])
+    insertInvestorShieldChecksMock.mockRejectedValueOnce(new Error("shield insert failed"))
+    queryMock.mockResolvedValueOnce({
+      rows: [{
+        id: "d1",
+        address: "1 Test Road",
+        listing_url: null,
+        purchase_price: null,
+        gdv_realistic: null,
+        refurb_cost: null,
+        classification: "CONDITIONAL",
+        governance_state: "MANUAL_REVIEW_REQUIRED",
+        capital_protection_state: "PROTECTED",
+        pipeline_state: "UNDER_ANALYSIS",
+        engine_result_json: {},
+        risk_summary_json: {},
+        next_action: null,
+        created_at: "2026-05-22",
+        updated_at: "2026-05-22",
+        archived_at: null,
+      }],
+    })
+
+    const result = await createSavedDeal({
+      address: "1 Test Road",
+      classification: "CONDITIONAL",
+      governance_state: "MANUAL_REVIEW_REQUIRED",
+      capital_protection_state: "PROTECTED",
+      pipeline_state: "UNDER_ANALYSIS",
+      engine_result_json: {},
+      risk_summary_json: {},
+    })
+
+    expect(result.id).toBe("d1")
+    expect(insertInvestorShieldChecksMock).toHaveBeenCalledTimes(1)
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
+
+    consoleErrorSpy.mockRestore()
   })
 
   it("getSavedDealById returns null when no rows", async () => {
@@ -113,4 +194,3 @@ describe("phase 4a saved deals repository", () => {
     expect(typeof mod.archiveSavedDeal).toBe("function")
   })
 })
-
