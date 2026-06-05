@@ -67,4 +67,34 @@ describe("phase 4a migration consistency", () => {
       expect(dealOffersSql).not.toContain(forbidden)
     }
   })
+
+  it("drafts phase 4b investor shield tables with TEXT-compatible deal_id columns", () => {
+    const investorShieldSql = readFileSync(
+      path.resolve(process.cwd(), "db/migrations/20260524_phase4b_investor_shield_tables.sql"),
+      "utf8"
+    )
+
+    expect(investorShieldSql).toContain("CREATE SCHEMA IF NOT EXISTS brik_by_brik_engine;")
+
+    for (const tableName of [
+      "investor_shield_checks",
+      "evidence_items",
+      "risk_flags",
+      "manual_overrides",
+      "builder_proposals",
+      "builder_contract_checks",
+    ]) {
+      expect(investorShieldSql).toContain(`CREATE TABLE IF NOT EXISTS brik_by_brik_engine.${tableName}`)
+    }
+
+    for (const expected of [
+      "deal_id TEXT NOT NULL REFERENCES brik_by_brik_engine.saved_deals(id) ON DELETE CASCADE",
+      "required_evidence TEXT[] NOT NULL DEFAULT '{}'",
+      "builder_proposal_id TEXT REFERENCES brik_by_brik_engine.builder_proposals(id) ON DELETE SET NULL",
+    ]) {
+      expect(investorShieldSql).toContain(expected)
+    }
+
+    expect(investorShieldSql).not.toContain("deal_id UUID")
+  })
 })
