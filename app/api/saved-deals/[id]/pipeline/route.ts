@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server"
+import {
+  guardInvestorShieldPipelineMovement,
+  isInvestorShieldProtectedStage,
+} from "@/lib/investor-shield/guard-investor-shield-pipeline-movement"
+import { loadAndEvaluateInvestorShield } from "@/lib/investor-shield/investor-shield-read-model"
 import { evaluateOperatorGuard } from "@/lib/operator-command/evaluate-operator-guard"
 import {
   getSavedDealById,
@@ -94,10 +99,78 @@ export async function POST(request: Request, context: RouteContext) {
       )
     }
 
+    let investorShieldGuard:
+      | ReturnType<typeof guardInvestorShieldPipelineMovement>
+      | undefined
+
+    try {
+      const enforcementResult = await loadAndEvaluateInvestorShield(savedDeal.id, {
+        deterministicDealStatus: savedDeal.governance_state,
+      })
+
+      investorShieldGuard = guardInvestorShieldPipelineMovement({
+        dealId: savedDeal.id,
+        currentStage: savedDeal.pipeline_state,
+        requestedStage: requestedPipelineState,
+        enforcementResult,
+        deterministicDealStatus: savedDeal.governance_state,
+      })
+    } catch {
+      if (isInvestorShieldProtectedStage(requestedPipelineState)) {
+        return NextResponse.json(
+          {
+            success: false,
+            allowed: false,
+            guard: {
+              ...guard,
+              investor_shield: {
+                movementDecision: "BLOCK",
+                protectedStage: true,
+                reasons: ["INVESTOR_SHIELD_EVALUATION_FAILED"],
+              },
+            },
+            error: "Pipeline movement is blocked pending Investor Shield review.",
+          },
+          { status: 409 }
+        )
+      }
+    }
+
+    if (
+      investorShieldGuard &&
+      (investorShieldGuard.movementDecision === "BLOCK" ||
+        investorShieldGuard.movementDecision === "NEEDS_REVIEW")
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          allowed: false,
+          guard: {
+            ...guard,
+            investor_shield: investorShieldGuard,
+          },
+          error:
+            investorShieldGuard.movementDecision === "BLOCK"
+              ? "Pipeline movement is blocked by Investor Shield guard."
+              : "Pipeline movement requires Investor Shield review before progressing.",
+        },
+        { status: 409 }
+      )
+    }
+
     const updatedDeal = await updateSavedDealPipelineState(id, requestedPipelineState)
 
     return NextResponse.json(
-      { success: true, deal: updatedDeal, guard },
+      {
+        success: true,
+        deal: updatedDeal,
+        guard: investorShieldGuard
+          ? {
+              ...guard,
+              investor_shield: investorShieldGuard,
+            }
+          : guard,
+      },
       { status: 200 }
     )
   } catch {
