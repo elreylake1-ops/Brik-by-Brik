@@ -26,7 +26,7 @@ function makeModel(overrides: Partial<InvestorShieldUiModel> = {}): InvestorShie
         severity: "BLOCKER",
         confidence: "LOW",
         evidenceCount: 1,
-        missingEvidenceSummary: [],
+        missingEvidenceSummary: ["TITLE_DOCUMENT"],
         shortExplanation: "Title review found an unresolved issue.",
         recommendedNextAction: "Review title gate",
         advisoryOnly: false,
@@ -44,6 +44,22 @@ function makeModel(overrides: Partial<InvestorShieldUiModel> = {}): InvestorShie
         shortExplanation: "Current evidence is weak.",
         recommendedNextAction: "Obtain builder quote",
         advisoryOnly: true,
+        subGates: [
+          {
+            key: "AI_VISUAL_REVIEW_ADVISORY",
+            label: "AI Visual Review Advisory",
+            description: "Advisory AI review only.",
+            requiredLabel: "Advisory",
+            status: "SATISFIED",
+            severity: "CAUTION",
+            confidence: "LOW",
+            evidenceCount: 1,
+            missingEvidenceSummary: [],
+            shortExplanation: "AI visual review is advisory only.",
+            recommendedNextAction: "Use as supporting review only",
+            advisoryOnly: true,
+          },
+        ],
       },
     ],
     ...overrides,
@@ -70,6 +86,12 @@ describe("investor shield gate summary panel", () => {
     expect(html).toContain("Refurb Certainty")
     expect(html).toContain("Review title gate")
     expect(html).toContain("Obtain builder quote")
+    expect(html).toContain("Missing evidence: TITLE_DOCUMENT")
+    expect(html).toContain("Missing evidence ROOM_MEASUREMENT")
+    expect(html).toContain("AI Visual Review Advisory")
+    expect(html).toContain("AI visual review is advisory only.")
+    expect(html).toContain("Next: Review title gate")
+    expect(html).toContain("Next: Obtain builder quote")
   })
 
   it("renders Required and Advisory labels", () => {
@@ -99,5 +121,15 @@ describe("investor shield gate summary panel", () => {
     )
 
     expect(html).toContain("No Investor Shield gates available.")
+  })
+
+  it("renders compact missing evidence and advisory sub-gate labels", () => {
+    const html = renderToStaticMarkup(
+      <InvestorShieldGateSummaryPanel model={makeModel()} />
+    )
+
+    expect(html).toContain("Missing evidence: TITLE_DOCUMENT")
+    expect(html).toContain("AI Visual Review Advisory")
+    expect(html).toContain("Advisory")
   })
 })

@@ -197,6 +197,7 @@ describe("investor shield adapter panel preview", () => {
     expect(model.cautionGateKeys.length).toBeGreaterThan(0)
     expect(model.missingEvidenceGateKeys.length).toBeGreaterThan(0)
     expect(model.taskRecommendations.length).toBeGreaterThan(0)
+    expect(refurbGate?.subGates?.some((subGate) => subGate.key === "AI_VISUAL_REVIEW_ADVISORY")).toBe(true)
 
     const html = renderToStaticMarkup(<InvestorShieldGateSummaryPanel model={model} />)
 
@@ -212,5 +213,7 @@ describe("investor shield adapter panel preview", () => {
     expect(html).toContain(`>${rentalGate?.evidenceCount}<`)
     expect(html).toContain("Request evidence")
     expect(html).toContain("Overall Status: BLOCKED")
+    expect(html).toContain("AI Visual Review Advisory")
+    expect(html).toContain("Missing evidence")
   })
 })
