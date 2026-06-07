@@ -7,6 +7,7 @@ import RefurbScopeForm from "@/components/RefurbScopeForm"
 import RefurbBreakdownSummary from "@/components/RefurbBreakdownSummary"
 import EngineAnalysisPanel from "@/components/EngineAnalysisPanel"
 import { analyzeDealWithRefurb } from "@/lib/engine/analyze-deal-with-refurb"
+import { fetchInvestorShieldUiModel } from "@/lib/investor-shield/fetch-investor-shield-ui-model"
 import type { InvestorShieldUiModel } from "@/lib/investor-shield/investor-shield-ui-adapter"
 import {
   CALCULATOR_WALKTHROUGH_PRESETS,
@@ -188,6 +189,49 @@ export default function Home() {
       window.clearTimeout(loadTimer)
     }
   }, [loadSavedDeals])
+
+  useEffect(() => {
+    let active = true
+
+    void (async () => {
+      const selectedSavedDealId = selectedSavedDeal?.id?.trim() ?? ""
+
+      if (!selectedSavedDealId) {
+        setInvestorShieldModel(null)
+        setInvestorShieldLoading(false)
+        setInvestorShieldError(null)
+        return
+      }
+
+      setInvestorShieldLoading(true)
+      setInvestorShieldError(null)
+      setInvestorShieldModel(null)
+
+      const result = await fetchInvestorShieldUiModel(selectedSavedDealId)
+
+      if (!active) {
+        return
+      }
+
+      if (result.success) {
+        setInvestorShieldModel(result.model)
+        setInvestorShieldError(null)
+      } else {
+        setInvestorShieldModel(null)
+        setInvestorShieldError(result.error)
+      }
+
+      setInvestorShieldLoading(false)
+    })()
+
+    return () => {
+      active = false
+    }
+  }, [selectedSavedDeal?.id])
+
+  const investorShieldStateMarker =
+    investorShieldModel ?? investorShieldLoading ?? investorShieldError
+  void investorShieldStateMarker
 
   function handleChange(field: keyof DealInputs, raw: string) {
     const value = raw === "" ? 0 : Math.max(0, parseFloat(raw) || 0)
