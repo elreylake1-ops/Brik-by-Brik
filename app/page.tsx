@@ -6,6 +6,7 @@ import ResultsDisplay from "@/components/ResultsDisplay"
 import RefurbScopeForm from "@/components/RefurbScopeForm"
 import RefurbBreakdownSummary from "@/components/RefurbBreakdownSummary"
 import EngineAnalysisPanel from "@/components/EngineAnalysisPanel"
+import InvestorShieldGateSummaryPanel from "@/components/InvestorShieldGateSummaryPanel"
 import { analyzeDealWithRefurb } from "@/lib/engine/analyze-deal-with-refurb"
 import { fetchInvestorShieldUiModel } from "@/lib/investor-shield/fetch-investor-shield-ui-model"
 import type { InvestorShieldUiModel } from "@/lib/investor-shield/investor-shield-ui-adapter"
@@ -916,9 +917,9 @@ export default function Home() {
                     Investor Shield status could not be loaded. Pipeline rules remain unchanged.
                   </p>
                 ) : investorShieldModel ? (
-                  <p className="mt-1 text-sm text-gray-700">
-                    Investor Shield status loaded. Gate summary will display in the next step.
-                  </p>
+                  <div className="mt-3">
+                    <InvestorShieldGateSummaryPanel model={investorShieldModel} />
+                  </div>
                 ) : (
                   <p className="mt-1 text-sm text-gray-700">
                     Investor Shield status is not available yet.
