@@ -81,6 +81,99 @@ type DealTaskListItem = {
   completed_at: string | null
 }
 
+type PipelineUpdateInvestorShieldNotice = {
+  title: string
+  body: string
+  details: readonly string[]
+}
+
+function uniqueStrings(values: readonly string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))]
+}
+
+function buildInvestorShieldPipelineNotice(
+  args: {
+    movementDecision?: string
+    requestedStage: string
+    guardData?: {
+      blockingGateKeys?: readonly string[]
+      cautionGateKeys?: readonly string[]
+      taskDrafts?: readonly { title: string; description?: string }[]
+      deterministicDominanceNote?: string
+    }
+    model: InvestorShieldUiModel | null
+    selectedSavedDeal: SavedDealDetail | null
+  }
+): PipelineUpdateInvestorShieldNotice | null {
+  const movementDecision = args.movementDecision?.toUpperCase()
+  if (movementDecision !== "BLOCK" && movementDecision !== "NEEDS_REVIEW") {
+    return null
+  }
+
+  const gateSummaries = args.model?.gateSummaries ?? []
+  const gateByKey = new Map<string, (typeof gateSummaries)[number]>(
+    gateSummaries.map((gate) => [gate.key, gate])
+  )
+  const blockingGateKeys = uniqueStrings(args.guardData?.blockingGateKeys ?? [])
+  const cautionGateKeys = uniqueStrings(args.guardData?.cautionGateKeys ?? [])
+  const gateKeys = movementDecision === "BLOCK" ? blockingGateKeys : cautionGateKeys
+
+  const gateNames = gateKeys
+    .map((key) => gateByKey.get(key)?.label ?? key)
+    .filter((value) => value.trim().length > 0)
+
+  const missingEvidenceDetails = gateKeys.flatMap((key) => {
+    const gate = gateByKey.get(key)
+    if (!gate || gate.missingEvidenceSummary.length === 0) {
+      return []
+    }
+
+    return [`${gate.label}: ${gate.missingEvidenceSummary.join(", ")}`]
+  })
+
+  const nextAction =
+    args.guardData?.taskDrafts?.[0]?.title?.trim() ||
+    args.model?.taskRecommendations?.[0]?.title?.trim() ||
+    args.selectedSavedDeal?.next_action?.trim() ||
+    ""
+
+  const details: string[] = []
+
+  details.push(`Requested stage: ${args.requestedStage}`)
+
+  if (gateNames.length > 0) {
+    details.push(`${movementDecision === "BLOCK" ? "Blocking" : "Caution"} gates: ${gateNames.join(", ")}`)
+  }
+
+  if (missingEvidenceDetails.length > 0) {
+    details.push(`Missing evidence: ${missingEvidenceDetails.join(" | ")}`)
+  }
+
+  if (nextAction) {
+    details.push(`Next action: ${nextAction}`)
+  }
+
+  if (movementDecision === "BLOCK") {
+    details.push("Pipeline state did not change.")
+  }
+
+  if (args.guardData?.deterministicDominanceNote) {
+    details.push(args.guardData.deterministicDominanceNote)
+  }
+
+  return {
+    title:
+      movementDecision === "BLOCK"
+        ? "Investor Shield blocked this movement"
+        : "Investor Shield review required",
+    body:
+      movementDecision === "BLOCK"
+        ? "This deal cannot move to the requested stage yet because required due diligence gates are not clear."
+        : "This deal has caution or incomplete due diligence items that should be reviewed before moving forward.",
+    details,
+  }
+}
+
 export default function Home() {
   const PIPELINE_STATE_OPTIONS = [
     "UNDER_ANALYSIS",
@@ -115,6 +208,8 @@ export default function Home() {
   const [isUpdatingPipeline, setIsUpdatingPipeline] = useState(false)
   const [pipelineUpdateMessage, setPipelineUpdateMessage] = useState<string | null>(null)
   const [pipelineUpdateError, setPipelineUpdateError] = useState<string | null>(null)
+  const [pipelineUpdateInvestorShieldNotice, setPipelineUpdateInvestorShieldNotice] =
+    useState<PipelineUpdateInvestorShieldNotice | null>(null)
   const [offers, setOffers] = useState<DealOfferListItem[]>([])
   const [isLoadingOffers, setIsLoadingOffers] = useState(false)
   const [offersError, setOffersError] = useState<string | null>(null)
@@ -420,6 +515,7 @@ export default function Home() {
       setSelectedPipelineState(payload.deal.pipeline_state ?? "UNDER_ANALYSIS")
       setPipelineUpdateMessage(null)
       setPipelineUpdateError(null)
+      setPipelineUpdateInvestorShieldNotice(null)
       setAddOfferMessage(null)
       setAddOfferError(null)
       setOfferAmount("")
@@ -566,6 +662,7 @@ export default function Home() {
     setIsUpdatingPipeline(true)
     setPipelineUpdateMessage(null)
     setPipelineUpdateError(null)
+    setPipelineUpdateInvestorShieldNotice(null)
 
     try {
       const response = await fetch(`/api/saved-deals/${encodeURIComponent(selectedSavedDeal.id)}/pipeline`, {
@@ -577,6 +674,18 @@ export default function Home() {
       const payload = await response.json()
 
       if (!response.ok || !payload?.success) {
+        const investorShieldGuard = payload?.guard?.investor_shield
+        if (investorShieldGuard?.movementDecision === "BLOCK" || investorShieldGuard?.movementDecision === "NEEDS_REVIEW") {
+          setPipelineUpdateInvestorShieldNotice(
+            buildInvestorShieldPipelineNotice({
+              movementDecision: investorShieldGuard.movementDecision,
+              requestedStage: selectedPipelineState,
+              guardData: investorShieldGuard,
+              model: investorShieldModel,
+              selectedSavedDeal,
+            })
+          )
+        }
         setPipelineUpdateError(
           typeof payload?.error === "string"
             ? payload.error
@@ -586,6 +695,7 @@ export default function Home() {
       }
 
       setPipelineUpdateMessage(`Pipeline updated to ${payload.deal?.pipeline_state ?? selectedPipelineState}.`)
+      setPipelineUpdateInvestorShieldNotice(null)
       await Promise.all([
         handleViewSavedDeal(selectedSavedDeal.id),
         loadSavedDeals(),
@@ -1047,6 +1157,23 @@ export default function Home() {
                 )}
                 {pipelineUpdateError && (
                   <p className="mt-2 text-sm text-red-700">{pipelineUpdateError}</p>
+                )}
+                {pipelineUpdateInvestorShieldNotice && (
+                  <div className="mt-3 rounded border border-amber-200 bg-amber-50 px-3 py-3">
+                    <p className="text-sm font-medium text-amber-900">
+                      {pipelineUpdateInvestorShieldNotice.title}
+                    </p>
+                    <p className="mt-1 text-sm text-amber-900">
+                      {pipelineUpdateInvestorShieldNotice.body}
+                    </p>
+                    {pipelineUpdateInvestorShieldNotice.details.length > 0 && (
+                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-900">
+                        {pipelineUpdateInvestorShieldNotice.details.map((detail, index) => (
+                          <li key={`${index}-${detail}`}>{detail}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 )}
               </div>
 
