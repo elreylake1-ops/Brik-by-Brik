@@ -14,7 +14,25 @@ function makeModel(overrides: Partial<InvestorShieldUiModel> = {}): InvestorShie
     missingEvidenceGateKeys: ["REFURB_CERTAINTY"],
     advisoryWarnings: ["AI visual review is advisory-only."],
     manualOverrideRequired: false,
-    taskRecommendations: [],
+    taskRecommendations: [
+      {
+        title: "Review title evidence",
+        reason: "Need the title document.",
+        gateKey: "TITLE",
+        severity: "BLOCKER",
+        priority: "HIGH",
+        source: "investor_shield",
+      },
+      {
+        title: "Obtain builder quote",
+        reason: "Need builder evidence.",
+        gateKey: "REFURB_CERTAINTY",
+        subGateKey: "BUILDER_QUOTE_EVIDENCE",
+        severity: "CAUTION",
+        priority: "MEDIUM",
+        source: "investor_shield",
+      },
+    ],
     protectedMovementExplanation: undefined,
     gateSummaries: [
       {
@@ -92,6 +110,14 @@ describe("investor shield gate summary panel", () => {
     expect(html).toContain("AI visual review is advisory only.")
     expect(html).toContain("Next: Review title gate")
     expect(html).toContain("Next: Obtain builder quote")
+    expect(html).toContain("Investor Shield task recommendations")
+    expect(html).toContain("These are read-only due diligence recommendations. Risk is not resolved until the required evidence is provided and reviewed.")
+    expect(html).toContain("Review title evidence")
+    expect(html).toContain("Obtain builder quote")
+    expect(html).toContain("Gate: TITLE")
+    expect(html).toContain("Sub-gate: BUILDER_QUOTE_EVIDENCE")
+    expect(html).toContain("Priority: HIGH")
+    expect(html).toContain("Priority: MEDIUM")
   })
 
   it("renders Required and Advisory labels", () => {
@@ -121,6 +147,15 @@ describe("investor shield gate summary panel", () => {
     )
 
     expect(html).toContain("No Investor Shield gates available.")
+  })
+
+  it("handles empty task recommendations safely", () => {
+    const html = renderToStaticMarkup(
+      <InvestorShieldGateSummaryPanel model={makeModel({ taskRecommendations: [] })} />
+    )
+
+    expect(html).not.toContain("Investor Shield task recommendations")
+    expect(html).not.toContain("These are read-only due diligence recommendations.")
   })
 
   it("renders compact missing evidence and advisory sub-gate labels", () => {

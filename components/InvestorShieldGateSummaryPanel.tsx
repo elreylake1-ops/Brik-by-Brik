@@ -10,6 +10,7 @@ type CountCardProps = {
 }
 
 type GateRow = InvestorShieldUiModel["gateSummaries"][number]
+type TaskRecommendationRow = InvestorShieldUiModel["taskRecommendations"][number]
 
 function countCard({ label, value }: CountCardProps) {
   return (
@@ -49,6 +50,22 @@ function getMissingEvidenceText(gate: GateRow): string | null {
   return `${prefix} ${gate.missingEvidenceSummary.join(", ")}`
 }
 
+function getRecommendationDetail(recommendation: TaskRecommendationRow): string {
+  const parts = [recommendation.reason.trim()]
+
+  if (recommendation.gateKey.trim().length > 0) {
+    parts.push(`Gate: ${recommendation.gateKey}`)
+  }
+
+  if (recommendation.subGateKey?.trim()) {
+    parts.push(`Sub-gate: ${recommendation.subGateKey.trim()}`)
+  }
+
+  parts.push(`Priority: ${recommendation.priority}`)
+
+  return parts.filter((part) => part.length > 0).join(" | ")
+}
+
 export default function InvestorShieldGateSummaryPanel({ model }: Props) {
   return (
     <section className="rounded border border-gray-200 bg-gray-50 px-4 py-4">
@@ -66,6 +83,26 @@ export default function InvestorShieldGateSummaryPanel({ model }: Props) {
           <p className="mt-1">{formatBooleanLabel(model.canProgress)}</p>
         </div>
       </div>
+
+      {model.taskRecommendations.length > 0 ? (
+        <div className="mt-4 rounded border border-blue-200 bg-blue-50 px-3 py-3">
+          <p className="text-xs uppercase tracking-wide text-blue-700">
+            Investor Shield task recommendations
+          </p>
+          <p className="mt-1 text-sm text-blue-900">
+            These are read-only due diligence recommendations. Risk is not resolved until the
+            required evidence is provided and reviewed.
+          </p>
+          <div className="mt-3 space-y-2">
+            {model.taskRecommendations.map((recommendation) => (
+              <div key={`${recommendation.gateKey}-${recommendation.subGateKey ?? "top"}`} className="rounded border border-blue-100 bg-white px-3 py-2 text-sm text-gray-800">
+                <p className="font-medium text-gray-900">{recommendation.title}</p>
+                <p className="mt-1 text-xs text-gray-500">{getRecommendationDetail(recommendation)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {countCard({ label: "Blocking Gates", value: model.blockingGateKeys.length })}
