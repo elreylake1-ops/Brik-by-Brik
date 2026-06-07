@@ -26,6 +26,6 @@ export async function loadInvestorShieldUiModelForDeal(
     checks: input.checks,
     evidenceItems: input.evidenceItems,
     enforcementResult,
+    manualOverrides: input.manualOverrides,
   })
 }
-

@@ -63,6 +63,19 @@ function buildChecks(): readonly InvestorShieldCheck[] {
       }
     }
 
+    if (gate.key === "SOLICITOR_FEEDBACK") {
+      return {
+        dealId: DEAL_ID,
+        gateKey: gate.key,
+        status: "WAIVED",
+        severity: "BLOCKER",
+        confidence: "HIGH",
+        requiredEvidence: gate.evidenceTypes,
+        summary: "Solicitor feedback was waived for this preview.",
+        updatedAt: FIXED_TIMESTAMP,
+      }
+    }
+
     return {
       dealId: DEAL_ID,
       gateKey: gate.key,
@@ -149,6 +162,15 @@ function buildEvidenceItems(): readonly EvidenceItem[] {
     },
     {
       dealId: DEAL_ID,
+      gateKey: "SOLICITOR_FEEDBACK",
+      evidenceType: "SOLICITOR_FEEDBACK",
+      source: "document",
+      confidence: "HIGH",
+      label: "Solicitor review note",
+      createdAt: FIXED_TIMESTAMP,
+    },
+    {
+      dealId: DEAL_ID,
       gateKey: "RENTAL_DEMAND",
       evidenceType: "RENTAL_EVIDENCE",
       source: "ai_advisory",
@@ -164,12 +186,19 @@ describe("investor shield adapter panel preview", () => {
   it("renders the panel from the adapter output without touching live app wiring", () => {
     const checks = buildChecks()
     const evidenceItems = buildEvidenceItems()
+    const manualOverrides = [
+      {
+        dealId: DEAL_ID,
+        gateKey: "SOLICITOR_FEEDBACK" as const,
+        reason: "Solicitor issue logged and reviewed before progression.",
+      },
+    ]
     const enforcementResult = evaluateInvestorShield({
       dealId: DEAL_ID,
       checks,
       evidenceItems,
       riskFlags: [],
-      manualOverrides: [],
+      manualOverrides,
       deterministicDealStatus: "REVIEW",
       evaluatedAt: FIXED_TIMESTAMP,
     })
@@ -179,6 +208,7 @@ describe("investor shield adapter panel preview", () => {
       checks,
       evidenceItems,
       enforcementResult,
+      manualOverrides,
     })
 
     const refurbGate = model.gateSummaries.find((gate) => gate.key === "REFURB_CERTAINTY")
@@ -187,6 +217,7 @@ describe("investor shield adapter panel preview", () => {
     )
     const titleGate = model.gateSummaries.find((gate) => gate.key === "TITLE")
     const rentalGate = model.gateSummaries.find((gate) => gate.key === "RENTAL_DEMAND")
+    const solicitorGate = model.gateSummaries.find((gate) => gate.key === "SOLICITOR_FEEDBACK")
 
     expect(aiSubGate?.requiredLabel).toBe("Advisory")
     expect(aiSubGate?.advisoryOnly).toBe(true)
@@ -198,6 +229,8 @@ describe("investor shield adapter panel preview", () => {
     expect(model.missingEvidenceGateKeys.length).toBeGreaterThan(0)
     expect(model.taskRecommendations.length).toBeGreaterThan(0)
     expect(refurbGate?.subGates?.some((subGate) => subGate.key === "AI_VISUAL_REVIEW_ADVISORY")).toBe(true)
+    expect(solicitorGate?.status).toBe("WAIVED")
+    expect(solicitorGate?.waiverReason).toBe("Solicitor issue logged and reviewed before progression.")
 
     const html = renderToStaticMarkup(<InvestorShieldGateSummaryPanel model={model} />)
 
@@ -218,5 +251,7 @@ describe("investor shield adapter panel preview", () => {
     expect(html).toContain("Overall Status: BLOCKED")
     expect(html).toContain("AI Visual Review Advisory")
     expect(html).toContain("Missing evidence")
+    expect(html).toContain("Manual review required. This does not automatically clear the risk.")
+    expect(html).toContain("Waived with reason: Solicitor issue logged and reviewed before progression.")
   })
 })

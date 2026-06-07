@@ -11,11 +11,24 @@ function makeChecks(): readonly InvestorShieldCheck[] {
   return INVESTOR_SHIELD_DEFAULT_GATES.map((gate) => ({
     dealId: "deal-ui-1",
     gateKey: gate.key,
-    status: gate.key === "TITLE" ? "FAILED" : "SATISFIED",
-    severity: gate.key === "TITLE" ? "BLOCKER" : gate.defaultSeverity,
+    status:
+      gate.key === "TITLE"
+        ? "FAILED"
+        : gate.key === "SOLICITOR_FEEDBACK"
+          ? "WAIVED"
+          : "SATISFIED",
+    severity:
+      gate.key === "TITLE"
+        ? "BLOCKER"
+        : gate.key === "SOLICITOR_FEEDBACK"
+          ? "BLOCKER"
+          : gate.defaultSeverity,
     confidence: gate.key === "REFURB_CERTAINTY" ? "MEDIUM" : "HIGH",
     requiredEvidence: gate.evidenceTypes,
-    summary: `${gate.label} summary`,
+    summary:
+      gate.key === "SOLICITOR_FEEDBACK"
+        ? "Solicitor feedback was waived for this preview."
+        : `${gate.label} summary`,
     updatedAt: "2026-06-06T00:00:00.000Z",
   }))
 }
@@ -127,6 +140,13 @@ describe("investor shield ui adapter", () => {
       checks: makeChecks(),
       evidenceItems: makeEvidenceItems(),
       enforcementResult: makeEnforcementResult(),
+      manualOverrides: [
+        {
+          dealId: "deal-ui-1",
+          gateKey: "SOLICITOR_FEEDBACK",
+          reason: "Solicitor issue logged and reviewed before progression.",
+        },
+      ],
     })
 
     expect(model.gateSummaries).toHaveLength(INVESTOR_SHIELD_DEFAULT_GATES.length)
@@ -141,6 +161,13 @@ describe("investor shield ui adapter", () => {
       checks: makeChecks(),
       evidenceItems: makeEvidenceItems(),
       enforcementResult: makeEnforcementResult(),
+      manualOverrides: [
+        {
+          dealId: "deal-ui-1",
+          gateKey: "SOLICITOR_FEEDBACK",
+          reason: "Solicitor issue logged and reviewed before progression.",
+        },
+      ],
     })
 
     expect(model.gateSummaries.every((gate) => gate.requiredLabel === "Required")).toBe(true)
@@ -160,6 +187,13 @@ describe("investor shield ui adapter", () => {
       checks: makeChecks(),
       evidenceItems: makeEvidenceItems(),
       enforcementResult: makeEnforcementResult(),
+      manualOverrides: [
+        {
+          dealId: "deal-ui-1",
+          gateKey: "SOLICITOR_FEEDBACK",
+          reason: "Solicitor issue logged and reviewed before progression.",
+        },
+      ],
     })
 
     const soldComps = model.gateSummaries.find((gate) => gate.key === "SOLD_COMPS")
@@ -188,6 +222,13 @@ describe("investor shield ui adapter", () => {
       checks: makeChecks(),
       evidenceItems: makeEvidenceItems(),
       enforcementResult: makeEnforcementResult(),
+      manualOverrides: [
+        {
+          dealId: "deal-ui-1",
+          gateKey: "SOLICITOR_FEEDBACK",
+          reason: "Solicitor issue logged and reviewed before progression.",
+        },
+      ],
     })
 
     expect(model.blockingGateKeys).toEqual(["TITLE"])
@@ -217,6 +258,9 @@ describe("investor shield ui adapter", () => {
       },
     ])
     expect(model.manualOverrideRequired).toBe(true)
+    expect(
+      model.gateSummaries.find((gate) => gate.key === "SOLICITOR_FEEDBACK")?.waiverReason
+    ).toBe("Solicitor issue logged and reviewed before progression.")
     expect(model.protectedMovementExplanation).toBe(
       "Investor Shield may add caution or blocking, but it cannot soften deterministic rejection."
     )
@@ -259,6 +303,13 @@ describe("investor shield ui adapter", () => {
       checks,
       evidenceItems,
       enforcementResult,
+      manualOverrides: [
+        {
+          dealId: "deal-ui-1",
+          gateKey: "SOLICITOR_FEEDBACK",
+          reason: "Solicitor issue logged and reviewed before progression.",
+        },
+      ],
     })
 
     expect(model.gateSummaries).toHaveLength(INVESTOR_SHIELD_DEFAULT_GATES.length)

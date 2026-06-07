@@ -37,6 +37,14 @@ function formatBooleanLabel(value: boolean): string {
   return value ? "Can progress" : "Cannot progress"
 }
 
+function hasWaivedGate(model: InvestorShieldUiModel): boolean {
+  return model.gateSummaries.some(
+    (gate) =>
+      gate.status === "WAIVED" ||
+      gate.subGates?.some((subGate) => subGate.status === "WAIVED") === true
+  )
+}
+
 function getMissingEvidenceText(gate: GateRow): string | null {
   if (gate.missingEvidenceSummary.length === 0) {
     return null
@@ -66,7 +74,21 @@ function getRecommendationDetail(recommendation: TaskRecommendationRow): string 
   return parts.filter((part) => part.length > 0).join(" | ")
 }
 
+function getWaiverDetailLines(gate: GateRow): readonly string[] {
+  if (gate.status !== "WAIVED") {
+    return []
+  }
+
+  if (gate.waiverReason) {
+    return [`Waived with reason: ${gate.waiverReason}`]
+  }
+
+  return ["Waiver reason missing. This remains a review risk."]
+}
+
 export default function InvestorShieldGateSummaryPanel({ model }: Props) {
+  const showManualReviewNotice = hasWaivedGate(model)
+
   return (
     <section className="rounded border border-gray-200 bg-gray-50 px-4 py-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -83,6 +105,17 @@ export default function InvestorShieldGateSummaryPanel({ model }: Props) {
           <p className="mt-1">{formatBooleanLabel(model.canProgress)}</p>
         </div>
       </div>
+
+      {showManualReviewNotice ? (
+        <div className="mt-4 rounded border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900">
+          <p className="font-medium">
+            Manual review required. This does not automatically clear the risk.
+          </p>
+          {model.manualOverrideRequired ? (
+            <p className="mt-1 text-xs text-amber-800">Manual override required.</p>
+          ) : null}
+        </div>
+      ) : null}
 
       {model.taskRecommendations.length > 0 ? (
         <div className="mt-4 rounded border border-blue-200 bg-blue-50 px-3 py-3">
@@ -163,6 +196,19 @@ export default function InvestorShieldGateSummaryPanel({ model }: Props) {
                                   Missing: {subGate.missingEvidenceSummary.join(", ")}
                                 </div>
                               )}
+                              {subGate.status === "WAIVED" && (
+                                <div className="text-amber-700">
+                                  Waived
+                                  {subGate.waiverReason
+                                    ? ` with reason: ${subGate.waiverReason}`
+                                    : ""}
+                                </div>
+                              )}
+                              {subGate.status === "WAIVED" && !subGate.waiverReason && (
+                                <div className="text-amber-700">
+                                  Waiver reason missing. This remains a review risk.
+                                </div>
+                              )}
                               <div className="text-gray-500">{subGate.shortExplanation}</div>
                               {subGate.recommendedNextAction && (
                                 <div className="text-gray-500">
@@ -178,6 +224,11 @@ export default function InvestorShieldGateSummaryPanel({ model }: Props) {
                   <td className="px-3 py-3 text-gray-700">
                     <div className="space-y-1">
                       <p>{gate.shortExplanation}</p>
+                      {getWaiverDetailLines(gate).map((line) => (
+                        <p key={line} className="text-xs text-amber-700">
+                          {line}
+                        </p>
+                      ))}
                       {gate.recommendedNextAction ? (
                         <p className="text-xs text-gray-500">Next: {gate.recommendedNextAction}</p>
                       ) : (

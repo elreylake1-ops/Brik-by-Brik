@@ -129,6 +129,68 @@ describe("investor shield gate summary panel", () => {
     expect(html).toContain("Advisory")
   })
 
+  it("renders manual review and waiver indicators when present", () => {
+    const html = renderToStaticMarkup(
+      <InvestorShieldGateSummaryPanel
+        model={makeModel({
+          manualOverrideRequired: true,
+          gateSummaries: [
+            ...makeModel().gateSummaries,
+            {
+              key: "SOLICITOR_FEEDBACK",
+              label: "Solicitor Feedback",
+              description: "Requires solicitor review.",
+              requiredLabel: "Required",
+              status: "WAIVED",
+              severity: "BLOCKER",
+              confidence: "HIGH",
+              evidenceCount: 0,
+              missingEvidenceSummary: [],
+              shortExplanation: "This gate is currently waived and requires traceable review.",
+              recommendedNextAction: "Confirm solicitor review outcome",
+              waiverReason: "Solicitor issue logged and reviewed before progression.",
+              advisoryOnly: false,
+            },
+          ],
+        })}
+      />
+    )
+
+    expect(html).toContain("Manual review required. This does not automatically clear the risk.")
+    expect(html).toContain("Manual override required.")
+    expect(html).toContain("Waived")
+    expect(html).toContain("Waived with reason: Solicitor issue logged and reviewed before progression.")
+  })
+
+  it("renders missing waiver reason warnings when a waived gate has no reason", () => {
+    const html = renderToStaticMarkup(
+      <InvestorShieldGateSummaryPanel
+        model={makeModel({
+          gateSummaries: [
+            ...makeModel().gateSummaries,
+            {
+              key: "SOLICITOR_FEEDBACK",
+              label: "Solicitor Feedback",
+              description: "Requires solicitor review.",
+              requiredLabel: "Required",
+              status: "WAIVED",
+              severity: "BLOCKER",
+              confidence: "HIGH",
+              evidenceCount: 0,
+              missingEvidenceSummary: [],
+              shortExplanation: "This gate is currently waived and requires traceable review.",
+              recommendedNextAction: "Confirm solicitor review outcome",
+              advisoryOnly: false,
+            },
+          ],
+        })}
+      />
+    )
+
+    expect(html).toContain("Manual review required. This does not automatically clear the risk.")
+    expect(html).toContain("Waiver reason missing. This remains a review risk.")
+  })
+
   it("does not render upload, edit, waiver, or task creation buttons", () => {
     const html = renderToStaticMarkup(
       <InvestorShieldGateSummaryPanel model={makeModel()} />

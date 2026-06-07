@@ -11,6 +11,7 @@ import type {
   InvestorShieldSeverity,
   InvestorShieldStatus,
   InvestorShieldSubGateKey,
+  ManualOverride,
 } from "@/types/investor-shield"
 
 type InvestorShieldRequiredLabel = "Required" | "Advisory"
@@ -38,6 +39,7 @@ export type InvestorShieldSubGateUiSummary = {
   missingEvidenceSummary: readonly string[]
   shortExplanation: string
   recommendedNextAction?: string
+  waiverReason?: string
   advisoryOnly: boolean
   updatedAt?: string
 }
@@ -54,6 +56,7 @@ export type InvestorShieldGateUiSummary = {
   missingEvidenceSummary: readonly string[]
   shortExplanation: string
   recommendedNextAction?: string
+  waiverReason?: string
   advisoryOnly: boolean
   updatedAt?: string
   subGates?: readonly InvestorShieldSubGateUiSummary[]
@@ -79,6 +82,7 @@ type BuildInvestorShieldUiModelInput = {
   checks: readonly InvestorShieldCheck[]
   evidenceItems: readonly EvidenceItem[]
   enforcementResult: InvestorShieldEnforcementResult
+  manualOverrides?: readonly ManualOverride[]
 }
 
 const SUB_GATE_METADATA: Record<
@@ -209,11 +213,23 @@ function buildTaskRecommendationUiSummary(
   }
 }
 
+function findWaiverReason(
+  gateKey: InvestorShieldGateKey,
+  manualOverrides: readonly ManualOverride[]
+): string | undefined {
+  const reason = manualOverrides.find(
+    (override) => override.gateKey === gateKey && override.reason.trim().length > 0
+  )?.reason.trim()
+
+  return reason && reason.length > 0 ? reason : undefined
+}
+
 export function buildInvestorShieldUiModel(
   input: BuildInvestorShieldUiModelInput
 ): InvestorShieldUiModel {
   const checks = [...input.checks]
   const evidenceItems = [...input.evidenceItems]
+  const manualOverrides = [...(input.manualOverrides ?? [])]
   const taskRecommendations = input.enforcementResult.taskRecommendations.map(
     buildTaskRecommendationUiSummary
   )
@@ -259,6 +275,10 @@ export function buildInvestorShieldUiModel(
           gate.key,
           subGateKey
         ),
+        waiverReason:
+          subGateCheck?.status === "WAIVED"
+            ? findWaiverReason(gate.key, manualOverrides)
+            : undefined,
         advisoryOnly: metadata.advisoryOnly,
         updatedAt: subGateCheck?.updatedAt,
       } satisfies InvestorShieldSubGateUiSummary
@@ -286,6 +306,10 @@ export function buildInvestorShieldUiModel(
         input.enforcementResult.taskRecommendations,
         gate.key
       ),
+      waiverReason:
+        topLevelCheck?.status === "WAIVED"
+          ? findWaiverReason(gate.key, manualOverrides)
+          : undefined,
       advisoryOnly: gate.advisoryOnly === true,
       updatedAt: topLevelCheck?.updatedAt,
       subGates,
