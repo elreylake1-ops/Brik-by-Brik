@@ -7,6 +7,7 @@ import RefurbScopeForm from "@/components/RefurbScopeForm"
 import RefurbBreakdownSummary from "@/components/RefurbBreakdownSummary"
 import EngineAnalysisPanel from "@/components/EngineAnalysisPanel"
 import { analyzeDealWithRefurb } from "@/lib/engine/analyze-deal-with-refurb"
+import type { InvestorShieldUiModel } from "@/lib/investor-shield/investor-shield-ui-adapter"
 import {
   CALCULATOR_WALKTHROUGH_PRESETS,
   getCalculatorWalkthroughPresetState,
@@ -105,6 +106,9 @@ export default function Home() {
   const [selectedSavedDeal, setSelectedSavedDeal] = useState<SavedDealDetail | null>(null)
   const [isLoadingSelectedSavedDeal, setIsLoadingSelectedSavedDeal] = useState(false)
   const [selectedSavedDealError, setSelectedSavedDealError] = useState<string | null>(null)
+  const [investorShieldModel, setInvestorShieldModel] = useState<InvestorShieldUiModel | null>(null)
+  const [investorShieldLoading, setInvestorShieldLoading] = useState(false)
+  const [investorShieldError, setInvestorShieldError] = useState<string | null>(null)
   const [selectedPipelineState, setSelectedPipelineState] = useState<string>("UNDER_ANALYSIS")
   const [isUpdatingPipeline, setIsUpdatingPipeline] = useState(false)
   const [pipelineUpdateMessage, setPipelineUpdateMessage] = useState<string | null>(null)
