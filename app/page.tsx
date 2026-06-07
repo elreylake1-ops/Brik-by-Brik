@@ -907,6 +907,25 @@ export default function Home() {
                 </div>
               </div>
 
+              <div className="rounded border border-gray-200 bg-gray-50 px-3 py-3">
+                <h3 className="text-sm font-semibold text-gray-900">Investor Shield</h3>
+                {investorShieldLoading ? (
+                  <p className="mt-1 text-sm text-gray-700">Loading Investor Shield status...</p>
+                ) : investorShieldError ? (
+                  <p className="mt-1 text-sm text-red-700">
+                    Investor Shield status could not be loaded. Pipeline rules remain unchanged.
+                  </p>
+                ) : investorShieldModel ? (
+                  <p className="mt-1 text-sm text-gray-700">
+                    Investor Shield status loaded. Gate summary will display in the next step.
+                  </p>
+                ) : (
+                  <p className="mt-1 text-sm text-gray-700">
+                    Investor Shield status is not available yet.
+                  </p>
+                )}
+              </div>
+
               <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
                 <p className="text-xs uppercase tracking-wide text-gray-500">Saved Engine Snapshot</p>
                 <p className="mt-1 text-sm text-gray-700">
