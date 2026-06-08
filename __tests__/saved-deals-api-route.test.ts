@@ -1,4 +1,4 @@
-﻿import { readFileSync } from "node:fs"
+import { readFileSync } from "node:fs"
 import path from "node:path"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -59,14 +59,27 @@ describe("phase 4a saved deals route", () => {
     expect(listSavedDealsMock).toHaveBeenCalledWith({ includeArchived: true })
   })
 
-  it("GET repository failure returns safe 500 response", async () => {
-    listSavedDealsMock.mockRejectedValueOnce(new Error("db failure details"))
+  it("GET repository failure returns safe 500 metadata", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+    listSavedDealsMock.mockRejectedValueOnce(
+      new Error("postgresql://user:password@host/db token=secret DATABASE_URL=shadow")
+    )
 
     const response = await GET(makeGetRequest())
     expect(response.status).toBe(500)
 
     const payload = await response.json()
-    expect(payload).toEqual({ success: false, error: "Unable to load saved deals at this time." })
+    expect(payload.success).toBe(false)
+    expect(payload.error).toBe("SAVED_DEALS_READ_FAILED")
+    expect(typeof payload.traceId).toBe("string")
+    expect(payload.diagnostic.routeName).toBe("saved-deals.list")
+    expect(payload.diagnostic.errorMessage).not.toContain("postgresql://")
+    expect(payload.diagnostic.errorMessage).not.toContain("password")
+    expect(payload.diagnostic.errorMessage).not.toContain("token")
+    expect(payload.diagnostic.errorMessage).not.toContain("secret")
+    expect(payload.diagnostic.errorMessage).not.toContain("DATABASE_URL")
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
+    consoleErrorSpy.mockRestore()
   })
 
   it("POST returns 201 and success true when input is valid", async () => {

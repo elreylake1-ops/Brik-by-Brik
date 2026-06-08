@@ -1,5 +1,6 @@
-﻿import { NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { createSavedDeal, listSavedDeals } from "@/lib/operator-command/saved-deals-repository"
+import { createSafeRouteErrorDiagnostic } from "@/lib/http/safe-route-error"
 
 type SavedDealPostBody = {
   address?: unknown
@@ -39,9 +40,17 @@ export async function GET(request: Request) {
 
     const deals = await listSavedDeals({ includeArchived })
     return NextResponse.json({ success: true, deals }, { status: 200 })
-  } catch {
+  } catch (error) {
+    const diagnostic = createSafeRouteErrorDiagnostic("saved-deals.list", error)
+    console.error("Saved deals list failed.", diagnostic)
+
     return NextResponse.json(
-      { success: false, error: "Unable to load saved deals at this time." },
+      {
+        success: false,
+        error: "SAVED_DEALS_READ_FAILED",
+        traceId: diagnostic.traceId,
+        diagnostic,
+      },
       { status: 500 }
     )
   }

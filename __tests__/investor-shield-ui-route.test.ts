@@ -2,8 +2,13 @@ import { readFileSync } from "node:fs"
 import path from "node:path"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const { loadInvestorShieldUiModelForDealMock } = vi.hoisted(() => ({
+const { getSavedDealByIdMock, loadInvestorShieldUiModelForDealMock } = vi.hoisted(() => ({
+  getSavedDealByIdMock: vi.fn(),
   loadInvestorShieldUiModelForDealMock: vi.fn(),
+}))
+
+vi.mock("@/lib/operator-command/saved-deals-repository", () => ({
+  getSavedDealById: getSavedDealByIdMock,
 }))
 
 vi.mock("@/lib/investor-shield/load-investor-shield-ui-model", () => ({
@@ -20,10 +25,12 @@ function makeRequest() {
 
 describe("investor shield ui route", () => {
   beforeEach(() => {
+    getSavedDealByIdMock.mockReset()
     loadInvestorShieldUiModelForDealMock.mockReset()
   })
 
   it("returns success true and model for a valid id", async () => {
+    getSavedDealByIdMock.mockResolvedValueOnce({ id: "deal-1" })
     loadInvestorShieldUiModelForDealMock.mockResolvedValueOnce({
       dealId: "deal-1",
       gateSummaries: [{ key: "TITLE", label: "Title" }],
@@ -32,6 +39,7 @@ describe("investor shield ui route", () => {
     const response = await GET(makeRequest(), { params: { id: "deal-1" } })
 
     expect(response.status).toBe(200)
+    expect(getSavedDealByIdMock).toHaveBeenCalledWith("deal-1")
     expect(loadInvestorShieldUiModelForDealMock).toHaveBeenCalledWith("deal-1")
 
     const payload = await response.json()
@@ -59,12 +67,27 @@ describe("investor shield ui route", () => {
       success: false,
       error: "Investor Shield status could not be loaded. Pipeline rules remain unchanged.",
     })
+    expect(getSavedDealByIdMock).not.toHaveBeenCalled()
     expect(loadInvestorShieldUiModelForDealMock).not.toHaveBeenCalled()
   })
 
+  it("returns 404 when saved deal is missing", async () => {
+    getSavedDealByIdMock.mockResolvedValueOnce(null)
+
+    const response = await GET(makeRequest(), { params: { id: "missing" } })
+
+    expect(response.status).toBe(404)
+    expect(loadInvestorShieldUiModelForDealMock).not.toHaveBeenCalled()
+
+    const payload = await response.json()
+    expect(payload).toEqual({ success: false, error: "Saved deal not found." })
+  })
+
   it("returns a safe 500 error when the loader fails", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+    getSavedDealByIdMock.mockResolvedValueOnce({ id: "deal-1" })
     loadInvestorShieldUiModelForDealMock.mockRejectedValueOnce(
-      new Error("db failure details with secret stack trace")
+      new Error("postgresql://user:password@host/db secret token")
     )
 
     const response = await GET(makeRequest(), { params: { id: "deal-1" } })
@@ -72,15 +95,16 @@ describe("investor shield ui route", () => {
     expect(response.status).toBe(500)
 
     const payload = await response.json()
-    expect(payload).toEqual({
-      success: false,
-      error: "Investor Shield status could not be loaded. Pipeline rules remain unchanged.",
-    })
-
-    const serialized = JSON.stringify(payload)
-    expect(serialized).not.toContain("db failure details")
-    expect(serialized).not.toContain("secret")
-    expect(serialized).not.toContain("stack trace")
+    expect(payload.success).toBe(false)
+    expect(payload.error).toBe("INVESTOR_SHIELD_UI_READ_FAILED")
+    expect(typeof payload.traceId).toBe("string")
+    expect(payload.diagnostic.routeName).toBe("saved-deals.investor-shield-ui")
+    expect(payload.diagnostic.errorMessage).not.toContain("postgresql://")
+    expect(payload.diagnostic.errorMessage).not.toContain("password")
+    expect(payload.diagnostic.errorMessage).not.toContain("secret")
+    expect(payload.diagnostic.errorMessage).not.toContain("token")
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
+    consoleErrorSpy.mockRestore()
   })
 
   it("only implements GET and stays clear of write and pipeline helpers", () => {

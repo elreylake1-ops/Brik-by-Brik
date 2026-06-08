@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
+import { getSavedDealById } from "@/lib/operator-command/saved-deals-repository"
 import { loadInvestorShieldUiModelForDeal } from "@/lib/investor-shield/load-investor-shield-ui-model"
+import { createSafeRouteErrorDiagnostic } from "@/lib/http/safe-route-error"
 
 type RouteContext = {
   params: Promise<{ id?: string }> | { id?: string }
@@ -16,10 +18,26 @@ export async function GET(_request: Request, context: RouteContext) {
       return NextResponse.json({ success: false, error: SAFE_ERROR }, { status: 400 })
     }
 
+    const deal = await getSavedDealById(id)
+    if (!deal) {
+      return NextResponse.json({ success: false, error: "Saved deal not found." }, { status: 404 })
+    }
+
     const model = await loadInvestorShieldUiModelForDeal(id)
 
     return NextResponse.json({ success: true, model }, { status: 200 })
-  } catch {
-    return NextResponse.json({ success: false, error: SAFE_ERROR }, { status: 500 })
+  } catch (error) {
+    const diagnostic = createSafeRouteErrorDiagnostic("saved-deals.investor-shield-ui", error)
+    console.error("Investor Shield UI load failed.", diagnostic)
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "INVESTOR_SHIELD_UI_READ_FAILED",
+        traceId: diagnostic.traceId,
+        diagnostic,
+      },
+      { status: 500 }
+    )
   }
 }

@@ -1,5 +1,6 @@
-﻿import { NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { getSavedDealById } from "@/lib/operator-command/saved-deals-repository"
+import { createSafeRouteErrorDiagnostic } from "@/lib/http/safe-route-error"
 
 type RouteContext = {
   params: Promise<{ id?: string }> | { id?: string }
@@ -26,9 +27,17 @@ export async function GET(_request: Request, context: RouteContext) {
     }
 
     return NextResponse.json({ success: true, deal }, { status: 200 })
-  } catch {
+  } catch (error) {
+    const diagnostic = createSafeRouteErrorDiagnostic("saved-deals.detail", error)
+    console.error("Saved deal detail failed.", diagnostic)
+
     return NextResponse.json(
-      { success: false, error: "Unable to load saved deal at this time." },
+      {
+        success: false,
+        error: "SAVED_DEAL_READ_FAILED",
+        traceId: diagnostic.traceId,
+        diagnostic,
+      },
       { status: 500 }
     )
   }
