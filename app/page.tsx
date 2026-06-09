@@ -6,7 +6,7 @@ import ResultsDisplay from "@/components/ResultsDisplay"
 import RefurbScopeForm from "@/components/RefurbScopeForm"
 import RefurbBreakdownSummary from "@/components/RefurbBreakdownSummary"
 import EngineAnalysisPanel from "@/components/EngineAnalysisPanel"
-import InvestorShieldGateSummaryPanel from "@/components/InvestorShieldGateSummaryPanel"
+import SavedDealInvestorShieldPanel from "@/components/SavedDealInvestorShieldPanel"
 import { analyzeDealWithRefurb } from "@/lib/engine/analyze-deal-with-refurb"
 import { fetchInvestorShieldUiModel } from "@/lib/investor-shield/fetch-investor-shield-ui-model"
 import type { InvestorShieldUiModel } from "@/lib/investor-shield/investor-shield-ui-adapter"
@@ -1018,24 +1018,16 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="rounded border border-gray-200 bg-gray-50 px-3 py-3">
-                <h3 className="text-sm font-semibold text-gray-900">Investor Shield</h3>
-                {investorShieldLoading ? (
-                  <p className="mt-1 text-sm text-gray-700">Loading Investor Shield status...</p>
-                ) : investorShieldError ? (
-                  <p className="mt-1 text-sm text-red-700">
-                    Investor Shield status could not be loaded. Pipeline rules remain unchanged.
-                  </p>
-                ) : investorShieldModel ? (
-                  <div className="mt-3">
-                    <InvestorShieldGateSummaryPanel model={investorShieldModel} />
-                  </div>
-                ) : (
-                  <p className="mt-1 text-sm text-gray-700">
-                    Investor Shield status is not available yet.
-                  </p>
-                )}
-              </div>
+              <SavedDealInvestorShieldPanel
+                deal={selectedSavedDeal}
+                investorShieldModel={investorShieldModel}
+                loading={investorShieldLoading}
+                error={
+                  investorShieldError
+                    ? "Investor Shield status could not be loaded. Pipeline rules remain unchanged."
+                    : null
+                }
+              />
 
               <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
                 <p className="text-xs uppercase tracking-wide text-gray-500">Saved Engine Snapshot</p>
