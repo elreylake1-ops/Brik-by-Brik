@@ -3,6 +3,7 @@ import InvestorShieldGateList from "@/components/InvestorShieldGateList"
 import InvestorShieldAdvisoryList from "@/components/InvestorShieldAdvisoryList"
 import InvestorShieldProtectedMovement from "@/components/InvestorShieldProtectedMovement"
 import InvestorShieldTaskRecommendationList from "@/components/InvestorShieldTaskRecommendationList"
+import InvestorShieldWaiverDisplay from "@/components/InvestorShieldWaiverDisplay"
 
 type Props = {
   model: InvestorShieldUiViewModel
@@ -71,12 +72,7 @@ export default function InvestorShieldPanel({ model }: Props) {
             <p className="text-xs text-gray-600">
               Does Not Clear Gate: {model.manualReview.doesNotClearGate ? "Yes" : "No"}
             </p>
-            <p>Waiver Active: {model.waiverSummary.isWaived ? "Yes" : "No"}</p>
-            {model.waiverSummary.reason ? (
-              <p className="text-xs text-amber-700">
-                Waiver reason: {model.waiverSummary.reason}
-              </p>
-            ) : null}
+            <InvestorShieldWaiverDisplay waiver={model.waiverSummary} />
           </div>
         </div>
       </div>

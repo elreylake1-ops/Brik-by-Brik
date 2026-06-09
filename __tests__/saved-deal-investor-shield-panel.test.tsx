@@ -86,6 +86,7 @@ describe("SavedDealInvestorShieldPanel", () => {
     expect(html).toContain("Linked due diligence gate: SOLD_COMPS")
     expect(html).toContain("Sold Comparables")
     expect(html).toContain("AI visual review is advisory only.")
+    expect(html).toContain("No waived gates recorded.")
   })
 
   it("renders a safe blocked fallback when the investor shield model is missing", () => {
@@ -109,6 +110,7 @@ describe("SavedDealInvestorShieldPanel", () => {
     expect(html).toContain("No required gates to display.")
     expect(html).toContain("No advisory signals to display.")
     expect(html).toContain("No task recommendations.")
+    expect(html).toContain("No waived gates recorded.")
     expect(html).not.toContain("Approve")
     expect(html).not.toContain("Create Task")
     expect(html).not.toContain("Move Pipeline")
