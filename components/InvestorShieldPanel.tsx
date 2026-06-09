@@ -1,6 +1,7 @@
 import type { InvestorShieldUiViewModel } from "@/types/investor-shield-ui"
 import InvestorShieldGateList from "@/components/InvestorShieldGateList"
 import InvestorShieldAdvisoryList from "@/components/InvestorShieldAdvisoryList"
+import InvestorShieldProtectedMovement from "@/components/InvestorShieldProtectedMovement"
 
 type Props = {
   model: InvestorShieldUiViewModel
@@ -53,18 +54,7 @@ export default function InvestorShieldPanel({ model }: Props) {
 
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
           {sectionHeading("Protected Movement")}
-          <div className="mt-2 space-y-1 text-sm text-gray-800">
-            <p>Current Pipeline State: {model.protectedMovement.currentPipelineState}</p>
-            <p>Movement Allowed: {model.protectedMovement.movementAllowed ? "Yes" : "No"}</p>
-            <p>
-              Pipeline Mutation Prevented:{" "}
-              {model.protectedMovement.pipelineMutationPrevented ? "Yes" : "No"}
-            </p>
-            {model.protectedMovement.blockedReason ? (
-              <p className="font-medium text-red-700">Blocked: {model.protectedMovement.blockedReason}</p>
-            ) : null}
-            <p className="text-xs text-gray-600">{model.protectedMovement.explanation}</p>
-          </div>
+          <InvestorShieldProtectedMovement movement={model.protectedMovement} />
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">

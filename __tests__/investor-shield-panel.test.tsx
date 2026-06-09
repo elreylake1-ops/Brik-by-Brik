@@ -21,9 +21,12 @@ describe("InvestorShieldPanel", () => {
     expect(html).toContain("Advisory only")
     expect(html).toContain("Cannot satisfy hard gates")
     expect(html).toContain("Protected Movement")
+    expect(html).toContain("Protected movement blocked.")
+    expect(html).toContain("Pipeline state was not changed.")
+    expect(html).toContain("Resolve or validly waive required gates before progressing.")
     expect(html).toContain("Task Recommendations")
     expect(html).toContain("Manual Review / Waiver")
-    expect(html).toContain("Pipeline Mutation Prevented")
+    expect(html).toContain("Pipeline mutation prevented: Yes")
     expect(html).toContain("Sold Comparables")
     expect(html).toContain("Required Gate")
     expect(html).toContain('Blocking state: <span class="font-semibold text-red-700">Blocking</span>')
@@ -92,6 +95,20 @@ describe("InvestorShieldPanel", () => {
     expect(html.indexOf("Advisory Signals")).toBeGreaterThan(-1)
     expect(html.indexOf("Deterministic Governance")).toBeLessThan(
       html.indexOf("Advisory Signals")
+    )
+  })
+
+  it("renders protected movement before task recommendations", () => {
+    const html = renderToStaticMarkup(
+      <InvestorShieldPanel model={blockedRequiredGateFixture} />
+    )
+
+    expect(html).toContain("Protected Movement")
+    expect(html).toContain("Protected movement blocked.")
+    expect(html).toContain("Pipeline state was not changed.")
+    expect(html).toContain("Resolve or validly waive required gates before progressing.")
+    expect(html.indexOf("Protected Movement")).toBeLessThan(
+      html.indexOf("Task Recommendations")
     )
   })
 })
