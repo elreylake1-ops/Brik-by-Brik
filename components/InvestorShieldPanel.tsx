@@ -2,6 +2,7 @@ import type { InvestorShieldUiViewModel } from "@/types/investor-shield-ui"
 import InvestorShieldGateList from "@/components/InvestorShieldGateList"
 import InvestorShieldAdvisoryList from "@/components/InvestorShieldAdvisoryList"
 import InvestorShieldProtectedMovement from "@/components/InvestorShieldProtectedMovement"
+import InvestorShieldTaskRecommendationList from "@/components/InvestorShieldTaskRecommendationList"
 
 type Props = {
   model: InvestorShieldUiViewModel
@@ -59,20 +60,7 @@ export default function InvestorShieldPanel({ model }: Props) {
 
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
           {sectionHeading("Task Recommendations")}
-          {model.taskRecommendations.length > 0 ? (
-            <div className="mt-3 space-y-2 text-sm text-gray-800">
-              {model.taskRecommendations.map((task) => (
-                <div key={task.taskKey} className="rounded border border-blue-200 bg-white px-3 py-2">
-                  <p className="font-medium text-gray-900">{task.title}</p>
-                  <p className="text-xs text-gray-600">{task.description}</p>
-                  <p className="text-xs text-gray-600">Gate: {task.gateKey}</p>
-                  <p className="text-xs text-gray-600">Open task recommendation only</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-2 text-sm text-gray-700">No task recommendations.</p>
-          )}
+          <InvestorShieldTaskRecommendationList tasks={model.taskRecommendations} />
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">

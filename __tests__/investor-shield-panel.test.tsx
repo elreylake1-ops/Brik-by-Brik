@@ -25,6 +25,10 @@ describe("InvestorShieldPanel", () => {
     expect(html).toContain("Pipeline state was not changed.")
     expect(html).toContain("Resolve or validly waive required gates before progressing.")
     expect(html).toContain("Task Recommendations")
+    expect(html).toContain("Recommended action")
+    expect(html).toContain("Linked due diligence gate: SOLD_COMPS")
+    expect(html).toContain("Duplicate-safe task recommendation")
+    expect(html).toContain("This recommendation does not satisfy the gate by itself.")
     expect(html).toContain("Manual Review / Waiver")
     expect(html).toContain("Pipeline mutation prevented: Yes")
     expect(html).toContain("Sold Comparables")
@@ -36,6 +40,7 @@ describe("InvestorShieldPanel", () => {
     expect(html).not.toContain("Upload Evidence")
     expect(html).not.toContain("Move Pipeline")
     expect(html).not.toContain("Create Task")
+    expect(html).not.toContain("Resolve Task")
   })
 
   it("renders waiver detail without softening the gate state", () => {
@@ -107,6 +112,7 @@ describe("InvestorShieldPanel", () => {
     expect(html).toContain("Protected movement blocked.")
     expect(html).toContain("Pipeline state was not changed.")
     expect(html).toContain("Resolve or validly waive required gates before progressing.")
+    expect(html).toContain("Recommended action")
     expect(html.indexOf("Protected Movement")).toBeLessThan(
       html.indexOf("Task Recommendations")
     )
