@@ -1,5 +1,6 @@
 import type { InvestorShieldUiViewModel } from "@/types/investor-shield-ui"
 import InvestorShieldGateList from "@/components/InvestorShieldGateList"
+import InvestorShieldAdvisoryList from "@/components/InvestorShieldAdvisoryList"
 
 type Props = {
   model: InvestorShieldUiViewModel
@@ -47,19 +48,7 @@ export default function InvestorShieldPanel({ model }: Props) {
 
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
           {sectionHeading("Advisory Signals")}
-          {model.advisorySignals.length > 0 ? (
-            <div className="mt-3 space-y-2 text-sm text-gray-800">
-              {model.advisorySignals.map((signal) => (
-                <div key={signal.signalKey} className="rounded border border-amber-200 bg-amber-50 px-3 py-2">
-                  <p className="font-medium text-amber-900">{signal.label}</p>
-                  <p className="text-xs text-amber-800">Advisory only</p>
-                  <p className="text-xs text-amber-800">{signal.warningText}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-2 text-sm text-gray-700">No advisory signals.</p>
-          )}
+          <InvestorShieldAdvisoryList signals={model.advisorySignals} />
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">

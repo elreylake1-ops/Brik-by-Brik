@@ -19,6 +19,7 @@ describe("InvestorShieldPanel", () => {
     expect(html).toContain("Required Gates")
     expect(html).toContain("Advisory Signals")
     expect(html).toContain("Advisory only")
+    expect(html).toContain("Cannot satisfy hard gates")
     expect(html).toContain("Protected Movement")
     expect(html).toContain("Task Recommendations")
     expect(html).toContain("Manual Review / Waiver")
@@ -69,9 +70,28 @@ describe("InvestorShieldPanel", () => {
     }
 
     const html = renderToStaticMarkup(<InvestorShieldPanel model={advisoryGateModel} />)
+    const advisorySectionStart = html.indexOf("Advisory Signals")
+    const nextSectionStart = html.indexOf("Protected Movement")
+    const advisorySection =
+      advisorySectionStart >= 0 && nextSectionStart > advisorySectionStart
+        ? html.slice(advisorySectionStart, nextSectionStart)
+        : html
 
     expect(html).toContain("Advisory Signals")
     expect(html).toContain("AI Visual Review")
     expect(html).not.toContain("Rental Demand Advisory")
+    expect(advisorySection).not.toContain("Required Gate")
+  })
+
+  it("renders deterministic governance before advisory signals", () => {
+    const html = renderToStaticMarkup(
+      <InvestorShieldPanel model={blockedRequiredGateFixture} />
+    )
+
+    expect(html.indexOf("Deterministic Governance")).toBeGreaterThan(-1)
+    expect(html.indexOf("Advisory Signals")).toBeGreaterThan(-1)
+    expect(html.indexOf("Deterministic Governance")).toBeLessThan(
+      html.indexOf("Advisory Signals")
+    )
   })
 })
