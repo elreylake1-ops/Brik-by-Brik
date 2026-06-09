@@ -1,4 +1,5 @@
 import type { InvestorShieldUiViewModel } from "@/types/investor-shield-ui"
+import InvestorShieldGateList from "@/components/InvestorShieldGateList"
 
 type Props = {
   model: InvestorShieldUiViewModel
@@ -9,6 +10,8 @@ function sectionHeading(label: string) {
 }
 
 export default function InvestorShieldPanel({ model }: Props) {
+  const requiredGates = model.gates.filter((gate) => gate.gateType === "required")
+
   return (
     <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
       <header className="mb-4 border-b border-gray-100 pb-4">
@@ -39,23 +42,7 @@ export default function InvestorShieldPanel({ model }: Props) {
             Blocking gates: {model.summary.blockingGateCount}. Caution gates:{" "}
             {model.summary.cautionGateCount}.
           </p>
-          <div className="mt-3 space-y-2 text-sm text-gray-800">
-            {model.gates.map((gate) => (
-              <div key={gate.gateKey} className="rounded border border-gray-200 bg-white px-3 py-2">
-                <p className="font-medium text-gray-900">
-                  {gate.label} <span className="text-xs text-gray-500">({gate.gateType})</span>
-                </p>
-                <p>Status: {gate.status}</p>
-                <p>Evidence: {gate.evidenceStatus}</p>
-                <p>Blocking: {gate.isBlocking ? "Yes" : "No"}</p>
-                {gate.waiver.isWaived ? (
-                  <p className="text-xs text-amber-700">
-                    Waiver: {gate.waiver.reason ?? "Waived"} - distinct from satisfied evidence
-                  </p>
-                ) : null}
-              </div>
-            ))}
-          </div>
+          <InvestorShieldGateList gates={requiredGates} />
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
