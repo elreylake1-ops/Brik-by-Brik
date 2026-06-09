@@ -50,11 +50,6 @@ export default function InvestorShieldPanel({ model }: Props) {
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          {sectionHeading("Advisory Signals")}
-          <InvestorShieldAdvisoryList signals={model.advisorySignals} />
-        </div>
-
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
           {sectionHeading("Protected Movement")}
           <InvestorShieldProtectedMovement movement={model.protectedMovement} />
         </div>
@@ -74,6 +69,11 @@ export default function InvestorShieldPanel({ model }: Props) {
             </p>
             <InvestorShieldWaiverDisplay waiver={model.waiverSummary} />
           </div>
+        </div>
+
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+          {sectionHeading("Advisory Signals")}
+          <InvestorShieldAdvisoryList signals={model.advisorySignals} />
         </div>
       </div>
     </section>

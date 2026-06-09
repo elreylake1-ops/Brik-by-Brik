@@ -17,7 +17,6 @@ describe("InvestorShieldPanel", () => {
     expect(html).toContain("Investor Shield / Due Diligence Lock")
     expect(html).toContain("Deterministic Governance")
     expect(html).toContain("Required Gates")
-    expect(html).toContain("Advisory Signals")
     expect(html).toContain("Advisory only")
     expect(html).toContain("Cannot satisfy hard gates")
     expect(html).toContain("Protected Movement")
@@ -32,6 +31,7 @@ describe("InvestorShieldPanel", () => {
     expect(html).toContain("Manual Review / Waiver")
     expect(html).toContain("No waived gates recorded.")
     expect(html).toContain("Pipeline mutation prevented: Yes")
+    expect(html).toContain("Advisory Signals")
     expect(html).toContain("Sold Comparables")
     expect(html).toContain("Required Gate")
     expect(html).toContain('Blocking state: <span class="font-semibold text-red-700">Blocking</span>')
@@ -82,11 +82,7 @@ describe("InvestorShieldPanel", () => {
 
     const html = renderToStaticMarkup(<InvestorShieldPanel model={advisoryGateModel} />)
     const advisorySectionStart = html.indexOf("Advisory Signals")
-    const nextSectionStart = html.indexOf("Protected Movement")
-    const advisorySection =
-      advisorySectionStart >= 0 && nextSectionStart > advisorySectionStart
-        ? html.slice(advisorySectionStart, nextSectionStart)
-        : html
+    const advisorySection = advisorySectionStart >= 0 ? html.slice(advisorySectionStart) : html
 
     expect(html).toContain("Advisory Signals")
     expect(html).toContain("AI Visual Review")
@@ -99,11 +95,19 @@ describe("InvestorShieldPanel", () => {
       <InvestorShieldPanel model={blockedRequiredGateFixture} />
     )
 
-    expect(html.indexOf("Deterministic Governance")).toBeGreaterThan(-1)
-    expect(html.indexOf("Advisory Signals")).toBeGreaterThan(-1)
-    expect(html.indexOf("Deterministic Governance")).toBeLessThan(
-      html.indexOf("Advisory Signals")
-    )
+    const deterministicIndex = html.indexOf("Deterministic Governance")
+    const requiredGateIndex = html.indexOf("Required Gates")
+    const protectedMovementIndex = html.indexOf("Protected Movement")
+    const taskIndex = html.indexOf("Task Recommendations")
+    const waiverIndex = html.indexOf("Manual Review / Waiver")
+    const advisoryIndex = html.indexOf("Advisory Signals")
+
+    expect(deterministicIndex).toBeGreaterThan(-1)
+    expect(requiredGateIndex).toBeGreaterThan(deterministicIndex)
+    expect(protectedMovementIndex).toBeGreaterThan(requiredGateIndex)
+    expect(taskIndex).toBeGreaterThan(protectedMovementIndex)
+    expect(waiverIndex).toBeGreaterThan(taskIndex)
+    expect(advisoryIndex).toBeGreaterThan(waiverIndex)
   })
 
   it("renders protected movement before task recommendations", () => {
