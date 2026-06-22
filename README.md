@@ -1,6 +1,6 @@
 # Brik Engine v1 - Deal Analysis & Refurb Scope Engine
 
-Built for Lake Views Property. Brik Engine v1 is a UK fix-and-flip analysis tool that combines core deal math with manual refurb input, task-based refurb scope analysis, configurable cost data, override/assumptions reporting, verdict/confidence outputs, and visible Phase 1C due diligence output.
+Built for Brik by Brik Engine. Brik Engine v1 is a UK fix-and-flip analysis tool that combines core deal math with manual refurb input, task-based refurb scope analysis, configurable cost data, override/assumptions reporting, verdict/confidence outputs, and visible Phase 1C due diligence output.
 
 ---
 
@@ -269,7 +269,7 @@ The following remain out of scope in the current product:
 
 ```bash
 git clone <repo-url>
-cd lakeviewsproperty
+cd brik-by-brik-engine
 npm install
 npm run dev
 ```

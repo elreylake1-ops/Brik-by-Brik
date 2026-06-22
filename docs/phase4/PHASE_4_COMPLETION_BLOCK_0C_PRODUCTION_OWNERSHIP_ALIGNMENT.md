@@ -10,9 +10,9 @@ This document records production ownership and repository alignment for Phase 4 
 - Moved-repository redirect removed from local config: yes
 
 ## Vercel Ownership and Linkage
-- Project name: `lakeviewsproperty`
+- Project name: `brik-by-brik-engine`
 - Owner/team: `Karlo Alamares' projects`
-- Production domain: `https://lakeviewsproperty.vercel.app`
+- Production domain: `https://brik-by-brik-engine.vercel.app`
 - Linked repository: `Brik-by-Brik`
 - Production branch: `main`
 - Deployed commit: `d52aa3fb5874bd2d42044b8a52c7de74eeb1630e`

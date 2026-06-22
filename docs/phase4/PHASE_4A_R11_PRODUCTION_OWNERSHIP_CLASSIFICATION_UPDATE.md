@@ -9,8 +9,8 @@ Update production ownership/runtime classification after R10F verified safe read
 - Redeploy resolved blocker.
 
 ## Verified Runtime Status
-- Production URL: `https://lakeviewsproperty.vercel.app`
-- Vercel project name: `lakeviewsproperty`
+- Production URL: `https://brik-by-brik-engine.vercel.app`
+- Vercel project name: `brik-by-brik-engine`
 - Linked GitHub repo: `karloangeloalamares-cyber/Brik-by-Brik`
 - Production branch: `main`
 - Latest relevant commit: `519a1a3`

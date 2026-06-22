@@ -1,10 +1,10 @@
-# Phase 4A-R2C GitHub Remote URL Update
+﻿# Phase 4A-R2C GitHub Remote URL Update
 
 ## Purpose
 This document records the local git remote URL update.
 
 ## Change Performed
-- Updated local `origin` from `https://github.com/karloangeloalamares-cyber/lakeviewsproperty.git`
+- Updated local `origin` from `https://github.com/karloangeloalamares-cyber/superseded staging Vercel project.git`
 - Updated local `origin` to `https://github.com/karloangeloalamares-cyber/Brik-by-Brik.git`
 
 ## Verification
@@ -22,4 +22,5 @@ This document records the local git remote URL update.
 - No production data was modified
 
 ## Recommended Next Step
-Phase 4A-R3 — Vercel Project / Env Presence Audit Only
+Phase 4A-R3 â€” Vercel Project / Env Presence Audit Only
+

@@ -1,8 +1,8 @@
-## Purpose
+﻿## Purpose
 Execute controlled saved_deals-only production proof fixture from R12.
 
 ## Baseline
-- Production URL: `https://lakeviewsproperty.vercel.app`
+- Production URL: `[superseded deployment removed from active acceptance scope]`
 - Latest commit: `d3bd19d`
 - R11 classification: `VERIFIED FOR SAFE READ-ONLY MVP RUNTIME`
 - R12 fixture id: `r12_proof_fixture_001`
@@ -31,21 +31,21 @@ Inserted row summary:
 
 ## Production Proof Checks
 
-### `GET https://lakeviewsproperty.vercel.app/api/saved-deals`
+### `GET [superseded deployment removed from active acceptance scope]/api/saved-deals`
 - Method: `GET`
 - Expected result: `200`
 - Actual status: `200`
 - Response summary: success true, fixture row present in deals array
 - Pass/fail: pass
 
-### `GET https://lakeviewsproperty.vercel.app/api/saved-deals/r12_proof_fixture_001`
+### `GET [superseded deployment removed from active acceptance scope]/api/saved-deals/r12_proof_fixture_001`
 - Method: `GET`
 - Expected result: `200`
 - Actual status: `200`
 - Response summary: success true, proof fixture detail returned
 - Pass/fail: pass
 
-### `GET https://lakeviewsproperty.vercel.app/api/saved-deals/r12_proof_fixture_001/investor-shield-ui`
+### `GET [superseded deployment removed from active acceptance scope]/api/saved-deals/r12_proof_fixture_001/investor-shield-ui`
 - Method: `GET`
 - Expected result: no `500`; 200 or safe incomplete state acceptable
 - Actual status: `200`
@@ -114,3 +114,4 @@ Stop and present production read-only MVP + detail proof to James.
 - Commit hash: pending
 - Push result: pending
 - Final git status: pending
+

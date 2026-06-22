@@ -1,4 +1,4 @@
-# Phase 4A Local Env Setup
+﻿# Phase 4A Local Env Setup
 
 ## Purpose
 Provide a local placeholder configuration for Phase 4A Live DB Acceptance QA without committing secrets.
@@ -19,4 +19,5 @@ Provide a local placeholder configuration for Phase 4A Live DB Acceptance QA wit
 
 ## Phase 4A QA Reminder
 - Apply the canonical Phase 4A migrations under `brik_by_brik_engine` before running live DB acceptance QA.
-- Historical QA references to `lake_views_property` are deprecated and should not be used for current Supabase runs.
+- Historical QA references to `superseded staging Vercel project` are deprecated and should not be used for current Supabase runs.
+

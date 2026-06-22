@@ -1,4 +1,4 @@
-# Phase 4A-R3 Vercel Project / Env Presence Audit
+﻿# Phase 4A-R3 Vercel Project / Env Presence Audit
 
 ## Purpose
 This document audits Vercel project linkage and environment variable presence before production-ready classification.
@@ -13,9 +13,9 @@ This document audits Vercel project linkage and environment variable presence be
 - A Vercel project config/link does not exist locally.
 - Vercel CLI was available.
 - Vercel CLI was not linked to this codebase locally.
-- `vercel project ls` showed a `lakeviewsproperty` project under `karlo-alamares-projects`.
-- Project name safely available: `lakeviewsproperty`
-- Latest production URL safely available: `https://lakeviewsproperty.vercel.app`
+- `vercel project ls` showed the `brik-by-brik-engine` project under the correct owner scope.
+- Project name safely available: `brik-by-brik-engine`
+- Latest production URL safely available: `https://brik-by-brik-engine.vercel.app`
 - Linked GitHub repository and linked branch were not safely available from the local unlinked CLI state.
 - Production/preview clarity: `vercel inspect` on the production alias showed a production deployment marked Ready.
 
@@ -55,5 +55,6 @@ Presence only, no values:
 - Production-ready classification remains blocked
 
 ## Recommended Next Step
-Phase 4A-R3B — Vercel Access / Project Link Resolution Only
+Phase 4A-R3B â€” Vercel Access / Project Link Resolution Only
+
 

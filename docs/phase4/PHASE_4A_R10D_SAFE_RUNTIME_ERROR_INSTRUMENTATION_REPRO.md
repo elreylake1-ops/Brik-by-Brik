@@ -1,4 +1,4 @@
-## Purpose
+﻿## Purpose
 Add safe temporary diagnostics for production saved-deals 500s, then repro read-only routes in production.
 
 ## Changes Applied
@@ -35,7 +35,7 @@ Add safe temporary diagnostics for production saved-deals 500s, then repro read-
 
 ## Production Repro Results
 
-### `GET https://lakeviewsproperty.vercel.app/api/saved-deals`
+### `GET [superseded deployment removed from active acceptance scope]/api/saved-deals`
 - Status: `500`
 - Body: `{"success":false,"error":"SAVED_DEALS_READ_FAILED","traceId":"1cff1c6b-05ce-4c23-b6a7-4ac52ba26884",...}`
 - Safe diagnostic:
@@ -46,7 +46,7 @@ Add safe temporary diagnostics for production saved-deals 500s, then repro read-
 - Missing proof ID 404: not applicable for list route
 - Log trace match: none, `vercel logs --since 10m` returned no relevant lines
 
-### `GET https://lakeviewsproperty.vercel.app/api/saved-deals/768e352c-1784-40b4-8169-a31716dee0e9`
+### `GET [superseded deployment removed from active acceptance scope]/api/saved-deals/768e352c-1784-40b4-8169-a31716dee0e9`
 - Status: `500`
 - Body: `{"success":false,"error":"SAVED_DEAL_READ_FAILED","traceId":"0762ea62-763b-42df-a31a-54b54e26c713",...}`
 - Safe diagnostic:
@@ -57,7 +57,7 @@ Add safe temporary diagnostics for production saved-deals 500s, then repro read-
 - Missing proof ID 404: not reached because upstream DB auth failed first
 - Log trace match: none
 
-### `GET https://lakeviewsproperty.vercel.app/api/saved-deals/768e352c-1784-40b4-8169-a31716dee0e9/investor-shield-ui`
+### `GET [superseded deployment removed from active acceptance scope]/api/saved-deals/768e352c-1784-40b4-8169-a31716dee0e9/investor-shield-ui`
 - Status: `500`
 - Body: `{"success":false,"error":"INVESTOR_SHIELD_UI_READ_FAILED","traceId":"0be44a4f-97b1-441a-b4e4-0bd6a3c97a17",...}`
 - Safe diagnostic:
@@ -140,3 +140,4 @@ Phase 4A-R10E - fix production DB auth / connection source, then rerun safe read
 - Commit hash: `45b490e`
 - Push result: succeeded
 - Final git status: clean
+

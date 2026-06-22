@@ -1,4 +1,4 @@
-# Phase 4 Schema Namespace Runtime Fix
+﻿# Phase 4 Schema Namespace Runtime Fix
 
 ## Purpose
 Provide a runtime-safe handoff for the Supabase namespace mismatch that blocked manual execution of the Phase 4B Investor Shield migration.
@@ -6,7 +6,7 @@ Provide a runtime-safe handoff for the Supabase namespace mismatch that blocked 
 ## Root Cause
 - The Investor Shield draft migration correctly references `brik_by_brik_engine.saved_deals`.
 - The Supabase runtime that raised `ERROR: 42P01: relation "brik_by_brik_engine.saved_deals" does not exist` did not have the canonical Phase 4A base table available under `brik_by_brik_engine` at execution time.
-- This is a runtime namespace/state mismatch, not a reason to revert Investor Shield back to `lake_views_property`.
+- This is a runtime namespace/state mismatch, not a reason to revert Investor Shield back to `superseded staging Vercel project`.
 
 ## Canonical Schema
 - Canonical schema: `brik_by_brik_engine`
@@ -39,10 +39,10 @@ and column_name = 'id';
 ```
 
 ## Safe Remediation Options
-### A. `brik_by_brik_engine` missing, `lake_views_property` exists
+### A. `brik_by_brik_engine` missing, `superseded staging Vercel project` exists
 - Back up the existing data first.
 - Review a namespace transition plan before moving or recreating tables.
-- Do not run destructive drop statements against `lake_views_property` as part of this step.
+- Do not run destructive drop statements against `superseded staging Vercel project` as part of this step.
 
 ### B. Neither schema path exists
 - Apply the canonical Phase 4A migrations first:
@@ -57,3 +57,4 @@ and column_name = 'id';
 - No live migration is applied from repo code in this step.
 - No destructive migration is introduced here.
 - If a transition SQL step is drafted later, it must be idempotent, backup-aware, and manually reviewed before any Supabase execution.
+

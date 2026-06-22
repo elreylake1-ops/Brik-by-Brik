@@ -1,11 +1,11 @@
-## Purpose
+﻿## Purpose
 This retests production runtime after `DATABASE_URL` was added to Vercel.
 
 ## Baseline
 - Current branch: `main`
 - Latest commit: `f67a232`
-- Production URL: `https://lakeviewsproperty.vercel.app`
-- Vercel project: `lakeviewsproperty`
+- Production URL: `[superseded deployment removed from active acceptance scope]`
+- Vercel project: `superseded staging Vercel project`
 - Linked repo: `karloangeloalamares-cyber/Brik-by-Brik`
 - Production branch: `main`
 - Deployment commit: intended commit `f67a232` on the current mainline; direct commit text was not surfaced by the CLI inspection output
@@ -15,10 +15,10 @@ This retests production runtime after `DATABASE_URL` was added to Vercel.
 ## Safe Checks Performed
 | URL or route | Method | Expected result | Actual result | Status | Reason if not tested |
 |---|---|---|---|---|---|
-| `https://lakeviewsproperty.vercel.app/` | `GET` | `200` | `200` | pass | N/A |
-| `https://lakeviewsproperty.vercel.app/api/saved-deals` | `GET` | `200` | `500` | fail | N/A |
-| `https://lakeviewsproperty.vercel.app/api/saved-deals/768e352c-1784-40b4-8169-a31716dee0e9` | `GET` | `200` or safe `404` | `500` | fail | N/A |
-| `https://lakeviewsproperty.vercel.app/api/saved-deals/768e352c-1784-40b4-8169-a31716dee0e9/investor-shield-ui` | `GET` | `200` or safe `404` | `500` | fail | N/A |
+| `[superseded deployment removed from active acceptance scope]/` | `GET` | `200` | `200` | pass | N/A |
+| `[superseded deployment removed from active acceptance scope]/api/saved-deals` | `GET` | `200` | `500` | fail | N/A |
+| `[superseded deployment removed from active acceptance scope]/api/saved-deals/768e352c-1784-40b4-8169-a31716dee0e9` | `GET` | `200` or safe `404` | `500` | fail | N/A |
+| `[superseded deployment removed from active acceptance scope]/api/saved-deals/768e352c-1784-40b4-8169-a31716dee0e9/investor-shield-ui` | `GET` | `200` or safe `404` | `500` | fail | N/A |
 
 ## Mutation Avoidance Confirmation
 No write endpoints or DB mutations were performed. Only read-only `GET` requests and read-only deployment inspection/log checks were used.
@@ -36,7 +36,7 @@ BLOCKED
 - The safe runtime path is still blocked until the production route failure is diagnosed.
 
 ## Recommended Next Step
-Phase 4A-R10B â€” targeted read-only route / runtime error diagnosis for `GET /api/saved-deals` and related saved-deal GET paths.
+Phase 4A-R10B Ã¢â‚¬â€ targeted read-only route / runtime error diagnosis for `GET /api/saved-deals` and related saved-deal GET paths.
 
 ## Safety Confirmation
 - no secrets printed
@@ -46,3 +46,4 @@ Phase 4A-R10B â€” targeted read-only route / runtime error diagnosis for `G
 - no DB mutation
 - no runtime behavior changed
 - no code changed except documentation
+

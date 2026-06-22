@@ -6,7 +6,7 @@ This document prepares the Phase 4A database handover from temporary/staging Sup
 ## Naming and Ownership Correction
 - Product/system name: Brik by Brik Engine.
 - Production database name/reference: Brik by Brik Engine — Production Database.
-- Lake Views Property is the Upwork/account name only and must not be used as the production system/database name.
+- The Upwork/account name is separate and must not be used as the production system/database name.
 - The Supabase project used for live Phase 4A QA was temporary/staging only.
 - Production ownership should sit under James' Brik by Brik Engine Supabase project.
 

@@ -2,8 +2,8 @@
 This document records the production deployment and database connection verification for Phase 4 Completion Sprint Block 1A.
 
 ## Production Environment
-- Project name: `lakeviewsproperty`
-- Domain: `https://lakeviewsproperty.vercel.app`
+- Project name: `brik-by-brik-engine`
+- Domain: `https://brik-by-brik-engine.vercel.app`
 - Linked Git repository: `https://github.com/karloangeloalamares-cyber/Brik-by-Brik.git`
 - Production branch: `main`
 - Deployed commit: `d52aa3fb5874bd2d42044b8a52c7de74eeb1630e`

@@ -1,11 +1,11 @@
-# Phase 4A Operator Command MVP - Live Acceptance Handoff
+﻿# Phase 4A Operator Command MVP - Live Acceptance Handoff
 
 ## Purpose
 This document summarizes the completed Phase 4A Operator Command MVP after live DB acceptance passed.
 
 ## Live Acceptance Status
 - Phase 4A live DB QA passed.
-- Historical QA schema at time of live acceptance (deprecated): `lake_views_property`.
+- Historical QA schema at time of live acceptance (deprecated): `superseded staging Vercel project`.
 - Production-target schema namespace after rename correction: `brik_by_brik_engine`.
 - Tables verified:
   - `saved_deals`
@@ -59,7 +59,7 @@ This document summarizes the completed Phase 4A Operator Command MVP after live 
 ## Operational Notes
 - `DATABASE_URL` is required locally/server-side.
 - `.env.local` must not be committed.
-- historical live QA migration state used deprecated `lake_views_property` schema.
+- historical live QA migration state used deprecated `superseded staging Vercel project` schema.
 - production handover/migration namespace is `brik_by_brik_engine`.
 - this build is single-operator focused.
 
@@ -69,3 +69,4 @@ Client review / James acceptance sign-off.
 Do not begin new feature expansion until James approves the accepted MVP.
 
 Status note: Brik by Brik Engine production database handover prepared. Production system/database naming corrected. No feature expansion, new API, migration behavior, UI, automation, AI, or engine behavior added.
+

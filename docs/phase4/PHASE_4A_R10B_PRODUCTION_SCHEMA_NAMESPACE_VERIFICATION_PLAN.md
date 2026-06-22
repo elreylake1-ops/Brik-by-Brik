@@ -1,10 +1,10 @@
-## Purpose
+﻿## Purpose
 This verifies production schema/table presence before any migration or runtime fix.
 
 ## Baseline
 - Branch: `main`
 - Latest commit: `b488122`
-- Production URL: `https://lakeviewsproperty.vercel.app`
+- Production URL: `[superseded deployment removed from active acceptance scope]`
 - R10 result: `BLOCKED`
 - R10A result: `ROOT CAUSE IDENTIFIED` as likely schema/namespace mismatch, but not confirmed by live DB introspection
 - Failing routes:
@@ -53,7 +53,7 @@ Live DB introspection from the shell was not available.
 
 ## Legacy Namespace Findings
 - `public.saved_deals`: not checked
-- `lake_views_property.saved_deals`: not checked
+- `superseded staging Vercel project.saved_deals`: not checked
 - Other documented namespace: `brik_by_brik_engine` is the canonical target in repo docs, but live presence was not confirmed from shell
 
 ## Proof ID Check
@@ -81,7 +81,7 @@ where schema_name = 'brik_by_brik_engine';
 ```sql
 select table_schema, table_name
 from information_schema.tables
-where table_schema in ('brik_by_brik_engine', 'public', 'lake_views_property')
+where table_schema in ('brik_by_brik_engine', 'public', 'superseded staging Vercel project')
   and table_name in (
     'saved_deals',
     'deal_offers',
@@ -124,4 +124,5 @@ limit 1;
 PARTIALLY VERIFIED
 
 ## Recommended Next Step
-R10C â€” apply the smallest safe production schema/namespace migration or backward-compatible fix after manual SQL verification in Supabase.
+R10C Ã¢â‚¬â€ apply the smallest safe production schema/namespace migration or backward-compatible fix after manual SQL verification in Supabase.
+

@@ -1,9 +1,9 @@
-# Phase 4A Live DB Acceptance QA Report
+﻿# Phase 4A Live DB Acceptance QA Report
 
 ## Live DB QA Status
 Pass.
 
-Live DB-backed Phase 4A acceptance QA was executed successfully against namespaced tables in `lake_views_property` (deprecated historical schema before namespace rename correction).
+Live DB-backed Phase 4A acceptance QA was executed successfully against namespaced tables in `superseded staging Vercel project` (deprecated historical schema before namespace rename correction).
 
 Production namespace after naming correction:
 - `brik_by_brik_engine`
@@ -14,7 +14,7 @@ Production namespace after naming correction:
 - `.env.local` git-ignore status: ignored
 
 ## Tables Verified
-Verified present in `lake_views_property`:
+Verified present in `superseded staging Vercel project`:
 - `saved_deals`
 - `deal_offers`
 - `deal_tasks`
@@ -41,10 +41,10 @@ Operator Command View data sufficiency:
 
 ## DB Row Verification Result
 Confirmed with live DB queries:
-- save flow created row in `lake_views_property.saved_deals`
+- save flow created row in `superseded staging Vercel project.saved_deals`
 - pipeline flow set `pipeline_state` to `READY_FOR_OFFER`
-- offer flow inserted row in `lake_views_property.deal_offers`
-- task flow inserted row in `lake_views_property.deal_tasks`
+- offer flow inserted row in `superseded staging Vercel project.deal_offers`
+- task flow inserted row in `superseded staging Vercel project.deal_tasks`
 
 ## Snapshot Safety Result
 Confirmed:
@@ -69,3 +69,4 @@ Confirmed:
 - `npm run build`: pass
 - `npm run lint`: pass
 `r`nStatus note: Phase 4A Operator Command MVP live handoff created. No feature expansion, new API, migration, UI, export, automation, AI, investor pack, or engine behavior added.
+

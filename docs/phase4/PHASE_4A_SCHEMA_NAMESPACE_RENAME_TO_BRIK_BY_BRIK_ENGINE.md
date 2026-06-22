@@ -1,15 +1,15 @@
-# Phase 4A Schema Namespace Rename to Brik by Brik Engine
+﻿# Phase 4A Schema Namespace Rename to Brik by Brik Engine
 
 ## Purpose
 Record the Phase 4A namespace correction after production ownership/naming clarification from James.
 
 ## Reason for Rename
-- Lake Views Property is the Upwork/account name only.
+- The Upwork/account name is separate.
 - Product/system name is Brik by Brik Engine.
-- Production namespace must align with Brik by Brik Engine naming for the Brik by Brik Engine — Production Database.
+- Production namespace must align with Brik by Brik Engine naming for the Brik by Brik Engine â€” Production Database.
 
 ## Namespace Change
-- Old schema (deprecated): `lake_views_property`
+- Old schema (deprecated): `superseded staging Vercel project`
 - New schema (active): `brik_by_brik_engine`
 
 ## Affected Migrations
@@ -50,5 +50,6 @@ Test expectations now assert `brik_by_brik_engine` schema/table/FK naming.
 - No UI changes were added.
 
 ## Production Warning
-Do not apply the old deprecated `lake_views_property` Phase 4A migration variant to production.
+Do not apply the old deprecated `superseded staging Vercel project` Phase 4A migration variant to production.
 Use only the renamed `brik_by_brik_engine` migration files.
+

@@ -1,11 +1,11 @@
-## Purpose
+﻿## Purpose
 Diagnose production saved-deals runtime after manual Supabase SQL verification showed the expected schema exists in `brik_by_brik_engine`.
 
 ## Baseline
 - Current branch: `main`
 - Latest commit: `7c01e53`
-- Production URL: `https://lakeviewsproperty.vercel.app`
-- Vercel project: `lakeviewsproperty`
+- Production URL: `[superseded deployment removed from active acceptance scope]`
+- Vercel project: `superseded staging Vercel project`
 - Linked repo: `karloangeloalamares-cyber/Brik-by-Brik`
 - Production branch: `main`
 - Deployment commit: latest deployed commit on the verified Ready deployment
@@ -79,7 +79,7 @@ Manual Supabase SQL confirmed:
 - Documented proof ID handling: the known proof ID is absent in production, so any route depending on that exact ID cannot be retested as a success-path proof
 
 ## Production Log Evidence
-- `vercel logs https://lakeviewsproperty.vercel.app --since 30m` returned no log lines for the failure window
+- `vercel logs [superseded deployment removed from active acceptance scope] --since 30m` returned no log lines for the failure window
 - No runtime stack trace, SQL error code, or route-specific exception was captured
 - No evidence of column-mismatch error was found in logs
 - Logs are insufficient for a definitive runtime failure class
@@ -110,3 +110,4 @@ BLOCKED
 
 ## Recommended Next Step
 Phase 4A-R10D - safe runtime logging patch and targeted repro
+

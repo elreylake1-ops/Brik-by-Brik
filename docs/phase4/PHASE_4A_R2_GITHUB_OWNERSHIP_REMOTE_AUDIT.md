@@ -1,4 +1,4 @@
-# Phase 4A-R2 GitHub Ownership / Remote Audit
+﻿# Phase 4A-R2 GitHub Ownership / Remote Audit
 
 ## Purpose
 This document audits GitHub ownership/remote status before production-ready classification.
@@ -7,7 +7,7 @@ This document audits GitHub ownership/remote status before production-ready clas
 - Current branch: `main`
 - Latest local commit: `bf7e6b4` (`docs: plan production ownership retest`)
 - Git status cleanliness: clean
-- Remote name and URL: `origin` -> `https://github.com/karloangeloalamares-cyber/lakeviewsproperty.git`
+- Remote name and URL: `origin` -> `https://github.com/karloangeloalamares-cyber/superseded staging Vercel project.git`
 - `origin/main` reachability: reachable
 - Latest commit on remote: yes, `bf7e6b4` is present on `origin/main`
 
@@ -36,6 +36,7 @@ This document audits GitHub ownership/remote status before production-ready clas
 - Avoid calling production-ready until GitHub/Vercel/Supabase ownership alignment is complete.
 
 ## Recommended Next Step
-Phase 4A-R2B — GitHub Remote Update Decision Only
+Phase 4A-R2B â€” GitHub Remote Update Decision Only
 
 This should be a decision doc or explicit approval step before running `git remote set-url`.
+

@@ -2,7 +2,7 @@
 
 ## Project Context
 
-This project is for Lake Views Property.
+This project is for Brik by Brik Engine.
 
 The product is Brik Engine v1, a UK property deal analysis engine for fix-and-flip property deals.
 

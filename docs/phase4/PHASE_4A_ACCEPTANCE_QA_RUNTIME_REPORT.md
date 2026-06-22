@@ -1,4 +1,4 @@
-# Phase 4A Acceptance QA Runtime Report
+﻿# Phase 4A Acceptance QA Runtime Report
 
 ## QA Mode
 Static/code-path QA with regression checks.
@@ -112,4 +112,5 @@ Live DB row verification:
 
 ## Final Recommendation
 Proceed with a live acceptance QA rerun using a real `DATABASE_URL` with all three Phase 4A migrations applied, then execute the same save/view/pipeline/offers/tasks/operator-command flow and confirm row-level persistence in `saved_deals`, `deal_offers`, and `deal_tasks`.
-`r`nStatus note: Phase 4A Live DB Acceptance QA report created using lake_views_property schema. No feature expansion, new API, migration, UI, automation, AI, export, investor pack, or engine behavior added unless a minimal blocking fix was required.
+`r`nStatus note: Phase 4A Live DB Acceptance QA report created using superseded staging Vercel project schema. No feature expansion, new API, migration, UI, automation, AI, export, investor pack, or engine behavior added unless a minimal blocking fix was required.
+

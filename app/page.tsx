@@ -730,7 +730,7 @@ export default function Home() {
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-gray-900">Brik Engine v1</h1>
           <p className="mt-1 text-sm text-gray-500">Phase 1 - Deal Analysis Calculator</p>
-          <p className="mt-2 text-sm text-gray-400">by Lake Views Property</p>
+          <p className="mt-2 text-sm text-gray-400">by Brik by Brik Engine</p>
         </div>
 
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm">
@@ -1390,7 +1390,7 @@ export default function Home() {
         </div>
 
         <div className="mt-10 border-t border-gray-200 pt-6 text-center">
-          <p className="text-xs text-gray-400">(c) Lake Views Property</p>
+          <p className="text-xs text-gray-400">(c) Brik by Brik Engine</p>
           <p className="mt-1 text-xs text-gray-400">For guidance only. Not financial advice.</p>
         </div>
       </div>

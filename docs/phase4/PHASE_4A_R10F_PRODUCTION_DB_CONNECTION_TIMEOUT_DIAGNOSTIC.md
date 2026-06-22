@@ -1,10 +1,10 @@
-## Purpose
+﻿## Purpose
 Diagnose post-auth-fix production API timeout/hang behavior for saved-deals routes after Vercel `DATABASE_URL` was corrected and production redeployed.
 
 ## Baseline
 - Branch: `main`
 - Latest commit: `c74ae12`
-- Production URL: `https://lakeviewsproperty.vercel.app`
+- Production URL: `[superseded deployment removed from active acceptance scope]`
 - Deployment status: `Ready`
 - R10D root cause: `DATABASE_URL` auth failure (`28P01`, auth failed for user `postgres`)
 - Vercel `DATABASE_URL` corrected manually: yes
@@ -12,21 +12,21 @@ Diagnose post-auth-fix production API timeout/hang behavior for saved-deals rout
 
 ## Production Repro Results
 
-### `GET https://lakeviewsproperty.vercel.app/api/saved-deals`
+### `GET [superseded deployment removed from active acceptance scope]/api/saved-deals`
 - Method: `GET`
 - Status: `200`
 - Response body summary: success true, deals array returned
 - TraceId: none
 - Pass/Fail: pass
 
-### `GET https://lakeviewsproperty.vercel.app/api/saved-deals/768e352c-1784-40b4-8169-a31716dee0e9`
+### `GET [superseded deployment removed from active acceptance scope]/api/saved-deals/768e352c-1784-40b4-8169-a31716dee0e9`
 - Method: `GET`
 - Status: `404`
 - Response body summary: `{"success":false,"error":"Saved deal not found."}`
 - TraceId: none
 - Pass/Fail: pass
 
-### `GET https://lakeviewsproperty.vercel.app/api/saved-deals/768e352c-1784-40b4-8169-a31716dee0e9/investor-shield-ui`
+### `GET [superseded deployment removed from active acceptance scope]/api/saved-deals/768e352c-1784-40b4-8169-a31716dee0e9/investor-shield-ui`
 - Method: `GET`
 - Status: `404`
 - Response body summary: `{"success":false,"error":"Saved deal not found."}`
@@ -34,7 +34,7 @@ Diagnose post-auth-fix production API timeout/hang behavior for saved-deals rout
 - Pass/Fail: pass
 
 ## Log Evidence
-- `vercel logs https://lakeviewsproperty.vercel.app --since 30m` returned no relevant lines
+- `vercel logs [superseded deployment removed from active acceptance scope] --since 30m` returned no relevant lines
 - No timeout stack, no SQL error, no hang evidence in logs
 - Log output remained sparse and not useful for a deeper runtime trace
 
@@ -74,3 +74,4 @@ R10G safe runtime retest, now that saved-deals read routes return expected safe 
 - commit hash: `c74ae12`
 - push result: pending after doc commit
 - final git status: pending after doc commit
+

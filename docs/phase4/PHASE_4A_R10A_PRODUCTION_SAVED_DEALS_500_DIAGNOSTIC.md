@@ -1,10 +1,10 @@
-## Purpose
+﻿## Purpose
 This diagnoses production 500s on read-only saved-deals runtime paths after `DATABASE_URL` was added to Vercel.
 
 ## Baseline
 - Branch: `main`
 - Latest commit: `e627665`
-- Production URL: `https://lakeviewsproperty.vercel.app`
+- Production URL: `[superseded deployment removed from active acceptance scope]`
 - Deployment status: `Ready`
 - R10 result: `BLOCKED`
 - Failing routes:
@@ -39,7 +39,7 @@ This diagnoses production 500s on read-only saved-deals runtime paths after `DAT
 - Read-only: yes
 
 ## Log Evidence Summary
-- `vercel logs https://lakeviewsproperty.vercel.app --since 30m` returned no log lines for the saved-deals failures during the latest check.
+- `vercel logs [superseded deployment removed from active acceptance scope] --since 30m` returned no log lines for the saved-deals failures during the latest check.
 - Production GET checks still returned `500` for all read-only saved-deals routes.
 - Relevant stack/function names from code:
   - `query` in `lib/db/postgres.ts`
@@ -70,7 +70,7 @@ Why this fits:
 ROOT CAUSE IDENTIFIED
 
 ## Recommended Next Step
-R10B â€” apply the smallest safe fix for the production DB schema/namespace mismatch, starting with a read-only production schema verification before any migration or runtime change.
+R10B Ã¢â‚¬â€ apply the smallest safe fix for the production DB schema/namespace mismatch, starting with a read-only production schema verification before any migration or runtime change.
 
 ## Safety Confirmation
 - no secrets printed
@@ -80,3 +80,4 @@ R10B â€” apply the smallest safe fix for the production DB schema/namespace
 - no DB mutation
 - no runtime behavior changed
 - no code changed except documentation
+

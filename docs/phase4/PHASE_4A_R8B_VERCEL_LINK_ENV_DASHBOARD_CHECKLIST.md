@@ -1,4 +1,4 @@
-## Purpose
+﻿## Purpose
 This document gives a safe manual checklist for verifying Vercel project ownership/linkage/env completeness before production-ready classification.
 
 ## Current Baseline
@@ -6,13 +6,13 @@ This document gives a safe manual checklist for verifying Vercel project ownersh
 - Latest commit: `0524c6b`
 - Origin URL: `https://github.com/karloangeloalamares-cyber/Brik-by-Brik.git`
 - R7D local runtime status: verified; local runtime success path returned `200`
-- R8 Vercel status: partially verified; project exists as `lakeviewsproperty` and production URL is ready, but repo/branch/deployment linkage was not fully confirmed from the safe local checks
+- R8 Vercel status: partially verified; project exists as `superseded staging Vercel project` and production URL is ready, but repo/branch/deployment linkage was not fully confirmed from the safe local checks
 - R9 env completeness status: partially verified; `DATABASE_URL` is the only runtime-required env var identified, and local presence was confirmed only in `.env.local`
 - Current production-ready classification: blocked
 
 ## What Must Be Verified In Vercel Dashboard
-- [ ] Vercel project name is `lakeviewsproperty`
-- [ ] Production domain is `lakeviewsproperty.vercel.app`
+- [ ] Vercel project name is `superseded staging Vercel project`
+- [ ] Production domain is `[superseded deployment removed from active acceptance scope]`
 - [ ] Linked GitHub repository matches the expected origin repo
 - [ ] Production branch is `main`
 - [ ] Latest deployment commit matches the intended GitHub commit
@@ -36,7 +36,7 @@ This document gives a safe manual checklist for verifying Vercel project ownersh
 
 ## Manual Dashboard Verification Steps
 1. Open the Vercel dashboard.
-2. Select project `lakeviewsproperty`.
+2. Select project `superseded staging Vercel project`.
 3. Check Git repository linkage.
 4. Confirm production branch.
 5. Open the latest production deployment.
@@ -94,7 +94,8 @@ Do not request screenshots containing env values.
 
 ## Recommended Next Step
 If `VERIFIED`:
-Recommend Phase 4A-R10 â€” Full Safe Runtime Success-Path Retest.
+Recommend Phase 4A-R10 Ã¢â‚¬â€ Full Safe Runtime Success-Path Retest.
 
 If `PARTIALLY VERIFIED` or `BLOCKED`:
 Recommend resolving Vercel linkage/env visibility before any production-ready classification.
+

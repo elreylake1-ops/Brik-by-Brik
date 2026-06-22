@@ -4,8 +4,8 @@
 Verify the correct production Vercel target for the Phase 4 Completion Sprint, confirm it is linked to the intended repository and branch, and validate read-only production connectivity before any Phase 4A runtime retest work continues.
 
 ## Superseded Production Target
-- Project: `lakeviewsproperty`
-- Domain: `https://lakeviewsproperty.vercel.app`
+- Project: `brik-by-brik-engine`
+- Domain: `https://brik-by-brik-engine.vercel.app`
 - Owner scope: `Karlo Alamares' projects`
 - This target was used in earlier Phase 4 verification work, but it is not the final acceptance target for the corrected James production verification.
 

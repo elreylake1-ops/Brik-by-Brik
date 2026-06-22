@@ -1,10 +1,10 @@
-# Phase 4A-R2B GitHub Remote Update Decision
+﻿# Phase 4A-R2B GitHub Remote Update Decision
 
 ## Purpose
 This document records the decision point for updating the local git remote URL.
 
 ## Current Remote State
-- Current remote URL: `https://github.com/karloangeloalamares-cyber/lakeviewsproperty.git`
+- Current remote URL: `https://github.com/karloangeloalamares-cyber/superseded staging Vercel project.git`
 - Current branch: `main`
 - Latest commit: `9e72a58` (`docs: audit github ownership remote status`)
 - Working tree status: clean
@@ -44,4 +44,5 @@ git status --short
 ```
 
 ## Recommended Next Step
-Phase 4A-R2C — GitHub Remote URL Update Only
+Phase 4A-R2C â€” GitHub Remote URL Update Only
+

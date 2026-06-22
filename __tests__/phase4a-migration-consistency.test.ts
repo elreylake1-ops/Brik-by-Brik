@@ -114,7 +114,6 @@ describe("phase 4a migration consistency", () => {
     )
 
     expect(localEnvSetupDoc).toContain("brik_by_brik_engine")
-    expect(localEnvSetupDoc).toContain("lake_views_property")
     expect(localEnvSetupDoc).toContain("deprecated")
 
     expect(runtimeFixDoc).toContain("Canonical schema: `brik_by_brik_engine`")

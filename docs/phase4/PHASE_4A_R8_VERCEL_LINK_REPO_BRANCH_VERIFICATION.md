@@ -1,4 +1,4 @@
-## Purpose
+﻿## Purpose
 This document verifies Vercel project linkage to the expected GitHub repository and branch before production-ready classification.
 
 ## Current Baseline
@@ -11,8 +11,8 @@ This document verifies Vercel project linkage to the expected GitHub repository 
 ## Vercel Project Check
 - Vercel CLI available: yes (`54.2.0`)
 - CLI authenticated: partially confirmed by project listing access; no forced login attempted
-- Project name safely available: `lakeviewsproperty`
-- Production URL safely available: `https://lakeviewsproperty.vercel.app`
+- Project name safely available: `brik-by-brik-engine`
+- Production URL safely available: `https://brik-by-brik-engine.vercel.app`
 - Latest deployment status safely available: `Ready`
 
 ## Repository / Branch Link Check
@@ -46,9 +46,10 @@ PARTIALLY VERIFIED
 - branch not visible from CLI
 - deployment commit not visible from CLI
 - env list inaccessible from the unlinked CLI state
-- old lakeviewsproperty repo may still be linked at the project level even though the CLI can see the correct production URL
+- old superseded staging Vercel project repo may still be linked at the project level even though the CLI can see the correct production URL
 - production-ready classification remains blocked if unresolved
 
 ## Recommended Next Step
-Phase 4A-R9 â€” Supabase Env Completeness Resolution Only.
+Phase 4A-R9 Ã¢â‚¬â€ Supabase Env Completeness Resolution Only.
+
 
