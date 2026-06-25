@@ -8,6 +8,7 @@ const EXCLUDED_DIRS = new Set([
   ".git",
   "node_modules",
   ".next",
+  ".vercel",
   "coverage",
   "dist",
   "build",
@@ -19,14 +20,11 @@ const EXCLUDED_FILES = new Set([
   path.normalize("db/audits/phase4_legacy_branding_audit.sql"),
   path.normalize("db/audits/phase4_legacy_branding_cleanup_PROPOSED.sql"),
   path.normalize("docs/phase4/PHASE_4_COMPLETION_REPOSITORY_BRANDING_CLEANUP.md"),
+  path.normalize("docs/phase4/PHASE_4_COMPLETION_JAMES_PRODUCTION_CONNECTION_REVERIFICATION.md"),
+  path.normalize("docs/phase4/PHASE_4_COMPLETION_NEW_JAMES_VERCEL_PROJECT_VERIFICATION.md"),
   path.normalize("__tests__/legacy-branding-guard.test.ts"),
   path.normalize("__tests__/phase4a-migration-consistency.test.ts"),
 ])
-
-const EXCLUDED_PATH_FRAGMENTS = [
-  path.normalize("docs/phase4"),
-  path.normalize("docs/client-return"),
-]
 
 const EXCLUDED_BASENAME_PREFIXES = ["α"]
 
@@ -71,9 +69,6 @@ function walk(dir: string): string[] {
 
     const relativePath = path.relative(ROOT, fullPath)
     const normalizedRelativePath = path.normalize(relativePath)
-    if (EXCLUDED_PATH_FRAGMENTS.some((fragment) => normalizedRelativePath.includes(fragment))) {
-      continue
-    }
     if (EXCLUDED_BASENAME_PREFIXES.some((prefix) => path.basename(fullPath).startsWith(prefix))) {
       continue
     }
@@ -87,21 +82,48 @@ function walk(dir: string): string[] {
   return files
 }
 
+function hasForbiddenBranding(content: string) {
+  const lowered = content.toLowerCase()
+  return FORBIDDEN_TERMS.some((term) => lowered.includes(term.toLowerCase()))
+}
+
 describe("legacy branding guard", () => {
+  it("detects forbidden legacy branding while allowing canonical branding", () => {
+    expect(hasForbiddenBranding("Brik by Brik Engine")).toBe(false)
+    expect(hasForbiddenBranding("Lake Views Property")).toBe(true)
+    expect(hasForbiddenBranding("lakeviewsproperty.vercel.app")).toBe(true)
+  })
+
+  it("keeps active source and docs covered while skipping only explicit audit artifacts", () => {
+    const files = walk(ROOT)
+
+    expect(files).toContain(path.join(ROOT, "app", "page.tsx"))
+    expect(files).toContain(path.join(ROOT, "components", "ResultsDisplay.tsx"))
+    expect(files).toContain(path.join(ROOT, "db", "migrations", "20260522_phase4a_saved_deals_table.sql"))
+    expect(files).toContain(path.join(ROOT, "docs", "PHASE_1A_QA_REPORT.md"))
+    expect(files).toContain(path.join(ROOT, "README.md"))
+
+    expect(files).not.toContain(path.join(ROOT, "db", "audits", "phase4_legacy_branding_audit.sql"))
+    expect(files).not.toContain(path.join(ROOT, "db", "audits", "phase4_legacy_branding_cleanup_PROPOSED.sql"))
+    expect(files).not.toContain(path.join(ROOT, "docs", "phase4", "PHASE_4_COMPLETION_REPOSITORY_BRANDING_CLEANUP.md"))
+    expect(files).not.toContain(path.join(ROOT, "docs", "phase4", "PHASE_4_COMPLETION_JAMES_PRODUCTION_CONNECTION_REVERIFICATION.md"))
+    expect(files).not.toContain(path.join(ROOT, "docs", "phase4", "PHASE_4_COMPLETION_NEW_JAMES_VERCEL_PROJECT_VERIFICATION.md"))
+  })
+
   it("does not allow legacy Lake Views branding in active repository content", () => {
     const files = walk(ROOT)
     const failures: Array<{ file: string; term: string }> = []
 
     for (const file of files) {
-      const content = readFileSync(file, "utf8").toLowerCase()
+      const content = readFileSync(file, "utf8")
 
       for (const term of FORBIDDEN_TERMS) {
-        if (content.includes(term.toLowerCase())) {
+        if (content.toLowerCase().includes(term.toLowerCase())) {
           failures.push({ file: path.relative(ROOT, file), term })
         }
       }
     }
 
     expect(failures).toEqual([])
-  })
+  }, 15_000)
 })
