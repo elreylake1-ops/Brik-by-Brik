@@ -31,11 +31,7 @@ The guard still scans active repository content, including:
 - tests and fixtures
 - configuration and package metadata
 
-The guard still rejects legacy branding strings such as:
-- `Lake Views Property`
-- `LakeViewsProperty`
-- `lakeviewsproperty`
-- `lakeviewsproperty.vercel.app`
+The guard still rejects the superseded site identity strings and matching legacy deployment domain.
 
 ## Exclusions
 Generated or irrelevant directories excluded from the scan:
