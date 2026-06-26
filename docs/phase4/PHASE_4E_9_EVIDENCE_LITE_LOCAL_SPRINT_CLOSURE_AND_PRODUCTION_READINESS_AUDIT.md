@@ -259,3 +259,14 @@ No migration.
 No database mutation.
 
 No UI activation.
+
+## P0 Status Note
+
+P0 verification was performed against the live `brik-by-brik-engine` production target.
+
+- verdict: `PHASE 4E-P0 PARTIALLY VERIFIED — REMEDIATION REQUIRED`
+- `DATABASE_URL` readiness: `ABSENT`
+- production read routes: root returned `200`; saved-deals and Investor Shield read routes returned safe `500` failures because `DATABASE_URL` is missing
+- migration remains unexecuted
+- production Evidence Lite UI remains inactive
+- next step: `Phase 4E-P0A — Production DATABASE_URL Presence Correction and Controlled Redeployment`
