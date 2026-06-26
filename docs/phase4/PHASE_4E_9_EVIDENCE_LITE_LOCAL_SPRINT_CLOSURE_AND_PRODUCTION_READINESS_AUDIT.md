@@ -269,6 +269,7 @@ P0 verification was performed against the live `brik-by-brik-engine` production 
 - production read routes: root returned `200`; saved-deals and Investor Shield read routes returned safe `500` failures because `DATABASE_URL` is missing
 - migration remains unexecuted
 - production Evidence Lite UI remains inactive
+
 - next step: `Phase 4E-P0A — Production DATABASE_URL Presence Correction and Controlled Redeployment`
 
 ## P0A Status Note
@@ -292,6 +293,19 @@ P1 planning was performed for the reviewed Evidence Lite migration.
 - static migration review result: `STATIC MIGRATION REVIEW PASSED`
 - backup readiness: `UNVERIFIED`
 - rollback readiness: documented for the empty newly created surface, with post-commit rollback requiring backup/export review
+
+## P1A Status Note
+
+P1A backup and recovery verification was performed for the verified Brik by Brik Engine production target.
+
+- provider / target identity: `VERIFIED`
+- backup readiness: `PARTIALLY VERIFIED`
+- recovery readiness: `NOT AVAILABLE`
+- ownership status: `UNASSIGNED`
+- P1A verdict: `PHASE 4E-P1A BLOCKED - ADEQUATE BACKUP OR RECOVERY NOT AVAILABLE`
+- migration remains unexecuted
+- production Evidence Lite UI remains inactive
+- next step: `Phase 4E-P1A-3 - Production Backup Strategy Resolution`
 - P1 verdict: `PHASE 4E-P1 PARTIALLY READY — BACKUP OR ROLLBACK EVIDENCE REQUIRED`
 - migration remains unexecuted
 - production Evidence Lite UI remains inactive
