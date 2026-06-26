@@ -293,4 +293,14 @@ P1A-3B recorded the ownership and approval draft for the controlled encrypted lo
 - restore-test target: `separate non-production PostgreSQL sandbox VM`
 - next step after sign-off: `Phase 4E-P1A-2 - Authorized Production Logical Backup Creation and Verification`
 
+## P1A-3C Status Note
+
+P1A-3C recorded the final human sign-off review for the controlled encrypted logical backup path.
+
+- approval status: `PARTIALLY APPROVED`
+- remaining gaps: retention maximum / review date unresolved, backup window not yet finalized, sandbox owner not explicitly confirmed
+- migration remains unexecuted
+- production Evidence Lite UI remains inactive
+- next step: `Human Decision — Complete Logical Backup Approval Record`
+
 `Phase 4E-P1A — Production Backup and Recovery Readiness Verification Only`
