@@ -233,3 +233,13 @@ Confirmed:
 ## Recommended Next Step
 
 `Phase 4E-P1A-3 - Production Backup Strategy Resolution`
+
+## P1A-3 Status Note
+
+P1A-3 strategy resolution selected controlled encrypted logical backup as the approved near-term path.
+
+- selected strategy: `Option 2 - Controlled Encrypted Logical Backup`
+- approval requirement: `Required before any backup creation`
+- migration remains unexecuted
+- production Evidence Lite UI remains inactive
+- next step: `Phase 4E-P1A-2 - Authorized Production Logical Backup Creation and Verification`
