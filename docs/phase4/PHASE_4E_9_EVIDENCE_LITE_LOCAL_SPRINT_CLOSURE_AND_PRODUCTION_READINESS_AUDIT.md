@@ -284,3 +284,15 @@ P0A was performed against the verified `brik-by-brik-engine` production target.
 - migration remains unexecuted
 - production Evidence Lite UI remains inactive
 - next step: `Phase 4E-P1 — Migration Execution Plan and Rollback Approval Only`
+
+## P1 Status Note
+
+P1 planning was performed for the reviewed Evidence Lite migration.
+
+- static migration review result: `STATIC MIGRATION REVIEW PASSED`
+- backup readiness: `UNVERIFIED`
+- rollback readiness: documented for the empty newly created surface, with post-commit rollback requiring backup/export review
+- P1 verdict: `PHASE 4E-P1 PARTIALLY READY — BACKUP OR ROLLBACK EVIDENCE REQUIRED`
+- migration remains unexecuted
+- production Evidence Lite UI remains inactive
+- next step: `Phase 4E-P1A — Production Backup and Recovery Readiness Verification Only`
