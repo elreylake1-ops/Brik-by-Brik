@@ -279,4 +279,18 @@ P1A-3 strategy resolution selected controlled encrypted logical backup as the ap
 - production Evidence Lite UI remains inactive
 - next step: `Phase 4E-P1A-2 - Authorized Production Logical Backup Creation and Verification`
 
+## P1A-3B Status Note
+
+P1A-3B recorded the ownership and approval draft for the controlled encrypted logical backup path.
+
+- approval status: `PENDING HUMAN SIGN-OFF`
+- backup creator: `James`
+- backup verifier: `Karlo`
+- restore operator: `Karlo`
+- business approval owner: `James`
+- secure backup custodian: `James`
+- encryption method: `7-Zip AES-256`
+- restore-test target: `separate non-production PostgreSQL sandbox VM`
+- next step after sign-off: `Phase 4E-P1A-2 - Authorized Production Logical Backup Creation and Verification`
+
 `Phase 4E-P1A — Production Backup and Recovery Readiness Verification Only`
