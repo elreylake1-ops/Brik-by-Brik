@@ -270,3 +270,17 @@ P0 verification was performed against the live `brik-by-brik-engine` production 
 - migration remains unexecuted
 - production Evidence Lite UI remains inactive
 - next step: `Phase 4E-P0A — Production DATABASE_URL Presence Correction and Controlled Redeployment`
+
+## P0A Status Note
+
+P0A was performed against the verified `brik-by-brik-engine` production target.
+
+- environment correction result: `DATABASE_URL` is present in Production
+- new deployment: `dpl_UBzdfaxQwjFbmbZnvvm76nLBKDTY`
+- deployment status: `READY`
+- deployment applicability: `PRESENT AND DEPLOYMENT APPLICABILITY VERIFIED`
+- read-route result: root `200`, saved-deals `200`, missing saved-deal `404`, missing Investor Shield UI `404`
+- P0A verdict: `PHASE 4E-P0A VERIFIED — READY FOR P1 MIGRATION EXECUTION PLANNING`
+- migration remains unexecuted
+- production Evidence Lite UI remains inactive
+- next step: `Phase 4E-P1 — Migration Execution Plan and Rollback Approval Only`
