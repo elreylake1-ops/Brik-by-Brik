@@ -26,9 +26,11 @@ const UPDATE_ALLOWED_FIELDS = new Set([
   "linkedGate",
   "title",
   "note",
-  "status",
   "reviewed",
 ])
+
+const UPDATE_TITLE_MAX_LENGTH = 200
+const UPDATE_NOTE_MAX_LENGTH = 5000
 
 const EVIDENCE_LITE_EVIDENCE_TYPE_SET = new Set<string>(EVIDENCE_LITE_EVIDENCE_TYPES)
 const EVIDENCE_LITE_GATE_SET = new Set<string>(EVIDENCE_LITE_GATES)
@@ -206,6 +208,9 @@ export function validateUpdateEvidenceLiteInput(
   if ("dealId" in input) {
     pushError(errors, "dealId", "dealId is immutable")
   }
+  if ("evidenceId" in input) {
+    pushError(errors, "evidenceId", "evidenceId is immutable")
+  }
   if ("createdAt" in input) {
     pushError(errors, "createdAt", "createdAt is immutable")
   }
@@ -214,6 +219,7 @@ export function validateUpdateEvidenceLiteInput(
   }
 
   const normalized: NormalizedUpdateEvidenceLiteInput = {}
+  let linkedGateAliasNormalized = false
 
   const evidenceType = normalizeEvidenceLiteEvidenceType(input.evidenceType)
   if (input.evidenceType !== undefined) {
@@ -238,6 +244,8 @@ export function validateUpdateEvidenceLiteInput(
       )
     } else {
       normalized.linkedGate = linkedGate
+      linkedGateAliasNormalized =
+        typeof input.linkedGate === "string" && input.linkedGate.trim() === "SOLICITOR_FEEDBACK"
     }
   }
 
@@ -245,6 +253,12 @@ export function validateUpdateEvidenceLiteInput(
   if (input.title !== undefined) {
     if (!title) {
       pushError(errors, "title", "title must be a non-empty string")
+    } else if (title.length > UPDATE_TITLE_MAX_LENGTH) {
+      pushError(
+        errors,
+        "title",
+        `title must be ${UPDATE_TITLE_MAX_LENGTH} characters or fewer`
+      )
     } else {
       normalized.title = title
     }
@@ -254,17 +268,10 @@ export function validateUpdateEvidenceLiteInput(
   if (input.note !== undefined) {
     if (!note) {
       pushError(errors, "note", "note must be a non-empty string")
+    } else if (note.length > UPDATE_NOTE_MAX_LENGTH) {
+      pushError(errors, "note", `note must be ${UPDATE_NOTE_MAX_LENGTH} characters or fewer`)
     } else {
       normalized.note = note
-    }
-  }
-
-  const status = normalizeEvidenceLiteStatus(input.status)
-  if (input.status !== undefined) {
-    if (!status) {
-      pushError(errors, "status", `status must be one of: ${EVIDENCE_LITE_STATUSES.join(", ")}`)
-    } else {
-      normalized.status = status
     }
   }
 
@@ -285,7 +292,14 @@ export function validateUpdateEvidenceLiteInput(
     return { valid: false, errors, warnings: [] }
   }
 
-  return { valid: true, value: normalized, errors: [], warnings: [] }
+  return {
+    valid: true,
+    value: normalized,
+    errors: [],
+    warnings: linkedGateAliasNormalized
+      ? ["linkedGate normalized from SOLICITOR_FEEDBACK to SOLICITOR_REVIEW"]
+      : [],
+  }
 }
 
 export { normalizeEvidenceLiteEvidenceType, normalizeEvidenceLiteStatus, normalizeTrimmedText }
