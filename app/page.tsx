@@ -7,6 +7,7 @@ import RefurbScopeForm from "@/components/RefurbScopeForm"
 import RefurbBreakdownSummary from "@/components/RefurbBreakdownSummary"
 import EngineAnalysisPanel from "@/components/EngineAnalysisPanel"
 import SavedDealInvestorShieldPanel from "@/components/SavedDealInvestorShieldPanel"
+import EvidenceLitePanel from "@/components/evidence-lite/EvidenceLitePanel"
 import { analyzeDealWithRefurb } from "@/lib/engine/analyze-deal-with-refurb"
 import { fetchInvestorShieldUiModel } from "@/lib/investor-shield/fetch-investor-shield-ui-model"
 import type { InvestorShieldUiModel } from "@/lib/investor-shield/investor-shield-ui-adapter"
@@ -36,6 +37,8 @@ const defaultScope: RefurbScopeInput = {
   flooring: { replaceWholeProperty: false },
   majorWorks: { rewire: false, boiler: false, roof: false },
 }
+
+const showEvidenceLitePanel = process.env.NODE_ENV !== "production"
 
 type SavedDealListItem = {
   id: string
@@ -1028,6 +1031,13 @@ export default function Home() {
                     : null
                 }
               />
+
+              {showEvidenceLitePanel ? (
+                <EvidenceLitePanel
+                  savedDealId={selectedSavedDeal.id}
+                  dealAddress={selectedSavedDeal.address}
+                />
+              ) : null}
 
               <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
                 <p className="text-xs uppercase tracking-wide text-gray-500">Saved Engine Snapshot</p>
