@@ -248,6 +248,401 @@ describe("composeInvestorSummaryViewModel", () => {
     expect(composeInvestorSummaryViewModel(input).latestOffer).toBeNull()
   })
 
+  it("keeps all-empty prepared input empty and unavailable", () => {
+    const input = buildInput(INVESTOR_SUMMARY_UNAVAILABLE_FIXTURE, {
+      savedDeal: {
+        purchasePrice: null,
+        persistedNextAction: null,
+      },
+      canonicalValues: {
+        gdvRange: {
+          downside: null,
+          realistic: null,
+          strong: null,
+        },
+        trueMao: {
+          fifteenPercent: null,
+          twentyPercent: null,
+          twentyFivePercent: null,
+        },
+      },
+      investorShield: {
+        overallStatus: null,
+        missingEvidenceCount: 0,
+        blockedGates: [],
+        fallbackRecommendedActionTitle: null,
+      },
+      taskRecords: [],
+      offerRecords: [],
+    })
+
+    const result = composeInvestorSummaryViewModel(input)
+
+    expect(result.purchasePrice).toBeNull()
+    expect(result.gdvRange).toEqual({
+      downside: null,
+      realistic: null,
+      strong: null,
+    })
+    expect(result.trueMao).toEqual({
+      fifteenPercent: null,
+      twentyPercent: null,
+      twentyFivePercent: null,
+    })
+    expect(result.classification).toBeNull()
+    expect(result.capitalProtectionState).toBeNull()
+    expect(result.investorShield).toEqual({
+      overallStatus: null,
+      missingEvidenceCount: 0,
+      blockedGates: [],
+    })
+    expect(result.activeTasks).toEqual([])
+    expect(result.latestOffer).toBeNull()
+    expect(result.recommendedNextAction).toEqual({
+      source: "UNAVAILABLE",
+      actionText: null,
+    })
+  })
+
+  it("preserves partial monetary values and zero without inferring fallbacks", () => {
+    const input = buildInput(INVESTOR_SUMMARY_BLOCKED_FIXTURE, {
+      savedDeal: {
+        purchasePrice: 425000,
+      },
+      canonicalValues: {
+        gdvRange: {
+          downside: null,
+          realistic: 0,
+          strong: 475000,
+        },
+        trueMao: {
+          fifteenPercent: 0,
+          twentyPercent: null,
+          twentyFivePercent: 395000,
+        },
+      },
+      taskRecords: [],
+      offerRecords: [
+        makeOfferRecord({
+          id: "offer-zero",
+          offer_amount: 0,
+          offer_status: "DRAFT",
+          offer_rationale: null,
+          seller_response: null,
+        }),
+      ],
+    })
+
+    const result = composeInvestorSummaryViewModel(input)
+
+    expect(result.purchasePrice).toBe(425000)
+    expect(result.gdvRange).toEqual({
+      downside: null,
+      realistic: 0,
+      strong: 475000,
+    })
+    expect(result.trueMao).toEqual({
+      fifteenPercent: 0,
+      twentyPercent: null,
+      twentyFivePercent: 395000,
+    })
+    expect(result.latestOffer).toEqual({
+      offerId: "offer-zero",
+      amount: 0,
+      offerType: "INITIAL",
+      offerStatus: "DRAFT",
+      rationale: null,
+      sellerResponse: null,
+      createdAt: "2026-01-17T08:45:00.000Z",
+    })
+  })
+
+  it("keeps mixed task states in order and preserves duplicate active tasks", () => {
+    const duplicateOpenTask = makeTaskRecord({
+      id: "task-duplicate",
+      task_title: "Collect title pack",
+      task_status: "OPEN",
+      due_date: null,
+      blocker_reason: null,
+      completed_at: null,
+    })
+
+    const input = buildInput(INVESTOR_SUMMARY_BLOCKED_FIXTURE, {
+      taskRecords: [
+        duplicateOpenTask,
+        makeTaskRecord({
+          id: "task-in-progress",
+          task_title: "Request builder quote",
+          task_status: "IN_PROGRESS",
+          due_date: null,
+          blocker_reason: null,
+          completed_at: null,
+        }),
+        makeTaskRecord({
+          id: "task-blocked",
+          task_title: "Resolve blocker",
+          task_status: "BLOCKED",
+          due_date: null,
+          blocker_reason: null,
+          completed_at: null,
+        }),
+        duplicateOpenTask,
+        makeTaskRecord({ id: "task-complete", task_status: "COMPLETE" }),
+        makeTaskRecord({ id: "task-cancelled", task_status: "CANCELLED" }),
+      ],
+      offerRecords: [makeOfferRecord({ id: "offer-latest" })],
+    })
+
+    const result = composeInvestorSummaryViewModel(input)
+
+    expect(result.activeTasks.map((task) => task.taskId)).toEqual([
+      "task-duplicate",
+      "task-in-progress",
+      "task-blocked",
+      "task-duplicate",
+    ])
+    expect(result.activeTasks.map((task) => task.status)).toEqual([
+      "OPEN",
+      "IN_PROGRESS",
+      "BLOCKED",
+      "OPEN",
+    ])
+    expect(result.activeTasks[1]).toMatchObject({
+      dueDate: null,
+      blockerReason: null,
+      completedAt: null,
+    })
+    expect(result.activeTasks[2]).toMatchObject({
+      dueDate: null,
+      blockerReason: null,
+      completedAt: null,
+    })
+  })
+
+  it("keeps the first supplied offer even when later offers have better amounts or statuses", () => {
+    const input = buildInput(INVESTOR_SUMMARY_BLOCKED_FIXTURE, {
+      taskRecords: [makeTaskRecord({ id: "task-open", task_status: "OPEN" })],
+      offerRecords: [
+        makeOfferRecord({
+          id: "offer-first",
+          offer_amount: 0,
+          offer_status: "DRAFT",
+          offer_rationale: null,
+          seller_response: null,
+          created_at: "2026-06-11T08:30:00.000Z",
+        }),
+        makeOfferRecord({
+          id: "offer-second",
+          offer_amount: 250000,
+          offer_status: "ACCEPTED",
+          offer_rationale: "Later accepted",
+          seller_response: "Accepted",
+          created_at: "2026-06-12T08:30:00.000Z",
+        }),
+        makeOfferRecord({
+          id: "offer-third",
+          offer_amount: 175000,
+          offer_status: "PENDING",
+          offer_rationale: "Later pending",
+          seller_response: null,
+          created_at: "2026-06-10T08:30:00.000Z",
+        }),
+      ],
+    })
+
+    expect(composeInvestorSummaryViewModel(input).latestOffer).toEqual({
+      offerId: "offer-first",
+      amount: 0,
+      offerType: "INITIAL",
+      offerStatus: "DRAFT",
+      rationale: null,
+      sellerResponse: null,
+      createdAt: "2026-06-11T08:30:00.000Z",
+    })
+  })
+
+  it("keeps unrelated fields unchanged when task records vary", () => {
+    const sharedOfferRecords = [makeOfferRecord({ id: "offer-shared" })]
+    const baseInput = buildInput(INVESTOR_SUMMARY_BLOCKED_FIXTURE, {
+      taskRecords: [
+        makeTaskRecord({ id: "task-base-open", task_status: "OPEN" }),
+        makeTaskRecord({ id: "task-base-blocked", task_status: "BLOCKED" }),
+      ],
+      offerRecords: sharedOfferRecords,
+    })
+    const variedInput = buildInput(INVESTOR_SUMMARY_BLOCKED_FIXTURE, {
+      taskRecords: [
+        makeTaskRecord({ id: "task-varied-in-progress", task_status: "IN_PROGRESS" }),
+        makeTaskRecord({ id: "task-varied-complete", task_status: "COMPLETE" }),
+        makeTaskRecord({ id: "task-varied-open", task_status: "OPEN" }),
+      ],
+      offerRecords: sharedOfferRecords,
+    })
+
+    const baseResult = composeInvestorSummaryViewModel(baseInput)
+    const variedResult = composeInvestorSummaryViewModel(variedInput)
+
+    expect(variedResult.gdvRange).toEqual(baseResult.gdvRange)
+    expect(variedResult.trueMao).toEqual(baseResult.trueMao)
+    expect(variedResult.classification).toBe(baseResult.classification)
+    expect(variedResult.capitalProtectionState).toBe(baseResult.capitalProtectionState)
+    expect(variedResult.investorShield).toEqual(baseResult.investorShield)
+    expect(variedResult.latestOffer).toEqual(baseResult.latestOffer)
+    expect(variedResult.recommendedNextAction).toEqual(baseResult.recommendedNextAction)
+    expect(variedResult.activeTasks).not.toEqual(baseResult.activeTasks)
+  })
+
+  it("keeps unrelated fields unchanged when offer records vary", () => {
+    const sharedTaskRecords = [
+      makeTaskRecord({ id: "task-shared-open", task_status: "OPEN" }),
+      makeTaskRecord({ id: "task-shared-blocked", task_status: "BLOCKED" }),
+    ]
+    const baseInput = buildInput(INVESTOR_SUMMARY_BLOCKED_FIXTURE, {
+      taskRecords: sharedTaskRecords,
+      offerRecords: [
+        makeOfferRecord({
+          id: "offer-base",
+          offer_amount: 0,
+          offer_status: "DRAFT",
+          created_at: "2026-06-11T08:30:00.000Z",
+        }),
+      ],
+    })
+    const variedInput = buildInput(INVESTOR_SUMMARY_BLOCKED_FIXTURE, {
+      taskRecords: sharedTaskRecords,
+      offerRecords: [
+        makeOfferRecord({
+          id: "offer-varied",
+          offer_amount: 250000,
+          offer_status: "ACCEPTED",
+          created_at: "2026-06-12T08:30:00.000Z",
+        }),
+        makeOfferRecord({
+          id: "offer-ignored",
+          offer_amount: 50000,
+          offer_status: "PENDING",
+          created_at: "2026-06-10T08:30:00.000Z",
+        }),
+      ],
+    })
+
+    const baseResult = composeInvestorSummaryViewModel(baseInput)
+    const variedResult = composeInvestorSummaryViewModel(variedInput)
+
+    expect(variedResult.gdvRange).toEqual(baseResult.gdvRange)
+    expect(variedResult.trueMao).toEqual(baseResult.trueMao)
+    expect(variedResult.classification).toBe(baseResult.classification)
+    expect(variedResult.capitalProtectionState).toBe(baseResult.capitalProtectionState)
+    expect(variedResult.investorShield).toEqual(baseResult.investorShield)
+    expect(variedResult.activeTasks).toEqual(baseResult.activeTasks)
+    expect(variedResult.recommendedNextAction).toEqual(baseResult.recommendedNextAction)
+    expect(variedResult.latestOffer).not.toEqual(baseResult.latestOffer)
+  })
+
+  it("keeps Shield state unchanged while ignoring task and offer text", () => {
+    const input = buildInput(INVESTOR_SUMMARY_BLOCKED_FIXTURE, {
+      savedDeal: {
+        persistedNextAction: "   ",
+      },
+      investorShield: {
+        overallStatus: "BLOCKED",
+        missingEvidenceCount: 3,
+        blockedGates: [
+          {
+            gateKey: "TITLE",
+            label: "Title Review",
+            gateType: "required",
+            blockerReason: "Title review is missing required evidence.",
+          },
+          {
+            gateKey: "REFURB_CERTAINTY",
+            label: "Refurb Certainty",
+            gateType: "required",
+            blockerReason: "Refurb certainty remains blocked.",
+          },
+        ],
+        fallbackRecommendedActionTitle: null,
+      },
+      taskRecords: [
+        makeTaskRecord({
+          id: "task-blocked",
+          task_title: "Collect title pack",
+          task_status: "BLOCKED",
+          blocker_reason: "Blocked task reason",
+        }),
+      ],
+      offerRecords: [
+        makeOfferRecord({
+          id: "offer-blocked",
+          offer_rationale: "Offer rationale must stay out of Shield state",
+          seller_response: "Seller response must stay out of Shield state",
+        }),
+      ],
+    })
+
+    const result = composeInvestorSummaryViewModel(input)
+
+    expect(result.investorShield).toEqual({
+      overallStatus: "BLOCKED",
+      missingEvidenceCount: 3,
+      blockedGates: [
+        {
+          gateKey: "TITLE",
+          label: "Title Review",
+          gateType: "required",
+          blockerReason: "Title review is missing required evidence.",
+        },
+        {
+          gateKey: "REFURB_CERTAINTY",
+          label: "Refurb Certainty",
+          gateType: "required",
+          blockerReason: "Refurb certainty remains blocked.",
+        },
+      ],
+    })
+    expect(result.recommendedNextAction).toEqual({
+      source: "UNAVAILABLE",
+      actionText: null,
+    })
+  })
+
+  it("keeps recommended actions isolated from task and offer text", () => {
+    const input = buildInput(INVESTOR_SUMMARY_UNAVAILABLE_FIXTURE, {
+      savedDeal: {
+        persistedNextAction: "   ",
+      },
+      investorShield: {
+        fallbackRecommendedActionTitle: " ",
+      },
+      taskRecords: [
+        makeTaskRecord({
+          id: "task-open",
+          task_title: "Collect title pack",
+          task_status: "OPEN",
+          blocker_reason: "Task blocker text",
+        }),
+        makeTaskRecord({
+          id: "task-blocked",
+          task_title: "Request builder quote",
+          task_status: "BLOCKED",
+          blocker_reason: "Another blocker text",
+        }),
+      ],
+      offerRecords: [
+        makeOfferRecord({
+          id: "offer-text",
+          offer_rationale: "Offer rationale text",
+          seller_response: "Seller response text",
+        }),
+      ],
+    })
+
+    expect(composeInvestorSummaryViewModel(input).recommendedNextAction).toEqual({
+      source: "UNAVAILABLE",
+      actionText: null,
+    })
+  })
+
   it("keeps persisted next action ahead of Shield fallback", () => {
     const input = buildInput(INVESTOR_SUMMARY_BLOCKED_FIXTURE, {
       savedDeal: {
@@ -336,5 +731,59 @@ describe("composeInvestorSummaryViewModel", () => {
     expect(input.savedDeal).toEqual(snapshot.savedDeal)
     expect(input.canonicalValues).toEqual(snapshot.canonicalValues)
     expect(input.investorShield).toEqual(snapshot.investorShield)
+  })
+
+  it("does not mutate the full composition input graph", () => {
+    const input = deepFreeze(
+      buildInput(INVESTOR_SUMMARY_BLOCKED_FIXTURE, {
+        savedDeal: {
+          persistedNextAction: "  Review title evidence  ",
+        },
+        canonicalValues: {
+          gdvRange: {
+            downside: 180000,
+            realistic: 200000,
+            strong: 220000,
+          },
+          trueMao: {
+            fifteenPercent: 123800,
+            twentyPercent: 113800,
+            twentyFivePercent: 103800,
+          },
+        },
+        investorShield: {
+          overallStatus: "BLOCKED",
+          missingEvidenceCount: 2,
+          blockedGates: [
+            {
+              gateKey: "TITLE",
+              label: "Title Review",
+              gateType: "required",
+              blockerReason: "Title review is missing required evidence.",
+            },
+            {
+              gateKey: "REFURB_CERTAINTY",
+              label: "Refurb Certainty",
+              gateType: "required",
+              blockerReason: "Refurb certainty remains blocked.",
+            },
+          ],
+          fallbackRecommendedActionTitle: "Fallback should not mutate",
+        },
+        taskRecords: [
+          makeTaskRecord({ id: "task-open", task_status: "OPEN" }),
+          makeTaskRecord({ id: "task-blocked", task_status: "BLOCKED" }),
+        ],
+        offerRecords: [
+          makeOfferRecord({ id: "offer-first", offer_amount: 0 }),
+          makeOfferRecord({ id: "offer-second", offer_amount: 250000 }),
+        ],
+      })
+    )
+    const snapshot = structuredClone(input)
+
+    composeInvestorSummaryViewModel(input)
+
+    expect(input).toEqual(snapshot)
   })
 })
