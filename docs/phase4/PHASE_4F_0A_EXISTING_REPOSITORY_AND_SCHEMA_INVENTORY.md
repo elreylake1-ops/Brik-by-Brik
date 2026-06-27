@@ -9,7 +9,7 @@ This document is inspection-only. It does not add runtime behavior, tests, schem
 
 | Item | Value |
 |---|---|
-| Repo root | `C:\Users\user\Documents\Lake Views Property\deal-analyzer` |
+| Repo root | `repo root` |
 | Branch | `main` |
 | `HEAD` | `55c512bb23351f7d8246fb647ec84a0abf4fc4ab` |
 | `origin/main` | `55c512bb23351f7d8246fb647ec84a0abf4fc4ab` |
