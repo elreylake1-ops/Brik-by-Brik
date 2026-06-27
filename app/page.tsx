@@ -6,6 +6,7 @@ import ResultsDisplay from "@/components/ResultsDisplay"
 import RefurbScopeForm from "@/components/RefurbScopeForm"
 import RefurbBreakdownSummary from "@/components/RefurbBreakdownSummary"
 import EngineAnalysisPanel from "@/components/EngineAnalysisPanel"
+import InvestorSummaryRoutePanel from "@/components/investor-summary/InvestorSummaryRoutePanel"
 import SavedDealInvestorShieldPanel from "@/components/SavedDealInvestorShieldPanel"
 import EvidenceLitePanel from "@/components/evidence-lite/EvidenceLitePanel"
 import { analyzeDealWithRefurb } from "@/lib/engine/analyze-deal-with-refurb"
@@ -1020,6 +1021,8 @@ export default function Home() {
                   <p className="text-sm text-gray-900">{formatCurrency(selectedSavedDeal.refurb_cost)}</p>
                 </div>
               </div>
+
+              <InvestorSummaryRoutePanel savedDealId={selectedSavedDeal.id} />
 
               <SavedDealInvestorShieldPanel
                 deal={selectedSavedDeal}
