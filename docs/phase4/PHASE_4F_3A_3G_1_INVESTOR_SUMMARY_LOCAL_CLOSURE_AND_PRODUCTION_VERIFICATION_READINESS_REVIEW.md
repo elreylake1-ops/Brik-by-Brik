@@ -299,4 +299,6 @@ READY TO CONTINUE THE PHASE 4F ROADMAP — PRODUCTION POSITIVE-DATA PROOF DEFERR
 
 ## Exact Next Roadmap Step
 
-Phase 4F-3A-3G-1 — Investor Summary Local Closure and Production Verification Readiness Review
+### Roadmap-Step Correction
+
+Phase 4F Roadmap Review — Select the Next Approved Workstream After Investor Summary
