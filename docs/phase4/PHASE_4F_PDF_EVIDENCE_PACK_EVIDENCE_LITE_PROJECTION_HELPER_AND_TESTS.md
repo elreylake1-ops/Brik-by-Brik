@@ -1,228 +1,91 @@
-# PDF Evidence Pack Evidence Lite Projection Helper and Tests
+# PDF Evidence Pack Evidence Lite Projection Helper Correction
 
 ## Purpose
 
-Document the narrow pure projection boundary that maps the existing Evidence Lite read record into the approved PDF Evidence Pack evidence-item contract.
-
-This phase is inspection plus implementation of one pure helper and focused unit tests only. It does not begin pack aggregation.
+Document the corrected pure projection boundary that maps the existing Evidence Lite read record into the approved PDF Evidence Pack evidence-item contract after the semantic authority audit removed unsupported inference.
 
 ## Repository Baseline
 
 | Item | Value |
 | --- | --- |
 | Branch | `main` |
-| `HEAD` | `90aa51ddd3feb14f744a2bf809c7c2f31b2810f9` |
-| `origin/main` | `90aa51ddd3feb14f744a2bf809c7c2f31b2810f9` |
+| `HEAD` | `be8cd071acc2be5004ed018662d2b646aec4907e` |
+| `origin/main` | `be8cd071acc2be5004ed018662d2b646aec4907e` |
 | Remote | `https://github.com/elreylake1-ops/Brik-by-Brik.git` |
-| Dirty state before this document | only the pre-existing unstaged `.gitignore` modification |
+| Dirty state before this correction | only the pre-existing unstaged `.gitignore` modification |
 
-## Files Inspected
+## Semantic Authority Audit Finding
 
-- `AGENTS.md`
-- `LEAN-CTX.md`
-- `docs/phase4/PHASE_4F_PDF_EVIDENCE_PACK_SOURCE_LOADING_AND_AGGREGATION_PLAN.md`
-- `lib/pdf-evidence-pack/pdf-evidence-pack-types.ts`
-- `lib/pdf-evidence-pack/compose-pdf-evidence-pack.ts`
-- `types/evidence-lite.ts`
-- `lib/evidence-lite/evidence-lite-repository.ts`
-- `__tests__/evidence-lite-repository.test.ts`
-- `__tests__/fixtures/pdf-evidence-pack-fixtures.ts`
-- `__tests__/pdf-evidence-pack-contract.test.ts`
-- `lib/investor-summary/map-investor-summary-view-model.ts`
-- `lib/investor-summary/select-active-investor-summary-tasks.ts`
-- `lib/investor-summary/select-latest-investor-summary-offer.ts`
+The initial implementation incorrectly treated `reviewed` and the general `updatedAt` row timestamp as authority for controlled-reference availability and review timing. The audit established that the current Evidence Lite source contract does not prove a controlled reference exists.
 
-## Files Added or Changed
+## Corrected Controlled-Reference Rule
+
+- current Evidence Lite records do not prove a controlled reference exists
+- every current projection remains `controlledReferenceState: "MISSING"`
+- `controlledReferenceLabel: "Controlled reference unavailable"`
+- future source loading may enrich availability only from an approved authoritative controlled-reference source
+
+## Corrected Review Timestamp Rule
+
+- `updatedAt` is not a review timestamp
+- `reviewedAt` remains `null` for current Evidence Lite projections
+- no timestamp is generated or inferred
+
+## Corrected Gate Mapping
+
+- only the canonical `linkedGate` field is used
+- the helper emits `relatedGateIds: [record.linkedGate]`
+- test-only `relatedGateIds` enrichment was removed
+
+## Provenance Clarification
+
+- `provenanceLabel: "Evidence Lite"` is the application module of origin
+- it does not claim real-world evidence provenance, issuer identity, author identity, or provider identity
+
+## Preserved Direct Mappings
+
+- `id -> evidenceId`
+- `evidenceType -> evidenceType`
+- `title -> title`
+- `note -> description`
+- `createdAt -> capturedAt`
+- `status -> reviewStatus`
+
+## Files Changed
 
 - `lib/pdf-evidence-pack/project-evidence-lite-record-to-pdf-evidence-item.ts`
 - `__tests__/project-evidence-lite-record-to-pdf-evidence-item.test.ts`
+- `docs/phase4/PHASE_4F_PDF_EVIDENCE_PACK_EVIDENCE_LITE_PROJECTION_HELPER_AND_TESTS.md`
 
-## Input Contract
+## Validation
 
-The helper accepts the existing Evidence Lite read record:
-
-```ts
-EvidenceLiteRecord
-```
-
-Current canonical source fields used by the helper:
-
-- `id`
-- `evidenceType`
-- `linkedGate`
-- `title`
-- `note`
-- `status`
-- `reviewed`
-- `createdAt`
-- `updatedAt`
-
-The helper remains compatible with the current record shape and does not require a repository, database client, or fetch layer.
-
-## Output Contract
-
-The helper returns the approved PDF Evidence Pack evidence-item shape:
-
-```ts
-PdfEvidencePackEvidenceItem
-```
-
-Output fields:
-
-- `evidenceId`
-- `evidenceType`
-- `title`
-- `description`
-- `provenanceLabel`
-- `capturedAt`
-- `reviewedAt`
-- `reviewStatus`
-- `relatedGateIds`
-- `controlledReferenceState`
-- `controlledReferenceLabel`
-
-## Function Signature
-
-```ts
-export function projectEvidenceLiteRecordToPdfEvidenceItem(
-  record: EvidenceLiteRecord
-): PdfEvidencePackEvidenceItem
-```
-
-The helper is synchronous, pure, deterministic, and side-effect free.
-
-## Field Mapping
-
-| Output Field | Evidence Lite Source | Mapping Rule |
-| --- | --- | --- |
-| `evidenceId` | `id` | direct copy |
-| `evidenceType` | `evidenceType` | direct copy |
-| `title` | `title` | direct copy |
-| `description` | `note` | privacy-safe copy |
-| `provenanceLabel` | fixed pack label | safe projection |
-| `capturedAt` | `createdAt` | direct nullable copy |
-| `reviewedAt` | `updatedAt` when `reviewed === true`, else `null` | direct nullable copy |
-| `reviewStatus` | `status` | direct canonical mapping |
-| `relatedGateIds` | `linkedGate` or explicit gate list override used only in test-local enrichment | preserve canonical order |
-| `controlledReferenceState` | deterministic rule from current record fields | no URL generation |
-| `controlledReferenceLabel` | deterministic safe label | safe display label only |
-
-## Controlled-Reference Rules
-
-The helper uses a narrow deterministic rule:
-
-- `reviewed === true` maps to `AVAILABLE`
-- `status === "MISSING"` or `status === "REJECTED"` maps to `MISSING`
-- all other unreviewed states map to `RESTRICTED`
-
-Labels are safe display text only:
-
-- `AVAILABLE` -> `Controlled reference available`
-- `MISSING` -> `Controlled reference unavailable`
-- `RESTRICTED` -> `Controlled reference restricted`
-
-This state describes reference availability only.
-
-It does not infer:
-
-- gate satisfaction
-- legal acceptance
-- evidence credibility
-- AI summaries
-- recommendation text
-
-## Nullability and Ordering
-
-Required behavior:
-
-- `null` stays `null`
-- dates are not generated by the helper
-- related gate ids preserve source order
-- no sorting or deduplication occurs
-- one input record yields one output item
-
-## Privacy Boundary
-
-The helper excludes all non-contract fields and keeps the projection renderer-independent.
-
-Confirmed exclusions:
-
-- secrets
-- connection strings
-- raw SQL
-- stack traces
-- internal trace IDs
-- private filesystem paths
-- tokenized URLs
-- storage bucket names
-- private object keys
-- OCR text
-- AI-generated summaries
-- authentication details
-- personal contact data
-
-## Deterministic Authority Boundary
-
-Confirmed:
-
-- no gate satisfaction inference
-- no Shield inference
-- no legal sufficiency inference
-- no recommendation generation
-- no narrative generation
-
-The helper only performs a field-level projection that is safe for the pack contract.
-
-## Focused Test Coverage
-
-The focused tests cover:
-
-- direct canonical projection
-- available controlled-reference state
-- unavailable controlled-reference state
-- null and optional-field preservation
-- privacy-safe projection
-- source-safety checks
-
-## Source-Safety Boundary
-
-Confirmed not added to the helper:
-
-- database adapter import
-- repository import
-- fetch helper
-- route import
-- mutation method
-- PDF dependency
-- renderer dependency
-- AI/OCR integration
+| Check | Result |
+| --- | --- |
+| Focused projection test | Passed: 1 file / 9 tests |
+| Build | Passed |
+| Lint | Passed |
+| Full test suite | Passed: 107 files / 1046 tests |
 
 ## Explicit Non-Implementation
 
-Confirmed not added in this step:
-
-- pack aggregation
-- saved-deal existence gate
-- repository orchestration
-- database access
-- route
-- UI
-- renderer
-- print stylesheet
-- PDF library
-- storage
-- persistence
-- signed URL generation
-- attachment embedding
-- background job
-- production access
-- migration
-- environment change
+- no contract change
+- no Evidence Lite type change
+- no schema change
+- no migration
+- no aggregation
+- no source-loading repository
+- no route
+- no renderer
+- no UI
+- no PDF dependency
+- no storage
+- no signed URL work
+- no production access
 - `.gitignore` untouched
 
-## Result
+## Corrected Result
 
-`PDF EVIDENCE PACK EVIDENCE LITE PROJECTION COMPLETE — PRIVACY-SAFE MAPPING VERIFIED`
+`PDF EVIDENCE PACK EVIDENCE LITE PROJECTION CORRECTED — UNSUPPORTED AUTHORITY INFERENCE REMOVED`
 
 ## Recommended Next Step
 

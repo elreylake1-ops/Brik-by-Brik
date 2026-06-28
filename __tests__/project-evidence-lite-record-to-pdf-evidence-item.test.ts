@@ -12,8 +12,8 @@ function makeRecord(overrides?: Partial<EvidenceLiteRecord> & Record<string, unk
     linkedGate: "SOLICITOR_REVIEW",
     title: "Title pack",
     note: "Canonical title review note",
-    status: "REVIEWED",
-    reviewed: true,
+    status: "RECORDED",
+    reviewed: false,
     createdAt: "2026-06-22T10:00:00.000Z",
     updatedAt: "2026-06-22T10:15:00.000Z",
     ...overrides,
@@ -21,7 +21,7 @@ function makeRecord(overrides?: Partial<EvidenceLiteRecord> & Record<string, unk
 }
 
 describe("projectEvidenceLiteRecordToPdfEvidenceItem", () => {
-  it("projects the canonical Evidence Lite record fields", () => {
+  it("projects the canonical Evidence Lite record fields without authority inference", () => {
     const item = projectEvidenceLiteRecordToPdfEvidenceItem(makeRecord())
 
     expect(item).toEqual({
@@ -31,15 +31,15 @@ describe("projectEvidenceLiteRecordToPdfEvidenceItem", () => {
       description: "Canonical title review note",
       provenanceLabel: "Evidence Lite",
       capturedAt: "2026-06-22T10:00:00.000Z",
-      reviewedAt: "2026-06-22T10:15:00.000Z",
-      reviewStatus: "REVIEWED",
+      reviewedAt: null,
+      reviewStatus: "RECORDED",
       relatedGateIds: ["SOLICITOR_REVIEW"],
-      controlledReferenceState: "AVAILABLE",
-      controlledReferenceLabel: "Controlled reference available",
+      controlledReferenceState: "MISSING",
+      controlledReferenceLabel: "Controlled reference unavailable",
     })
   })
 
-  it("selects the available controlled-reference state for reviewed evidence", () => {
+  it("does not treat reviewed evidence as controlled-reference availability", () => {
     const item = projectEvidenceLiteRecordToPdfEvidenceItem(
       makeRecord({
         reviewed: true,
@@ -48,52 +48,57 @@ describe("projectEvidenceLiteRecordToPdfEvidenceItem", () => {
       })
     )
 
-    expect(item.controlledReferenceState).toBe("AVAILABLE")
-    expect(item.controlledReferenceLabel).toBe("Controlled reference available")
-    expect(item.reviewedAt).toBe("2026-06-22T11:15:00.000Z")
+    expect(item.controlledReferenceState).toBe("MISSING")
+    expect(item.controlledReferenceLabel).toBe("Controlled reference unavailable")
+    expect(item.reviewedAt).toBeNull()
     expect(JSON.stringify(item)).not.toContain("signedUrl")
     expect(JSON.stringify(item)).not.toContain("privatePath")
     expect(JSON.stringify(item)).not.toContain("downloadToken")
+    expect(JSON.stringify(item)).not.toContain("AVAILABLE")
   })
 
-  it("selects the unavailable controlled-reference state when no usable reference exists", () => {
+  it("does not derive reviewedAt from updatedAt", () => {
     const item = projectEvidenceLiteRecordToPdfEvidenceItem(
       makeRecord({
-        reviewed: false,
-        status: "MISSING",
+        reviewed: true,
+        status: "REVIEWED",
         updatedAt: "2026-06-22T11:15:00.000Z",
       })
     )
 
-    expect(item.controlledReferenceState).toBe("MISSING")
-    expect(item.controlledReferenceLabel).toBe("Controlled reference unavailable")
     expect(item.reviewedAt).toBeNull()
   })
 
-  it("preserves nulls and empty gate relationships when they are explicitly supplied", () => {
+  it.each(["RECORDED", "MISSING", "REJECTED"] as const)(
+    "keeps controlled-reference state unavailable for status %s",
+    (status) => {
+      const item = projectEvidenceLiteRecordToPdfEvidenceItem(
+        makeRecord({
+          reviewed: false,
+          status,
+        })
+      )
+
+      expect(item.controlledReferenceState).toBe("MISSING")
+      expect(item.controlledReferenceLabel).toBe("Controlled reference unavailable")
+      expect(item.reviewedAt).toBeNull()
+    }
+  )
+
+  it("uses only the canonical linkedGate relationship and ignores enriched gate lists", () => {
     const item = projectEvidenceLiteRecordToPdfEvidenceItem(
       makeRecord({
-        note: null as unknown as string,
-        capturedAt: null,
-        relatedGateIds: [],
-        reviewed: false,
-        status: "RECORDED",
-        createdAt: null as unknown as string,
-        updatedAt: null as unknown as string,
+        relatedGateIds: ["TITLE", "LEASEHOLD", "LENDER_CRITERIA"],
       })
     )
 
-    expect(item.description).toBeNull()
-    expect(item.capturedAt).toBeNull()
-    expect(item.reviewedAt).toBeNull()
-    expect(item.relatedGateIds).toEqual([])
-    expect(item.controlledReferenceState).toBe("RESTRICTED")
-    expect(item.controlledReferenceLabel).toBe("Controlled reference restricted")
+    expect(item.relatedGateIds).toEqual(["SOLICITOR_REVIEW"])
   })
 
-  it("keeps the projection privacy-safe and source-bound", () => {
+  it("preserves nulls and keeps unsafe enriched fields out of the output", () => {
     const record = makeRecord({
-      note: "Public-safe summary",
+      note: null as unknown as string,
+      createdAt: null as unknown as string,
       privateStoragePath: "C:\\Users\\user\\secret\\file.pdf",
       signedUrl: "https://example.invalid/private.pdf?token=secret",
       contactEmail: "private@example.com",
@@ -106,6 +111,9 @@ describe("projectEvidenceLiteRecordToPdfEvidenceItem", () => {
     const item = projectEvidenceLiteRecordToPdfEvidenceItem(record)
     const serialized = JSON.stringify(item)
 
+    expect(item.description).toBeNull()
+    expect(item.capturedAt).toBeNull()
+    expect(item.reviewedAt).toBeNull()
     expect(serialized).not.toContain("privateStoragePath")
     expect(serialized).not.toContain("signedUrl")
     expect(serialized).not.toContain("contactEmail")
@@ -114,10 +122,9 @@ describe("projectEvidenceLiteRecordToPdfEvidenceItem", () => {
     expect(serialized).not.toContain("select *")
     expect(serialized).not.toContain("trace-123")
     expect(item.provenanceLabel).toBe("Evidence Lite")
-    expect(item.description).toBe("Public-safe summary")
   })
 
-  it("stays pure and does not depend on repositories or renderers", () => {
+  it("keeps the projection pure and source-bound", () => {
     const source = readFileSync(
       path.resolve(
         process.cwd(),
@@ -128,6 +135,12 @@ describe("projectEvidenceLiteRecordToPdfEvidenceItem", () => {
 
     expect(source).toContain('from "@/types/evidence-lite"')
     expect(source).toContain("EvidenceLiteRecord")
+    expect(source).not.toContain("EvidenceLiteGateKey")
+    expect(source).not.toContain("PdfEvidencePackReferenceState")
+    expect(source).not.toContain("relatedGateIds?:")
+    expect(source).not.toContain("record.reviewed")
+    expect(source).not.toContain("record.updatedAt")
+    expect(source).not.toContain("reviewedAt: projection.updatedAt")
     expect(source).not.toContain("@/lib/db/postgres")
     expect(source).not.toContain("new Pool")
     expect(source).not.toContain("query(")
