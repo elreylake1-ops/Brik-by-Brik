@@ -1,69 +1,102 @@
 # Phase 4E-5 Minimal Evidence Lite UI Locally Only
 
 ## Purpose
-Add a development-only Evidence Lite review surface next to the saved-deal detail view, with mocked fetch helpers and tests only. The panel is local-only and does not change production behavior, gate evaluation, or database state.
+Add the smallest useful Evidence Lite UI to the existing saved-deal review surface, with a read-only-first layout and local mocked tests only. The UI is development-only and does not change production behavior, gate evaluation, or database state.
 
-## Files Added or Changed
-- `components/evidence-lite/EvidenceLitePanel.tsx`
+## Files Inspected
+- `types/evidence-lite.ts`
+- `lib/evidence-lite/evidence-lite-validation.ts`
+- `lib/evidence-lite/evidence-lite-repository.ts`
+- `app/api/saved-deals/[id]/evidence/route.ts`
 - `app/page.tsx`
+- `components/SavedDealInvestorShieldPanel.tsx`
+- `app/phase-2-live-review/page.tsx`
+- `app/phase-3-dev-review/page.tsx`
+- `__tests__/evidence-lite-panel.test.tsx`
+
+## Files Changed
+- `components/evidence-lite/EvidenceLitePanel.tsx`
 - `__tests__/evidence-lite-panel.test.tsx`
 - `docs/phase4/PHASE_4E_5_MINIMAL_EVIDENCE_LITE_UI_LOCAL_ONLY.md`
 
-## UI Surface
-- rendered only when `process.env.NODE_ENV !== "production"`
-- placed under the saved-deal detail view beside the existing read-only Investor Shield panel
-- fetches `/api/saved-deals/[id]/evidence` after mount
-- supports local record creation through the same route helper
+## Selected UI Surface
+- Existing saved-deal detail section rendered from `app/page.tsx`
+- The Evidence Lite panel remains development-only via the existing non-production gate
+- No new dashboard or route shell was introduced
 
-## Root Cause
-There was no compact Evidence Lite review panel in the saved-deal detail experience after the API route work completed. This step adds the missing local UI surface without activating production behavior.
+## Loading State
+- Compact message: `Loading evidence records...`
+- The list stays hidden until the GET helper resolves
 
-## Changes Applied
-- added a self-contained Evidence Lite panel component
-- exported fetch helpers for mocked unit coverage
-- normalized the saved-deal id before route access
-- added a dev-only insertion point in the saved-deal detail section
-- added tests for static rendering, fetch helper behavior, and the production guard source boundary
+## Empty State
+- Exact message: `No evidence records yet.`
+- Empty state copy does not imply any Investor Shield gate has been satisfied
 
-## Guard Coverage Preserved
-- the existing Investor Shield panel remains unchanged
-- the new panel is read-only by default and local-only in production terms
-- canonical Evidence Lite values are used for the UI selectors
-- the UI excludes the legacy `SOLICITOR_FEEDBACK` alias and invalid `GENERAL` value
-- the panel reloads from the route after a local submit instead of mutating shared state directly
+## Error State
+- Safe operator-facing messages only
+- The panel surfaces route-safe text such as validation messages or route error strings
+- No raw SQL, stack traces, repository names, environment values, or diagnostics are shown
 
-## Exclusions
-- `SOLICITOR_FEEDBACK` alias: allowed only in validation boundaries, not stored or surfaced in the selector UI
-- `GENERAL`: invalid and excluded from the UI
-- production rendering: the panel is not shown when `NODE_ENV=production`
+## Evidence Fields Displayed
+- title
+- evidence type
+- canonical linked gate
+- reviewed / not reviewed
+- note when present
+- created and updated timestamps
 
-## Safety Confirmation
-Confirmed:
-- the Investor Shield implementation was not replaced
-- active source and docs remain scanned through the saved-deal detail surface
-- no production work was performed
-- no runtime behavior changes were made for production rendering
-- the deterministic engine remains untouched
-- `.gitignore` was not modified
+## Creation Behavior
+- Included, because the committed Phase 4E plan already required a minimal POST-based create flow
+- The panel keeps creation secondary to the list so the UI stays read-first
+- Fields shown in the form: title, evidence type, linked gate, note, reviewed
+- Hidden contract field: `status` is sent as `MISSING` so the current route contract is still satisfied
+- Inline edit UI is deferred to later Phase 4E work
+
+## Evidence Versus Gate-Status Boundary
+- Evidence records are presented as review notes only
+- The panel does not say that evidence satisfies or waives a gate
+- The panel does not imply reviewed evidence changes Investor Shield status
+- The panel does not create tasks, move pipeline state, or change offers
+
+## Mocked Test Coverage
+- static shell copy and forbidden wording checks
+- empty state rendering
+- canonical evidence record display
+- reviewed / not reviewed display
+- note display
+- canonical linked gate and evidence type display
+- create submission and list refresh
+- validation error display
+- helper loading coverage
+- production-guard source check
+
+## Production Execution Block
+- The panel remains local-only in production terms because the existing `app/page.tsx` gate only renders it when `NODE_ENV !== "production"`
+- No auth provider was installed
+- No fail-closed route guard was added
+- No PDF Evidence Pack route was implemented
+- No middleware, upload, OCR, AI, or workflow automation was added
+
+## Explicit Non-Implementation
+- no inline edit UI
+- no uploads or attachments
+- no OCR or AI extraction
+- no automatic gate satisfaction
+- no task creation
+- no offer mutation
+- no pipeline movement
+- no saved-deal mutation beyond the local POST helper
+- no production activation
+- no `.gitignore` change
 
 ## Validation Result
-Focused test passed:
-- `npx vitest run __tests__/evidence-lite-panel.test.tsx`
-
-Full validation passed:
-- `npm run build`
-- `npm run lint`
-- `npm test`
-
-Totals: `92` test files, `896` tests passed.
+- Focused test: pending until run in this step
+- Build: pending until run in this step
+- Lint: pending until run in this step
+- Full test suite: pending until run in this step
 
 ## Result
-PHASE 4E-5 MINIMAL EVIDENCE LITE UI COMPLETE — DEVELOPMENT AND MOCKED TESTS ONLY
+PHASE 4E-5 MINIMAL EVIDENCE LITE UI COMPLETE — LOCAL MOCKED TESTS ONLY
 
 ## Recommended Next Step
-Phase 4E-6 — Evidence Lite Item Update API Contracts and Route Planning Only
-
-## Status Update
-- Phase 4E-6 item update route planning completed
-- no edit UI or update API was added
-- production activation remains blocked
+Phase 4E-6 — Evidence Lite Local Integration Review and Phase Closure

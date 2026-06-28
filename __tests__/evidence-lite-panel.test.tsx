@@ -8,7 +8,6 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import EvidenceLitePanel, {
   loadEvidenceLiteRecords,
-  submitEvidenceLiteRecord,
 } from "@/components/evidence-lite/EvidenceLitePanel"
 import type { EvidenceLiteRecord } from "@/types/evidence-lite"
 
@@ -68,9 +67,7 @@ async function renderPanel(
   mountedRoot = createRoot(mountedContainer)
 
   await act(async () => {
-    mountedRoot?.render(
-      <EvidenceLitePanel savedDealId={props.savedDealId} dealAddress={props.dealAddress} />
-    )
+    mountedRoot?.render(<EvidenceLitePanel savedDealId={props.savedDealId} dealAddress={props.dealAddress} />)
     await new Promise((resolve) => setTimeout(resolve, 0))
   })
 
@@ -80,18 +77,6 @@ async function renderPanel(
 
 function getRecordArticles(container: HTMLElement): HTMLElement[] {
   return Array.from(container.querySelectorAll("article"))
-}
-
-function getRecordArticleByTitle(container: HTMLElement, title: string): HTMLElement {
-  const article = getRecordArticles(container).find((candidate) =>
-    (candidate.textContent ?? "").includes(title)
-  )
-
-  if (!article) {
-    throw new Error(`record article not found for title: ${title}`)
-  }
-
-  return article
 }
 
 function getControlByLabel(
@@ -164,40 +149,236 @@ function getButtonByText(scope: ParentNode, text: string): HTMLButtonElement {
   return button as HTMLButtonElement
 }
 
-function getEditForm(article: HTMLElement): HTMLFormElement {
-  const form = article.querySelector("form")
-  if (!form) {
-    throw new Error("edit form not found")
+function getSelectOptionTexts(scope: ParentNode, labelText: string): string[] {
+  const control = getControlByLabel(scope, labelText)
+  if (!(control instanceof HTMLSelectElement)) {
+    throw new Error(`expected select for label: ${labelText}`)
   }
 
-  return form as HTMLFormElement
+  return Array.from(control.options).map((option) => option.textContent ?? "")
 }
 
 describe("EvidenceLitePanel", () => {
-  it("renders the local-only review surface and keeps forbidden alias values out of the UI", () => {
+  it("renders the development-only shell and excludes gate-satisfaction wording", () => {
     const html = renderToStaticMarkup(
       <EvidenceLitePanel savedDealId="deal-1" dealAddress="10 Brik Street" />
     )
 
     expect(html).toContain("Evidence Lite")
     expect(html).toContain("Development-only review panel")
-    expect(html).toContain(
-      "Evidence supports review only. Adding evidence does not satisfy or waive an Investor Shield gate."
-    )
-    expect(html).toContain("Record a note")
+    expect(html).toContain("Evidence is for review only and does not change gate state.")
     expect(html).toContain("Recorded evidence")
-    expect(html).toContain("Loading Evidence Lite notes...")
-    expect(html).toContain("Saved deal: 10 Brik Street")
-    expect(html).toContain("Record Evidence")
+    expect(html).toContain("Record evidence")
+    expect(html).toContain("Loading evidence records...")
     expect(html).toContain("Sold comparables")
     expect(html).toContain("Planning / building control")
     expect(html).toContain("Builder proposal / contract")
+    expect(html).toContain("Solicitor review")
     expect(html).not.toContain("SOLICITOR_FEEDBACK")
     expect(html).not.toContain("GENERAL")
-    expect(html).not.toContain("Investor Shield gate satisfaction")
+    expect(html).not.toContain("Edit")
+    expect(html).not.toContain("Gate passed")
+    expect(html).not.toContain("Approved")
+    expect(html).not.toContain("Requirement complete")
+    expect(html).not.toContain("Blocker removed")
   })
 
-  it("loads evidence for the requested saved deal through the route helper", async () => {
+  it("loads the empty state for a saved deal", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      makeJsonResponse({
+        success: true,
+        evidence: [],
+      })
+    )
+
+    const container = await renderPanel(fetchMock)
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/saved-deals/deal-1/evidence", {
+      headers: { accept: "application/json" },
+    })
+    expect(container.textContent).toContain("No evidence records yet.")
+    expect(container.textContent).not.toContain("No Evidence Lite records yet.")
+
+    const form = container.querySelector("form")
+    if (!form) {
+      throw new Error("create form not found")
+    }
+
+    const linkedGateOptions = getSelectOptionTexts(form, "Linked Gate")
+    const evidenceTypeOptions = getSelectOptionTexts(form, "Evidence Type")
+
+    expect(linkedGateOptions).toContain("Solicitor review")
+    expect(linkedGateOptions).not.toContain("SOLICITOR_FEEDBACK")
+    expect(evidenceTypeOptions).toContain("Title review")
+    expect(evidenceTypeOptions).not.toContain("GENERAL")
+  })
+
+  it("loads and renders canonical evidence records", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      makeJsonResponse({
+        success: true,
+        evidence: [
+          makeEvidenceRecord({
+            id: "evidence-1",
+            linkedGate: "TITLE",
+            title: "Title pack",
+            note: "Reviewed locally",
+            reviewed: false,
+          }),
+          makeEvidenceRecord({
+            id: "evidence-2",
+            linkedGate: "SOLICITOR_REVIEW",
+            evidenceType: "SOLICITOR_REVIEW",
+            title: "Solicitor review note",
+            note: "Signed locally",
+            reviewed: true,
+            status: "REVIEWED",
+            createdAt: "2026-06-27T00:00:00.000Z",
+            updatedAt: "2026-06-27T01:00:00.000Z",
+          }),
+        ],
+      })
+    )
+
+    const container = await renderPanel(fetchMock)
+    const articles = getRecordArticles(container)
+
+    expect(articles).toHaveLength(2)
+    expect(articles[0].textContent).toContain("Title pack")
+    expect(articles[0].textContent).toContain("Title review / Title")
+    expect(articles[0].textContent).toContain("Not reviewed")
+    expect(articles[0].textContent).toContain("Reviewed locally")
+    expect(articles[0].textContent).toContain("Created 2026-06-26 00:00 UTC")
+    expect(articles[0].textContent).toContain("Updated 2026-06-26 00:00 UTC")
+    expect(articles[1].textContent).toContain("Solicitor review note")
+    expect(articles[1].textContent).toContain("Solicitor review / Solicitor review")
+    expect(articles[1].textContent).toContain("Reviewed")
+    expect(articles[1].textContent).toContain("Signed locally")
+    expect(articles[1].textContent).toContain("Created 2026-06-27 00:00 UTC")
+    expect(articles[1].textContent).toContain("Updated 2026-06-27 01:00 UTC")
+    expect(container.textContent).not.toContain("Gate passed")
+  })
+
+  it("submits a minimal evidence record and refreshes the list", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        makeJsonResponse({
+          success: true,
+          evidence: [],
+        })
+      )
+      .mockResolvedValueOnce(
+        makeJsonResponse({
+          success: true,
+          evidence: makeEvidenceRecord({
+            id: "evidence-3",
+            evidenceType: "TITLE_REVIEW",
+            linkedGate: "SOLICITOR_REVIEW",
+            title: "Title pack",
+            note: "Checked locally",
+            reviewed: true,
+            status: "RECORDED",
+          }),
+        })
+      )
+      .mockResolvedValueOnce(
+        makeJsonResponse({
+          success: true,
+          evidence: [
+            makeEvidenceRecord({
+              id: "evidence-3",
+              evidenceType: "TITLE_REVIEW",
+              linkedGate: "SOLICITOR_REVIEW",
+              title: "Title pack",
+              note: "Checked locally",
+              reviewed: true,
+              status: "RECORDED",
+            }),
+          ],
+        })
+      )
+
+    const container = await renderPanel(fetchMock)
+    const form = container.querySelector("form")
+
+    if (!form) {
+      throw new Error("create form not found")
+    }
+
+    await setFieldValue(getControlByLabel(form, "Evidence Type"), "TITLE_REVIEW")
+    await setFieldValue(getControlByLabel(form, "Linked Gate"), "SOLICITOR_REVIEW")
+    await setFieldValue(getControlByLabel(form, "Title"), "Title pack")
+    await setFieldValue(getControlByLabel(form, "Note"), "Checked locally")
+    await setCheckboxValue(getControlByLabel(form, "Mark as reviewed") as HTMLInputElement, true)
+    await clickElement(getButtonByText(form, "Record Evidence"))
+    await flushEffects()
+
+    expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/saved-deals/deal-1/evidence", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({
+        evidenceType: "TITLE_REVIEW",
+        linkedGate: "SOLICITOR_REVIEW",
+        title: "Title pack",
+        note: "Checked locally",
+        reviewed: true,
+        status: "MISSING",
+      }),
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(container.textContent).toContain("Evidence record created for local review only.")
+    expect(getRecordArticles(container)).toHaveLength(1)
+    expect(container.textContent).toContain("Title pack")
+    expect(container.textContent).toContain("Reviewed")
+    expect(container.textContent).not.toContain("SOLICITOR_FEEDBACK")
+  })
+
+  it("shows a validation error from a failed create request", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        makeJsonResponse({
+          success: true,
+          evidence: [],
+        })
+      )
+      .mockResolvedValueOnce(
+        makeJsonResponse(
+          {
+            success: false,
+            error: "Invalid evidence input.",
+            validation: {
+              errors: [{ field: "note", message: "note must be a non-empty string" }],
+            },
+          },
+          { status: 400 }
+        )
+      )
+
+    const container = await renderPanel(fetchMock)
+    const form = container.querySelector("form")
+
+    if (!form) {
+      throw new Error("create form not found")
+    }
+
+    await setFieldValue(getControlByLabel(form, "Title"), "Broken title")
+    await setFieldValue(getControlByLabel(form, "Note"), "Broken note")
+    await clickElement(getButtonByText(form, "Record Evidence"))
+    await flushEffects()
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(container.textContent).toContain("note must be a non-empty string")
+    expect(container.textContent).not.toContain("stack")
+    expect(container.textContent).not.toContain("SQL")
+    expect(container.textContent).not.toContain("repository")
+  })
+
+  it("loads evidence through the route helper", async () => {
     const fetchMock = vi.fn().mockResolvedValueOnce(
       makeJsonResponse({
         success: true,
@@ -239,248 +420,10 @@ describe("EvidenceLitePanel", () => {
     ])
   })
 
-  it("submits canonical evidence through the local route helper", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(
-        makeJsonResponse({
-          success: true,
-          evidence: {
-            id: "evidence-2",
-            dealId: "deal-1",
-            evidenceType: "TITLE_REVIEW",
-            linkedGate: "SOLICITOR_REVIEW",
-            title: "Title pack",
-            note: "Checked locally",
-            status: "RECORDED",
-            reviewed: true,
-            createdAt: "2026-06-26T00:00:00.000Z",
-            updatedAt: "2026-06-26T00:00:00.000Z",
-          },
-        })
-      )
-
-    const evidence = await submitEvidenceLiteRecord(
-      "deal-1",
-      {
-        evidenceType: "TITLE_REVIEW",
-        linkedGate: "SOLICITOR_REVIEW",
-        title: "Title pack",
-        note: "Checked locally",
-        status: "RECORDED",
-        reviewed: true,
-      },
-      fetchMock as typeof fetch
-    )
-
-    expect(fetchMock).toHaveBeenCalledWith("/api/saved-deals/deal-1/evidence", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        accept: "application/json",
-      },
-      body: JSON.stringify({
-        evidenceType: "TITLE_REVIEW",
-        linkedGate: "SOLICITOR_REVIEW",
-        title: "Title pack",
-        note: "Checked locally",
-        status: "RECORDED",
-        reviewed: true,
-      }),
-    })
-    expect(evidence).toEqual({
-      id: "evidence-2",
-      dealId: "deal-1",
-      evidenceType: "TITLE_REVIEW",
-      linkedGate: "SOLICITOR_REVIEW",
-      title: "Title pack",
-      note: "Checked locally",
-      status: "RECORDED",
-      reviewed: true,
-      createdAt: "2026-06-26T00:00:00.000Z",
-      updatedAt: "2026-06-26T00:00:00.000Z",
-    })
-  })
-
-  it("lets reviewers edit a record inline and sends only the changed fields", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(
-        makeJsonResponse({
-          success: true,
-          evidence: [
-            makeEvidenceRecord({
-              id: "evidence-1",
-              title: "Title pack",
-              note: "Reviewed locally",
-              reviewed: false,
-            }),
-            makeEvidenceRecord({
-              id: "evidence-2",
-              title: "Secondary diligence",
-              note: "Secondary record",
-              linkedGate: "LEASEHOLD",
-              evidenceType: "LEASEHOLD_REVIEW",
-              reviewed: true,
-            }),
-          ],
-        })
-      )
-      .mockResolvedValueOnce(
-        makeJsonResponse({
-          success: true,
-          evidence: {
-            ...makeEvidenceRecord({
-              id: "evidence-1",
-              title: "Updated title",
-              note: "Updated note",
-              reviewed: true,
-            }),
-          },
-        })
-      )
-
-    const container = await renderPanel(fetchMock)
-    const firstArticle = getRecordArticleByTitle(container, "Title pack")
-    await clickElement(getButtonByText(firstArticle, "Edit"))
-    await flushEffects()
-
-    const editForm = getEditForm(firstArticle)
-    const editSelects = Array.from(editForm.querySelectorAll("select"))
-    const optionsText = Array.from(editForm.querySelectorAll("option"))
-      .map((option) => option.textContent ?? "")
-      .join(" ")
-
-    expect(editSelects).toHaveLength(2)
-    expect(optionsText).toContain("Solicitor review")
-    expect(optionsText).not.toContain("SOLICITOR_FEEDBACK")
-    expect(optionsText).not.toContain("GENERAL")
-    expect(optionsText).not.toContain("RECEIVED")
-
-    await setFieldValue(getControlByLabel(editForm, "Title"), "Updated title")
-    await setFieldValue(getControlByLabel(editForm, "Note"), "Updated note")
-    await setCheckboxValue(getControlByLabel(editForm, "Mark as reviewed") as HTMLInputElement, true)
-    await clickElement(getButtonByText(editForm, "Save"))
-    await flushEffects()
-
-    expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/saved-deals/deal-1/evidence/evidence-1", {
-      method: "PATCH",
-      headers: {
-        "content-type": "application/json",
-        accept: "application/json",
-      },
-      body: JSON.stringify({
-        title: "Updated title",
-        note: "Updated note",
-        reviewed: true,
-      }),
-    })
-
-    const articles = getRecordArticles(container)
-    expect(articles).toHaveLength(2)
-    expect(articles[0].textContent).toContain("Updated title")
-    expect(articles[0].textContent).toContain("Updated note")
-    expect(articles[0].textContent).toContain("Reviewed: Yes")
-    expect(articles[1].textContent).toContain("Secondary diligence")
-    expect(articles[1].textContent).not.toContain("Updated title")
-    expect(container.textContent).toContain("Evidence note updated for local review only.")
-  })
-
-  it("saves a no-op edit without calling PATCH", async () => {
-    const fetchMock = vi.fn().mockResolvedValueOnce(
-      makeJsonResponse({
-        success: true,
-        evidence: [makeEvidenceRecord()],
-      })
-    )
-
-    const container = await renderPanel(fetchMock)
-    const article = getRecordArticleByTitle(container, "Title pack")
-
-    await clickElement(getButtonByText(article, "Edit"))
-    await flushEffects()
-    await clickElement(getButtonByText(getEditForm(article), "Save"))
-    await flushEffects()
-
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(container.textContent).toContain("No changes to save.")
-    expect(container.textContent).not.toContain("Editing evidence note")
-  })
-
-  it("cancels inline editing without sending PATCH and restores canonical values", async () => {
-    const fetchMock = vi.fn().mockResolvedValueOnce(
-      makeJsonResponse({
-        success: true,
-        evidence: [makeEvidenceRecord()],
-      })
-    )
-
-    const container = await renderPanel(fetchMock)
-    const article = getRecordArticleByTitle(container, "Title pack")
-
-    await clickElement(getButtonByText(article, "Edit"))
-    await flushEffects()
-
-    const editForm = getEditForm(article)
-    await setFieldValue(getControlByLabel(editForm, "Title"), "Temporary title")
-    await setFieldValue(getControlByLabel(editForm, "Note"), "Temporary note")
-    await clickElement(getButtonByText(editForm, "Cancel"))
-    await flushEffects()
-
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(container.textContent).not.toContain("Temporary title")
-    expect(container.textContent).not.toContain("Temporary note")
-
-    await clickElement(getButtonByText(article, "Edit"))
-    await flushEffects()
-
-    const reopenedForm = getEditForm(article)
-    expect((getControlByLabel(reopenedForm, "Title") as HTMLInputElement).value).toBe("Title pack")
-    expect((getControlByLabel(reopenedForm, "Note") as HTMLTextAreaElement).value).toBe(
-      "Reviewed locally"
-    )
-  })
-
-  it("keeps inline edit values after a failed PATCH response", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(
-        makeJsonResponse({
-          success: true,
-          evidence: [makeEvidenceRecord()],
-        })
-      )
-      .mockResolvedValueOnce(
-        makeJsonResponse(
-          {
-            success: false,
-            error: "Update failed.",
-          },
-          { status: 400 }
-        )
-      )
-
-    const container = await renderPanel(fetchMock)
-    const article = getRecordArticleByTitle(container, "Title pack")
-
-    await clickElement(getButtonByText(article, "Edit"))
-    await flushEffects()
-
-    const editForm = getEditForm(article)
-    await setFieldValue(getControlByLabel(editForm, "Title"), "Broken title")
-    await clickElement(getButtonByText(editForm, "Save"))
-    await flushEffects()
-
-    expect(fetchMock).toHaveBeenCalledTimes(2)
-    expect(container.textContent).toContain("Update failed.")
-    expect((getControlByLabel(editForm, "Title") as HTMLInputElement).value).toBe("Broken title")
-    expect(container.textContent).toContain("Editing evidence note")
-  })
-
   it("keeps the production gate in the app source and only renders the panel in non-production", () => {
     const appSource = readFileSync(path.resolve(process.cwd(), "app/page.tsx"), "utf8")
 
-    expect(appSource).toContain("const showEvidenceLitePanel = process.env.NODE_ENV !== \"production\"")
+    expect(appSource).toContain('const showEvidenceLitePanel = process.env.NODE_ENV !== "production"')
     expect(appSource).toContain("<EvidenceLitePanel")
   })
 })

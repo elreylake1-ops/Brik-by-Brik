@@ -3,108 +3,35 @@
 import { useEffect, useState } from "react"
 import type { FormEvent } from "react"
 import { formatLabel } from "@/lib/formatters"
-import {
-  EVIDENCE_LITE_EVIDENCE_TYPES,
-  EVIDENCE_LITE_GATES,
-  EVIDENCE_LITE_STATUSES,
-} from "@/types/evidence-lite"
-import type {
-  EvidenceLiteEvidenceType,
-  EvidenceLiteGateKey,
-  EvidenceLiteRecord,
-  EvidenceLiteStatus,
-} from "@/types/evidence-lite"
+import { EVIDENCE_LITE_EVIDENCE_TYPES, EVIDENCE_LITE_GATES } from "@/types/evidence-lite"
+import type { EvidenceLiteEvidenceType, EvidenceLiteGateKey, EvidenceLiteRecord } from "@/types/evidence-lite"
 
-type EvidenceLiteDraft = {
-  evidenceType: EvidenceLiteEvidenceType
-  linkedGate: EvidenceLiteGateKey
-  title: string
-  note: string
-  status: EvidenceLiteStatus
-  reviewed: boolean
-}
-
-type EvidenceLiteEditDraft = {
+type EvidenceLiteCreateDraft = {
   evidenceType: EvidenceLiteEvidenceType
   linkedGate: EvidenceLiteGateKey
   title: string
   note: string
   reviewed: boolean
 }
-
-type EvidenceLiteUpdateDraft = Partial<EvidenceLiteEditDraft>
 
 type Props = {
   savedDealId: string
   dealAddress?: string
 }
 
-const DEFAULT_DRAFT: EvidenceLiteDraft = {
+const DEFAULT_DRAFT: EvidenceLiteCreateDraft = {
   evidenceType: "TITLE_REVIEW",
   linkedGate: "TITLE",
   title: "",
   note: "",
-  status: "MISSING",
   reviewed: false,
 }
 
-function createEditDraft(record: EvidenceLiteRecord): EvidenceLiteEditDraft {
-  return {
-    evidenceType: record.evidenceType,
-    linkedGate: record.linkedGate,
-    title: record.title,
-    note: record.note,
-    reviewed: record.reviewed,
-  }
-}
-
-function buildEvidenceLiteUpdateDraft(
-  record: EvidenceLiteRecord,
-  draft: EvidenceLiteEditDraft
-): { draft: EvidenceLiteUpdateDraft; error: string | null } {
-  const updateDraft: EvidenceLiteUpdateDraft = {}
-
-  const nextTitle = draft.title.trim()
-  if (nextTitle !== record.title) {
-    if (!nextTitle) {
-      return { draft: updateDraft, error: "title must be a non-empty string" }
-    }
-
-    updateDraft.title = nextTitle
-  }
-
-  const nextNote = draft.note.trim()
-  if (nextNote !== record.note) {
-    if (!nextNote) {
-      return { draft: updateDraft, error: "note must be a non-empty string" }
-    }
-
-    updateDraft.note = nextNote
-  }
-
-  if (draft.evidenceType !== record.evidenceType) {
-    updateDraft.evidenceType = draft.evidenceType
-  }
-
-  if (draft.linkedGate !== record.linkedGate) {
-    updateDraft.linkedGate = draft.linkedGate
-  }
-
-  if (draft.reviewed !== record.reviewed) {
-    updateDraft.reviewed = draft.reviewed
-  }
-
-  return { draft: updateDraft, error: null }
-}
-
 const LABEL_OVERRIDES: Record<string, string> = {
-  MISSING: "Missing",
-  RECORDED: "Recorded",
-  REVIEWED: "Reviewed",
-  VERIFIED: "Verified",
-  REJECTED: "Rejected",
   SOLD_COMP: "Sold comparables",
   TITLE_REVIEW: "Title review",
+  TITLE: "Title",
+  LEASEHOLD: "Leasehold",
   LEASEHOLD_REVIEW: "Leasehold review",
   PLANNING_BUILDING_CONTROL: "Planning / building control",
   REFURB_NOTE: "Refurb note",
@@ -124,6 +51,15 @@ function labelFor(value: string): string {
   return LABEL_OVERRIDES[value] ?? formatLabel(value)
 }
 
+function formatTimestamp(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  return `${date.toISOString().replace("T", " ").slice(0, 16)} UTC`
+}
+
 async function readJsonResponse<T>(response: Response): Promise<T | null> {
   try {
     return (await response.json()) as T
@@ -136,8 +72,17 @@ function buildRouteUrl(savedDealId: string): string {
   return `/api/saved-deals/${encodeURIComponent(savedDealId.trim())}/evidence`
 }
 
-function buildEvidenceItemRouteUrl(savedDealId: string, evidenceId: string): string {
-  return `${buildRouteUrl(savedDealId)}/${encodeURIComponent(evidenceId.trim())}`
+function buildValidationMessage(
+  payload:
+    | {
+        error?: string
+        validation?: { errors?: Array<{ field: string; message: string }> }
+      }
+    | null,
+  fallback: string
+): string {
+  const validationMessage = payload?.validation?.errors?.find((entry) => entry.message.trim().length > 0)?.message
+  return validationMessage ?? payload?.error ?? fallback
 }
 
 export async function loadEvidenceLiteRecords(
@@ -148,12 +93,15 @@ export async function loadEvidenceLiteRecords(
     headers: { accept: "application/json" },
   })
 
-  const payload = await readJsonResponse<{ success?: boolean; evidence?: EvidenceLiteRecord[]; error?: string }>(
-    response
-  )
+  const payload = await readJsonResponse<{
+    success?: boolean
+    evidence?: EvidenceLiteRecord[]
+    error?: string
+    validation?: { errors?: Array<{ field: string; message: string }> }
+  }>(response)
 
   if (!response.ok || !payload?.success || !Array.isArray(payload.evidence)) {
-    throw new Error(payload?.error ?? `Evidence Lite load failed (${response.status})`)
+    throw new Error(buildValidationMessage(payload, `Evidence Lite load failed (${response.status})`))
   }
 
   return payload.evidence
@@ -161,7 +109,7 @@ export async function loadEvidenceLiteRecords(
 
 export async function submitEvidenceLiteRecord(
   savedDealId: string,
-  draft: EvidenceLiteDraft,
+  draft: EvidenceLiteCreateDraft,
   fetchImpl: typeof fetch = globalThis.fetch
 ): Promise<EvidenceLiteRecord> {
   const response = await fetchImpl(buildRouteUrl(savedDealId), {
@@ -170,56 +118,28 @@ export async function submitEvidenceLiteRecord(
       "content-type": "application/json",
       accept: "application/json",
     },
-    body: JSON.stringify(draft),
+    body: JSON.stringify({
+      ...draft,
+      status: "MISSING",
+    }),
   })
 
-  const payload = await readJsonResponse<{ success?: boolean; evidence?: EvidenceLiteRecord; error?: string }>(
-    response
-  )
+  const payload = await readJsonResponse<{
+    success?: boolean
+    evidence?: EvidenceLiteRecord
+    error?: string
+    validation?: { errors?: Array<{ field: string; message: string }> }
+  }>(response)
 
   if (!response.ok || !payload?.success || !payload.evidence) {
-    throw new Error(payload?.error ?? `Evidence Lite submit failed (${response.status})`)
+    throw new Error(buildValidationMessage(payload, `Evidence Lite submit failed (${response.status})`))
   }
 
   return payload.evidence
 }
 
-export async function updateEvidenceLiteRecord(
-  savedDealId: string,
-  evidenceId: string,
-  draft: EvidenceLiteUpdateDraft,
-  fetchImpl: typeof fetch = globalThis.fetch
-): Promise<EvidenceLiteRecord> {
-  const response = await fetchImpl(buildEvidenceItemRouteUrl(savedDealId, evidenceId), {
-    method: "PATCH",
-    headers: {
-      "content-type": "application/json",
-      accept: "application/json",
-    },
-    body: JSON.stringify(draft),
-  })
-
-  const payload = await readJsonResponse<{ success?: boolean; evidence?: EvidenceLiteRecord; error?: string }>(
-    response
-  )
-
-  if (!response.ok || !payload?.success || !payload.evidence) {
-    throw new Error(payload?.error ?? `Evidence Lite update failed (${response.status})`)
-  }
-
-  return payload.evidence
-}
-
-function evidenceSummary(record: EvidenceLiteRecord): string {
-  return [
-    `Status: ${labelFor(record.status)}`,
-    `Gate: ${labelFor(record.linkedGate)}`,
-    `Reviewed: ${record.reviewed ? "Yes" : "No"}`,
-  ].join(" | ")
-}
-
-function buildCreateFormSummary(): string {
-  return "Local-only helper for development review. It does not change governance or gate state."
+function createFormSummary(): string {
+  return "Local-only helper for development review. It does not change gate state."
 }
 
 export default function EvidenceLitePanel({ savedDealId, dealAddress }: Props) {
@@ -227,13 +147,8 @@ export default function EvidenceLitePanel({ savedDealId, dealAddress }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [submissionMessage, setSubmissionMessage] = useState<string | null>(null)
-  const [editMessage, setEditMessage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [draft, setDraft] = useState<EvidenceLiteDraft>(DEFAULT_DRAFT)
-  const [editingRecordId, setEditingRecordId] = useState<string | null>(null)
-  const [editDraft, setEditDraft] = useState<EvidenceLiteEditDraft | null>(null)
-  const [editingError, setEditingError] = useState<string | null>(null)
-  const [editingSaving, setEditingSaving] = useState(false)
+  const [draft, setDraft] = useState<EvidenceLiteCreateDraft>(DEFAULT_DRAFT)
 
   useEffect(() => {
     let cancelled = false
@@ -249,7 +164,7 @@ export default function EvidenceLitePanel({ savedDealId, dealAddress }: Props) {
         }
       } catch (loadError) {
         if (!cancelled) {
-          setError(loadError instanceof Error ? loadError.message : "Evidence Lite load failed.")
+          setError(loadError instanceof Error ? loadError.message : "Evidence records could not be loaded.")
           setRecords([])
         }
       } finally {
@@ -271,88 +186,21 @@ export default function EvidenceLitePanel({ savedDealId, dealAddress }: Props) {
     setSubmitting(true)
     setError(null)
     setSubmissionMessage(null)
-    setEditMessage(null)
 
     try {
       await submitEvidenceLiteRecord(savedDealId, draft)
       const evidence = await loadEvidenceLiteRecords(savedDealId)
       setRecords(evidence)
-      setSubmissionMessage("Evidence note recorded for local review only.")
+      setSubmissionMessage("Evidence record created for local review only.")
       setDraft(DEFAULT_DRAFT)
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Evidence Lite submit failed.")
+      setError(submitError instanceof Error ? submitError.message : "Evidence record could not be saved.")
     } finally {
       setSubmitting(false)
     }
   }
 
-  function startEditingRecord(record: EvidenceLiteRecord) {
-    if (editingSaving || (editingRecordId !== null && editingRecordId !== record.id)) {
-      return
-    }
-
-    setEditingRecordId(record.id)
-    setEditDraft(createEditDraft(record))
-    setEditingError(null)
-    setEditMessage(null)
-  }
-
-  function cancelEditingRecord() {
-    if (editingSaving) {
-      return
-    }
-
-    setEditingRecordId(null)
-    setEditDraft(null)
-    setEditingError(null)
-    setEditMessage(null)
-  }
-
-  async function handleEditSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    if (!editingRecordId || !editDraft || editingSaving) {
-      return
-    }
-
-    const record = records.find((candidate) => candidate.id === editingRecordId)
-    if (!record) {
-      setEditingError("Evidence Lite record not found.")
-      return
-    }
-
-    const { draft: updateDraft, error: draftError } = buildEvidenceLiteUpdateDraft(record, editDraft)
-    if (draftError) {
-      setEditingError(draftError)
-      return
-    }
-
-    if (Object.keys(updateDraft).length === 0) {
-      setEditingRecordId(null)
-      setEditDraft(null)
-      setEditingError(null)
-      setEditMessage("No changes to save.")
-      return
-    }
-
-    setEditingSaving(true)
-    setEditingError(null)
-    setEditMessage(null)
-
-    try {
-      const updatedRecord = await updateEvidenceLiteRecord(savedDealId, record.id, updateDraft)
-      setRecords((current) =>
-        current.map((candidate) => (candidate.id === updatedRecord.id ? updatedRecord : candidate))
-      )
-      setEditingRecordId(null)
-      setEditDraft(null)
-      setEditMessage("Evidence note updated for local review only.")
-    } catch (updateError) {
-      setEditingError(updateError instanceof Error ? updateError.message : "Evidence Lite update failed.")
-    } finally {
-      setEditingSaving(false)
-    }
-  }
+  const canSubmit = !submitting && draft.title.trim().length > 0 && draft.note.trim().length > 0
 
   return (
     <section className="rounded border border-gray-200 bg-white px-3 py-3 shadow-sm">
@@ -363,7 +211,7 @@ export default function EvidenceLitePanel({ savedDealId, dealAddress }: Props) {
             <h3 className="text-sm font-semibold text-gray-900">Development-only review panel</h3>
           </div>
           <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            Evidence supports review only. Adding evidence does not satisfy or waive an Investor Shield gate.
+            Evidence is for review only and does not change gate state.
           </div>
         </div>
 
@@ -376,187 +224,47 @@ export default function EvidenceLitePanel({ savedDealId, dealAddress }: Props) {
         )}
 
         <div aria-live="polite" className="min-h-5 text-sm">
-          {loading ? <p className="text-gray-500">Loading Evidence Lite notes...</p> : null}
+          {loading ? <p className="text-gray-500">Loading evidence records...</p> : null}
           {error ? <p className="text-red-700">{error}</p> : null}
           {submissionMessage ? <p className="text-green-700">{submissionMessage}</p> : null}
-          {editingError ? <p className="text-red-700">{editingError}</p> : null}
-          {editMessage ? <p className="text-green-700">{editMessage}</p> : null}
         </div>
 
         <div className="rounded border border-gray-200 bg-gray-50 px-3 py-3">
           <h4 className="text-sm font-semibold text-gray-900">Recorded evidence</h4>
           {!loading && records.length === 0 ? (
-            <p className="mt-2 text-sm text-gray-700">No Evidence Lite records yet.</p>
+            <p className="mt-2 text-sm text-gray-700">No evidence records yet.</p>
           ) : null}
 
           {records.length > 0 ? (
             <div className="mt-3 space-y-2">
-              {records.map((record) => {
-                const isEditing = editingRecordId === record.id && editDraft !== null
-                const currentEditDraft = isEditing ? editDraft : null
-
-                return (
-                  <article key={record.id} className="rounded border border-gray-200 bg-white px-3 py-2">
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <h5 className="text-sm font-semibold text-gray-900">{record.title}</h5>
-                        <p className="text-xs uppercase tracking-wide text-gray-500">
-                          {labelFor(record.evidenceType)} / {labelFor(record.linkedGate)}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-start gap-2 text-xs text-gray-500 sm:items-end">
-                        <p>{evidenceSummary(record)}</p>
-                        <button
-                          type="button"
-                          onClick={() => startEditingRecord(record)}
-                          disabled={editingSaving || (editingRecordId !== null && editingRecordId !== record.id)}
-                          className="rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {isEditing ? "Editing" : "Edit"}
-                        </button>
-                      </div>
+              {records.map((record) => (
+                <article key={record.id} className="rounded border border-gray-200 bg-white px-3 py-2">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <h5 className="text-sm font-semibold text-gray-900">{record.title}</h5>
+                      <p className="text-xs uppercase tracking-wide text-gray-500">
+                        {labelFor(record.evidenceType)} / {labelFor(record.linkedGate)}
+                      </p>
                     </div>
-                    {record.note ? <p className="mt-2 text-sm text-gray-700">{record.note}</p> : null}
+                    <div className="text-xs text-gray-500 sm:text-right">
+                      <p>{record.reviewed ? "Reviewed" : "Not reviewed"}</p>
+                      <p>
+                        Created {formatTimestamp(record.createdAt)} <span className="text-gray-300">|</span> Updated{" "}
+                        {formatTimestamp(record.updatedAt)}
+                      </p>
+                    </div>
+                  </div>
 
-                    {isEditing && currentEditDraft ? (
-                      <form
-                        onSubmit={handleEditSubmit}
-                        className="mt-3 rounded border border-blue-200 bg-blue-50 px-3 py-3"
-                      >
-                        <div className="flex flex-col gap-1">
-                          <p className="text-xs uppercase tracking-wide text-blue-700">Editing evidence note</p>
-                          <p className="text-xs text-blue-700">
-                            Status stays read-only here. Only the mutable evidence fields are sent to PATCH.
-                          </p>
-                        </div>
-
-                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                          <label className="flex flex-col gap-1 text-sm text-gray-700">
-                            <span className="text-xs uppercase tracking-wide text-gray-500">Evidence Type</span>
-                            <select
-                              value={currentEditDraft.evidenceType}
-                              onChange={(event) =>
-                                setEditDraft((current) =>
-                                  current
-                                    ? {
-                                        ...current,
-                                        evidenceType: event.target.value as EvidenceLiteEvidenceType,
-                                      }
-                                    : current
-                                )
-                              }
-                              className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
-                            >
-                              {EVIDENCE_LITE_EVIDENCE_TYPES.map((value) => (
-                                <option key={value} value={value}>
-                                  {labelFor(value)}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-
-                          <label className="flex flex-col gap-1 text-sm text-gray-700">
-                            <span className="text-xs uppercase tracking-wide text-gray-500">Linked Gate</span>
-                            <select
-                              value={currentEditDraft.linkedGate}
-                              onChange={(event) =>
-                                setEditDraft((current) =>
-                                  current
-                                    ? {
-                                        ...current,
-                                        linkedGate: event.target.value as EvidenceLiteGateKey,
-                                      }
-                                    : current
-                                )
-                              }
-                              className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
-                            >
-                              {EVIDENCE_LITE_GATES.map((value) => (
-                                <option key={value} value={value}>
-                                  {labelFor(value)}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-
-                          <label className="flex flex-col gap-1 text-sm text-gray-700">
-                            <span className="text-xs uppercase tracking-wide text-gray-500">Title</span>
-                            <input
-                              value={currentEditDraft.title}
-                              onChange={(event) =>
-                                setEditDraft((current) =>
-                                  current ? { ...current, title: event.target.value } : current
-                                )
-                              }
-                              className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
-                              placeholder="Short evidence title"
-                              required
-                            />
-                          </label>
-
-                          <label className="flex flex-col gap-1 text-sm text-gray-700 sm:col-span-2">
-                            <span className="text-xs uppercase tracking-wide text-gray-500">Note</span>
-                            <textarea
-                              value={currentEditDraft.note}
-                              onChange={(event) =>
-                                setEditDraft((current) =>
-                                  current ? { ...current, note: event.target.value } : current
-                                )
-                              }
-                              className="min-h-24 rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
-                              placeholder="Optional local review note"
-                              required
-                            />
-                          </label>
-                        </div>
-
-                        <div className="mt-3 flex flex-wrap items-center gap-3">
-                          <label className="flex items-center gap-2 text-sm text-gray-700">
-                            <input
-                              type="checkbox"
-                              checked={currentEditDraft.reviewed}
-                              onChange={(event) =>
-                                setEditDraft((current) =>
-                                  current ? { ...current, reviewed: event.target.checked } : current
-                                )
-                              }
-                              className="h-4 w-4 rounded border-gray-300"
-                            />
-                            Mark as reviewed
-                          </label>
-
-                          <p className="text-xs text-gray-500">Status is shown above and cannot be edited here.</p>
-                        </div>
-
-                        <div className="mt-3 flex items-center gap-3">
-                          <button
-                            type="submit"
-                            disabled={editingSaving}
-                            className="rounded border border-gray-300 bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {editingSaving ? "Saving..." : "Save"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={cancelEditingRecord}
-                            disabled={editingSaving}
-                            className="rounded border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </form>
-                    ) : null}
-                  </article>
-                )
-              })}
+                  {record.note ? <p className="mt-2 text-sm text-gray-700">{record.note}</p> : null}
+                </article>
+              ))}
             </div>
           ) : null}
         </div>
 
         <form onSubmit={handleSubmit} className="rounded border border-gray-200 bg-gray-50 px-3 py-3">
-          <h4 className="text-sm font-semibold text-gray-900">Record a note</h4>
-          <p className="mt-1 text-xs text-gray-500">{buildCreateFormSummary()}</p>
+          <h4 className="text-sm font-semibold text-gray-900">Record evidence</h4>
+          <p className="mt-1 text-xs text-gray-500">{createFormSummary()}</p>
 
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1 text-sm text-gray-700">
@@ -564,7 +272,10 @@ export default function EvidenceLitePanel({ savedDealId, dealAddress }: Props) {
               <select
                 value={draft.evidenceType}
                 onChange={(event) =>
-                  setDraft((current) => ({ ...current, evidenceType: event.target.value as EvidenceLiteEvidenceType }))
+                  setDraft((current) => ({
+                    ...current,
+                    evidenceType: event.target.value as EvidenceLiteEvidenceType,
+                  }))
                 }
                 className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
               >
@@ -605,29 +316,13 @@ export default function EvidenceLitePanel({ savedDealId, dealAddress }: Props) {
             </label>
 
             <label className="flex flex-col gap-1 text-sm text-gray-700">
-              <span className="text-xs uppercase tracking-wide text-gray-500">Status</span>
-              <select
-                value={draft.status}
-                onChange={(event) =>
-                  setDraft((current) => ({ ...current, status: event.target.value as EvidenceLiteStatus }))
-                }
-                className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
-              >
-                {EVIDENCE_LITE_STATUSES.map((value) => (
-                  <option key={value} value={value}>
-                    {labelFor(value)}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="flex flex-col gap-1 text-sm text-gray-700 sm:col-span-2">
               <span className="text-xs uppercase tracking-wide text-gray-500">Note</span>
               <textarea
                 value={draft.note}
                 onChange={(event) => setDraft((current) => ({ ...current, note: event.target.value }))}
                 className="min-h-24 rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
-                placeholder="Optional local review note"
+                placeholder="Short local review note"
+                required
               />
             </label>
           </div>
@@ -645,12 +340,12 @@ export default function EvidenceLitePanel({ savedDealId, dealAddress }: Props) {
           <div className="mt-3 flex items-center gap-3">
             <button
               type="submit"
-              disabled={submitting || !draft.title.trim()}
+              disabled={!canSubmit}
               className="rounded border border-gray-300 bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? "Recording..." : "Record Evidence"}
             </button>
-            <p className="text-xs text-gray-500">The panel reloads the evidence list after a successful submit.</p>
+            <p className="text-xs text-gray-500">The list reloads after a successful submit.</p>
           </div>
         </form>
       </div>
