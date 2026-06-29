@@ -6,6 +6,7 @@ import { act } from "react"
 import { createRoot, type Root } from "react-dom/client"
 import { renderToStaticMarkup } from "react-dom/server"
 import { afterEach, describe, expect, it, vi } from "vitest"
+import Home from "@/app/page"
 import EvidenceLitePanel, {
   loadEvidenceLiteRecords,
 } from "@/components/evidence-lite/EvidenceLitePanel"
@@ -156,6 +157,89 @@ function getSelectOptionTexts(scope: ParentNode, labelText: string): string[] {
   }
 
   return Array.from(control.options).map((option) => option.textContent ?? "")
+}
+
+function getRequestPath(input: RequestInfo | URL): string {
+  if (typeof input === "string") {
+    return new URL(input, "http://localhost").pathname
+  }
+
+  if (input instanceof URL) {
+    return input.pathname
+  }
+
+  return new URL(input.url).pathname
+}
+
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void
+  let reject!: (reason?: unknown) => void
+
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve
+    reject = promiseReject
+  })
+
+  return { promise, resolve, reject }
+}
+
+async function renderHome(fetchMock: ReturnType<typeof vi.fn>): Promise<HTMLElement> {
+  document.body.innerHTML = ""
+  vi.stubGlobal("fetch", fetchMock)
+
+  mountedContainer = document.createElement("div")
+  document.body.appendChild(mountedContainer)
+  mountedRoot = createRoot(mountedContainer)
+
+  await act(async () => {
+    mountedRoot?.render(<Home />)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+  })
+
+  await flushEffects()
+  return mountedContainer
+}
+
+function getViewButtonForAddress(container: HTMLElement, address: string): HTMLButtonElement {
+  const row = Array.from(container.querySelectorAll("tr")).find((candidate) =>
+    (candidate.textContent ?? "").includes(address)
+  )
+
+  if (!row) {
+    throw new Error(`row not found for address: ${address}`)
+  }
+
+  const button = row.querySelector("button")
+  if (!button) {
+    throw new Error(`view button not found for address: ${address}`)
+  }
+
+  return button as HTMLButtonElement
+}
+
+function getEvidencePanel(container: HTMLElement): HTMLElement {
+  const section = Array.from(container.querySelectorAll("section")).find((candidate) => {
+    const text = candidate.textContent ?? ""
+    return text.includes("Evidence Lite") && text.includes("Recorded evidence") && text.includes("Record evidence")
+  })
+
+  if (!section) {
+    throw new Error("Evidence Lite panel not found")
+  }
+
+  return section as HTMLElement
+}
+
+async function waitForText(container: HTMLElement, text: string): Promise<void> {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    if (container.textContent?.includes(text)) {
+      return
+    }
+
+    await flushEffects()
+  }
+
+  throw new Error(`text not found: ${text}`)
 }
 
 describe("EvidenceLitePanel", () => {
@@ -418,6 +502,245 @@ describe("EvidenceLitePanel", () => {
         updatedAt: "2026-06-26T00:00:00.000Z",
       },
     ])
+  })
+
+  it("mounts the Evidence Lite panel on the canonical saved-deal detail surface", async () => {
+    const requests: string[] = []
+    const alphaEvidence = createDeferred<Response>()
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const method = init?.method ?? "GET"
+      const path = getRequestPath(input)
+      requests.push(`${method} ${path}`)
+
+      if (path === "/api/saved-deals" && method === "GET") {
+        return makeJsonResponse({
+          success: true,
+          deals: [
+            {
+              id: "deal-alpha",
+              address: "10 Alpha Street",
+              classification: "MVP",
+              pipeline_state: "UNDER_ANALYSIS",
+              created_at: "2026-06-26T00:00:00.000Z",
+            },
+            {
+              id: "deal-beta",
+              address: "20 Beta Street",
+              classification: "Review",
+              pipeline_state: "DUE_DILIGENCE",
+              created_at: "2026-06-27T00:00:00.000Z",
+            },
+            {
+              id: "deal-gamma",
+              address: "30 Gamma Street",
+              classification: "Watch",
+              pipeline_state: "NEGOTIATING",
+              created_at: "2026-06-28T00:00:00.000Z",
+            },
+          ],
+        })
+      }
+
+      if (path === "/api/saved-deals/deal-alpha" && method === "GET") {
+        return makeJsonResponse({
+          success: true,
+          deal: {
+            id: "deal-alpha",
+            address: "10 Alpha Street",
+            classification: "MVP",
+            governance_state: "REVIEW_REQUIRED",
+            capital_protection_state: "BLOCKED",
+            pipeline_state: "UNDER_ANALYSIS",
+            purchase_price: 250000,
+            gdv_realistic: 325000,
+            refurb_cost: 45000,
+            next_action: "Read evidence records",
+            engine_result_json: {},
+          },
+        })
+      }
+
+      if (path === "/api/saved-deals/deal-beta" && method === "GET") {
+        return makeJsonResponse({
+          success: true,
+          deal: {
+            id: "deal-beta",
+            address: "20 Beta Street",
+            classification: "Review",
+            governance_state: "REVIEW_REQUIRED",
+            capital_protection_state: "CAUTION",
+            pipeline_state: "DUE_DILIGENCE",
+            purchase_price: 265000,
+            gdv_realistic: 340000,
+            refurb_cost: 50000,
+            next_action: "Check solicitor evidence",
+            engine_result_json: {},
+          },
+        })
+      }
+
+      if (path === "/api/saved-deals/deal-gamma" && method === "GET") {
+        return makeJsonResponse({
+          success: true,
+          deal: {
+            id: "deal-gamma",
+            address: "30 Gamma Street",
+            classification: "Watch",
+            governance_state: "REVIEW_REQUIRED",
+            capital_protection_state: "BLOCKED",
+            pipeline_state: "NEGOTIATING",
+            purchase_price: 275000,
+            gdv_realistic: 350000,
+            refurb_cost: 55000,
+            next_action: "Resolve missing evidence",
+            engine_result_json: {},
+          },
+        })
+      }
+
+      if (path.endsWith("/investor-summary")) {
+        return makeJsonResponse(
+          {
+            success: false,
+            error: "INVESTOR_SUMMARY_READ_FAILED",
+            traceId: "trace-investor-summary",
+          },
+          500
+        )
+      }
+
+      if (path.endsWith("/investor-shield-ui")) {
+        return makeJsonResponse(
+          {
+            success: false,
+            error: "INVESTOR_SHIELD_UI_READ_FAILED",
+            traceId: "trace-investor-shield",
+          },
+          500
+        )
+      }
+
+      if (path.endsWith("/offers") && method === "GET") {
+        return makeJsonResponse({ success: true, offers: [] })
+      }
+
+      if (path.endsWith("/tasks") && method === "GET") {
+        return makeJsonResponse({ success: true, tasks: [] })
+      }
+
+      if (path === "/api/saved-deals/deal-alpha/evidence" && method === "GET") {
+        return alphaEvidence.promise
+      }
+
+      if (path === "/api/saved-deals/deal-beta/evidence" && method === "GET") {
+        return makeJsonResponse({
+          success: true,
+          evidence: [
+            makeEvidenceRecord({
+              id: "evidence-beta-1",
+              dealId: "deal-beta",
+              evidenceType: "TITLE_REVIEW",
+              linkedGate: "TITLE",
+              title: "Title pack",
+              note: "Reviewed locally",
+              reviewed: false,
+            }),
+            makeEvidenceRecord({
+              id: "evidence-beta-2",
+              dealId: "deal-beta",
+              evidenceType: "SOLICITOR_REVIEW",
+              linkedGate: "SOLICITOR_REVIEW",
+              title: "Solicitor review note",
+              note: "Signed locally",
+              reviewed: true,
+              status: "REVIEWED",
+              createdAt: "2026-06-27T00:00:00.000Z",
+              updatedAt: "2026-06-27T01:00:00.000Z",
+            }),
+          ],
+        })
+      }
+
+      if (path === "/api/saved-deals/deal-gamma/evidence" && method === "GET") {
+        return makeJsonResponse(
+          {
+            success: false,
+            error: "EVIDENCE_LITE_READ_FAILED",
+            traceId: "trace-evidence-gamma",
+          },
+          500
+        )
+      }
+
+      throw new Error(`unexpected request: ${method} ${path}`)
+    })
+
+    const container = await renderHome(fetchMock)
+
+    await waitForText(container, "10 Alpha Street")
+    expect(requests.filter((request) => request.includes("/evidence"))).toHaveLength(0)
+    expect(container.textContent).toContain("Select a saved deal from the list to view read-only detail.")
+    expect(container.textContent).toContain("Saved Deal Detail")
+
+    const alphaViewButton = getViewButtonForAddress(container, "10 Alpha Street")
+    await clickElement(alphaViewButton)
+    await waitForText(container, "Loading evidence records...")
+    expect(requests).toContain("GET /api/saved-deals/deal-alpha/evidence")
+    expect(container.textContent).toContain("Saved deal: 10 Alpha Street (deal-alpha)")
+    expect(container.textContent).toContain("Loading evidence records...")
+    expect(container.textContent).toContain("Investor Summary")
+    expect(container.textContent).toContain("Investor Shield")
+    expect(container.textContent).toContain("Operator Command")
+
+    await act(async () => {
+      alphaEvidence.resolve(
+        makeJsonResponse({
+          success: true,
+          evidence: [],
+        })
+      )
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
+
+    await waitForText(container, "No evidence records yet.")
+    const emptyEvidencePanel = getEvidencePanel(container)
+    expect(emptyEvidencePanel.textContent).toContain("No evidence records yet.")
+    expect(emptyEvidencePanel.textContent).not.toContain("Gate passed")
+    expect(emptyEvidencePanel.textContent).not.toContain("Blocker cleared")
+    expect(emptyEvidencePanel.textContent).not.toContain("Approved")
+
+    const betaViewButton = getViewButtonForAddress(container, "20 Beta Street")
+    await clickElement(betaViewButton)
+    await waitForText(container, "Title pack")
+    expect(requests).toContain("GET /api/saved-deals/deal-beta/evidence")
+    expect(container.textContent).toContain("Saved deal: 20 Beta Street (deal-beta)")
+
+    const populatedEvidencePanel = getEvidencePanel(container)
+    expect(populatedEvidencePanel.textContent).toContain("Title pack")
+    expect(populatedEvidencePanel.textContent).toContain("Title review / Title")
+    expect(populatedEvidencePanel.textContent).toContain("Not reviewed")
+    expect(populatedEvidencePanel.textContent).toContain("Reviewed")
+    expect(populatedEvidencePanel.textContent).toContain("Reviewed locally")
+    expect(populatedEvidencePanel.textContent).toContain("Signed locally")
+    expect(populatedEvidencePanel.textContent).not.toContain("Gate passed")
+    expect(populatedEvidencePanel.textContent).not.toContain("Blocker cleared")
+    expect(populatedEvidencePanel.textContent).not.toContain("Approved")
+
+    const gammaViewButton = getViewButtonForAddress(container, "30 Gamma Street")
+    await clickElement(gammaViewButton)
+    await waitForText(container, "EVIDENCE_LITE_READ_FAILED")
+    expect(requests).toContain("GET /api/saved-deals/deal-gamma/evidence")
+
+    const errorEvidencePanel = getEvidencePanel(container)
+    expect(errorEvidencePanel.textContent).toContain("EVIDENCE_LITE_READ_FAILED")
+    expect(errorEvidencePanel.textContent).not.toContain("SQL")
+    expect(errorEvidencePanel.textContent).not.toContain("stack")
+    expect(errorEvidencePanel.textContent).not.toContain("repository")
+
+    for (const forbidden of ["upload", "ocr", "ai", "workflow", "security", "guard"]) {
+      expect(requests.join(" ")).not.toContain(forbidden)
+    }
   })
 
   it("keeps the production gate in the app source and only renders the panel in non-production", () => {
