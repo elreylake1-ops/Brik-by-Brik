@@ -39,6 +39,7 @@ function makeEvidenceRecord(overrides: Partial<EvidenceLiteRecord> = {}): Eviden
     note: "Canonical note",
     status: "RECORDED",
     reviewed: false,
+    reviewerNote: null,
     createdAt: "2026-06-26T10:00:00.000Z",
     updatedAt: "2026-06-26T10:00:00.000Z",
     ...overrides,

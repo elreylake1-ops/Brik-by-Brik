@@ -52,6 +52,7 @@ export type EvidenceLiteRecord = {
   note: string
   status: EvidenceLiteStatus
   reviewed: boolean
+  reviewerNote: string | null
   createdAt: string
   updatedAt: string
 }

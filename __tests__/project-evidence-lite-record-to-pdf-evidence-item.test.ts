@@ -14,6 +14,7 @@ function makeRecord(overrides?: Partial<EvidenceLiteRecord> & Record<string, unk
     note: "Canonical title review note",
     status: "RECORDED",
     reviewed: false,
+    reviewerNote: null,
     createdAt: "2026-06-22T10:00:00.000Z",
     updatedAt: "2026-06-22T10:15:00.000Z",
     ...overrides,

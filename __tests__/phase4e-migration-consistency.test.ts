@@ -25,6 +25,7 @@ describe("phase 4e evidence lite migration consistency", () => {
     expect(sql).toContain("note TEXT NOT NULL")
     expect(sql).toContain("status TEXT NOT NULL DEFAULT 'MISSING'")
     expect(sql).toContain("reviewed BOOLEAN NOT NULL DEFAULT FALSE")
+    expect(sql).toContain("reviewer_note TEXT NULL")
     expect(sql).toContain("created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()")
     expect(sql).toContain("updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()")
     expect(sql).toContain("FOREIGN KEY (deal_id)")
@@ -41,7 +42,6 @@ describe("phase 4e evidence lite migration consistency", () => {
     for (const forbidden of [
       "uuid primary key default gen_random_uuid()",
       "saved_deal_id",
-      "reviewer_note",
       "requeste",
       "received",
       "satisfied",

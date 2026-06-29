@@ -39,6 +39,7 @@ describe("evidence lite repository", () => {
       note: "Legal review complete",
       status: "RECORDED",
       reviewed: false,
+      reviewer_note: null,
       created_at: "2026-06-22T10:00:00.000Z",
       updated_at: "2026-06-22T10:00:00.000Z",
       ...overrides,
@@ -76,6 +77,7 @@ describe("evidence lite repository", () => {
         note: "Legal review complete",
         status: "RECORDED",
         reviewed: false,
+        reviewerNote: null,
         createdAt: "2026-06-22T10:00:00.000Z",
         updatedAt: "2026-06-22T10:00:00.000Z",
       },
@@ -88,6 +90,7 @@ describe("evidence lite repository", () => {
         note: "Legal review complete",
         status: "RECORDED",
         reviewed: false,
+        reviewerNote: null,
         createdAt: "2026-06-22T10:00:00.000Z",
         updatedAt: "2026-06-22T10:00:00.000Z",
       },
@@ -121,6 +124,7 @@ describe("evidence lite repository", () => {
       note: "Legal review complete",
       status: "RECORDED",
       reviewed: false,
+      reviewerNote: null,
       createdAt: "2026-06-22T10:00:00.000Z",
       updatedAt: "2026-06-22T10:00:00.000Z",
     })
@@ -167,6 +171,7 @@ describe("evidence lite repository", () => {
     expect(sql).toContain("note")
     expect(sql).toContain("status")
     expect(sql).toContain("reviewed")
+    expect(sql).toContain("reviewer_note")
     expect(params).toEqual([
       "evidence_mock-uuid-1",
       "deal-1",
@@ -179,6 +184,7 @@ describe("evidence lite repository", () => {
     ])
     expect(result.id).toBe("evidence_mock-uuid-1")
     expect(result.linkedGate).toBe("SOLICITOR_REVIEW")
+    expect(result.reviewerNote).toBeNull()
   })
 
   it("does not write legacy solicitor feedback or other forbidden fields on create", async () => {
@@ -217,6 +223,8 @@ describe("evidence lite repository", () => {
     expect(sql).toContain("note = $1")
     expect(sql).toContain("status = $2")
     expect(sql).toContain("updated_at = NOW()")
+    expect(sql).toContain("reviewer_note")
+    expect(sql).not.toContain("reviewer_note =")
     expect(sql).toContain("WHERE deal_id = $3")
     expect(sql).toContain("AND id = $4")
     expect(params).toEqual(["Updated note", "VERIFIED", "deal-1", "evidence-1"])
@@ -229,6 +237,7 @@ describe("evidence lite repository", () => {
       note: "Updated note",
       status: "VERIFIED",
       reviewed: false,
+      reviewerNote: null,
       createdAt: "2026-06-22T10:00:00.000Z",
       updatedAt: "2026-06-22T10:00:00.000Z",
     })
@@ -273,6 +282,17 @@ describe("evidence lite repository", () => {
     expect(() =>
       mapEvidenceLiteRow(makeRow({ linked_gate: "GENERAL" }))
     ).toThrow("Invalid Evidence Lite value must not be stored: linked_gate")
+  })
+
+  it("maps reviewer_note null and non-null stored values", () => {
+    expect(mapEvidenceLiteRow(makeRow()).reviewerNote).toBeNull()
+    expect(
+      mapEvidenceLiteRow(
+        makeRow({
+          reviewer_note: "Reviewed by James",
+        })
+      ).reviewerNote
+    ).toBe("Reviewed by James")
   })
 
   it("repository SQL does not target tasks, offers, or Investor Shield mutation tables", async () => {

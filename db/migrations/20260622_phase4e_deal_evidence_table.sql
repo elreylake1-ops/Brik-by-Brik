@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS brik_by_brik_engine.deal_evidence (
   note TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'MISSING',
   reviewed BOOLEAN NOT NULL DEFAULT FALSE,
+  reviewer_note TEXT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT chk_deal_evidence_evidence_type

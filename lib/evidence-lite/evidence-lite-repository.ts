@@ -10,7 +10,7 @@ import {
 } from "@/types/evidence-lite"
 
 const EVIDENCE_LITE_FIELDS =
-  "id, deal_id, evidence_type, linked_gate, title, note, status, reviewed, created_at, updated_at"
+  "id, deal_id, evidence_type, linked_gate, title, note, status, reviewed, reviewer_note, created_at, updated_at"
 
 type EvidenceLiteDbRow = {
   id: string
@@ -21,6 +21,7 @@ type EvidenceLiteDbRow = {
   note: string
   status: string
   reviewed: boolean
+  reviewer_note: string | null
   created_at: string
   updated_at: string
 }
@@ -88,6 +89,7 @@ function mapEvidenceLiteRow(row: EvidenceLiteDbRow): EvidenceLiteRecord {
     note: row.note,
     status: row.status as EvidenceLiteRecord["status"],
     reviewed: row.reviewed,
+    reviewerNote: row.reviewer_note ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }

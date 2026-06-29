@@ -91,6 +91,7 @@ describe("evidence lite contract validation", () => {
       note: "",
       status: "SATISFIED",
       reviewed: "nope",
+      reviewerNote: "Reviewed by James",
       extra: true,
     }
     const before = JSON.stringify(input)
@@ -99,7 +100,16 @@ describe("evidence lite contract validation", () => {
 
     expect(result.valid).toBe(false)
     expect(result.errors.map((error) => error.field)).toEqual(
-      expect.arrayContaining(["extra", "evidenceType", "linkedGate", "title", "note", "status", "reviewed"])
+      expect.arrayContaining([
+        "extra",
+        "reviewerNote",
+        "evidenceType",
+        "linkedGate",
+        "title",
+        "note",
+        "status",
+        "reviewed",
+      ])
     )
     expect(JSON.stringify(input)).toBe(before)
   })
@@ -112,6 +122,7 @@ describe("evidence lite contract validation", () => {
       createdAt: "2026-06-26T00:00:00.000Z",
       updatedAt: "2026-06-26T00:00:00.000Z",
       status: "VERIFIED",
+      reviewerNote: "Reviewed by James",
       extra: true,
     })
 
@@ -124,6 +135,7 @@ describe("evidence lite contract validation", () => {
         "createdAt",
         "updatedAt",
         "status",
+        "reviewerNote",
         "extra",
       ])
     )
