@@ -39,8 +39,6 @@ const defaultScope: RefurbScopeInput = {
   majorWorks: { rewire: false, boiler: false, roof: false },
 }
 
-const showEvidenceLitePanel = process.env.NODE_ENV !== "production"
-
 type SavedDealListItem = {
   id: string
   address: string
@@ -1035,12 +1033,10 @@ export default function Home() {
                 }
               />
 
-              {showEvidenceLitePanel ? (
-                <EvidenceLitePanel
-                  savedDealId={selectedSavedDeal.id}
-                  dealAddress={selectedSavedDeal.address}
-                />
-              ) : null}
+              <EvidenceLitePanel
+                savedDealId={selectedSavedDeal.id}
+                dealAddress={selectedSavedDeal.address}
+              />
 
               <div className="rounded border border-gray-200 bg-gray-50 px-3 py-2">
                 <p className="text-xs uppercase tracking-wide text-gray-500">Saved Engine Snapshot</p>

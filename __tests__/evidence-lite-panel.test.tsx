@@ -81,83 +81,11 @@ function getRecordArticles(container: HTMLElement): HTMLElement[] {
   return Array.from(container.querySelectorAll("article"))
 }
 
-function getControlByLabel(
-  scope: ParentNode,
-  labelText: string
-): HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement {
-  const label = Array.from(scope.querySelectorAll("label")).find((candidate) => {
-    const span = candidate.querySelector("span")
-    if (span?.textContent?.trim() === labelText) {
-      return true
-    }
-
-    return candidate.textContent?.trim() === labelText
-  })
-
-  if (!label) {
-    throw new Error(`label not found: ${labelText}`)
-  }
-
-  const control = label.querySelector("input, select, textarea")
-  if (!control) {
-    throw new Error(`control not found for label: ${labelText}`)
-  }
-
-  return control as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-}
-
-async function setFieldValue(
-  field: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
-  value: string
-): Promise<void> {
-  await act(async () => {
-    const prototype = Object.getPrototypeOf(field)
-    const valueSetter = Object.getOwnPropertyDescriptor(prototype, "value")?.set
-    valueSetter?.call(field, value)
-    field.dispatchEvent(new Event("input", { bubbles: true }))
-    field.dispatchEvent(new Event("change", { bubbles: true }))
-    await new Promise((resolve) => setTimeout(resolve, 0))
-  })
-}
-
-async function setCheckboxValue(field: HTMLInputElement, checked: boolean): Promise<void> {
-  await act(async () => {
-    if (field.checked !== checked) {
-      field.click()
-    } else {
-      field.dispatchEvent(new Event("change", { bubbles: true }))
-    }
-    field.dispatchEvent(new Event("change", { bubbles: true }))
-    await new Promise((resolve) => setTimeout(resolve, 0))
-  })
-}
-
 async function clickElement(element: HTMLElement): Promise<void> {
   await act(async () => {
     element.click()
     await new Promise((resolve) => setTimeout(resolve, 0))
   })
-}
-
-function getButtonByText(scope: ParentNode, text: string): HTMLButtonElement {
-  const button = Array.from(scope.querySelectorAll("button")).find(
-    (candidate) => candidate.textContent?.trim() === text
-  )
-
-  if (!button) {
-    throw new Error(`button not found: ${text}`)
-  }
-
-  return button as HTMLButtonElement
-}
-
-function getSelectOptionTexts(scope: ParentNode, labelText: string): string[] {
-  const control = getControlByLabel(scope, labelText)
-  if (!(control instanceof HTMLSelectElement)) {
-    throw new Error(`expected select for label: ${labelText}`)
-  }
-
-  return Array.from(control.options).map((option) => option.textContent ?? "")
 }
 
 function getRequestPath(input: RequestInfo | URL): string {
@@ -221,7 +149,7 @@ function getViewButtonForAddress(container: HTMLElement, address: string): HTMLB
 function getEvidencePanel(container: HTMLElement): HTMLElement {
   const section = Array.from(container.querySelectorAll("section")).find((candidate) => {
     const text = candidate.textContent ?? ""
-    return text.includes("Evidence Lite") && text.includes("Recorded evidence") && text.includes("Record evidence")
+    return text.includes("Evidence Lite") && text.includes("Recorded evidence")
   })
 
   if (!section) {
@@ -244,24 +172,22 @@ async function waitForText(container: HTMLElement, text: string): Promise<void> 
 }
 
 describe("EvidenceLitePanel", () => {
-  it("renders the development-only shell and excludes gate-satisfaction wording", () => {
+  it("renders the production-safe read-only shell and excludes gate-satisfaction wording", () => {
     const html = renderToStaticMarkup(
       <EvidenceLitePanel savedDealId="deal-1" dealAddress="10 Brik Street" />
     )
 
     expect(html).toContain("Evidence Lite")
-    expect(html).toContain("Development-only review panel")
-    expect(html).toContain("Evidence is for review only and does not change gate state.")
+    expect(html).toContain(
+      "Deal-linked evidence notes for review and follow-up. Evidence Lite is informational and does not by itself satisfy or waive Investor Shield requirements."
+    )
+    expect(html).toContain("Evidence Lite does not replace required Investor Shield evidence.")
     expect(html).toContain("Recorded evidence")
-    expect(html).toContain("Record evidence")
-    expect(html).toContain("Loading evidence records...")
-    expect(html).toContain("Sold comparables")
-    expect(html).toContain("Planning / building control")
-    expect(html).toContain("Builder proposal / contract")
-    expect(html).toContain("Solicitor review")
-    expect(html).not.toContain("SOLICITOR_FEEDBACK")
-    expect(html).not.toContain("GENERAL")
-    expect(html).not.toContain("Edit")
+    expect(html).toContain("Loading Evidence Lite records...")
+    expect(html).not.toContain("Development-only review panel")
+    expect(html).not.toContain("Record evidence")
+    expect(html).not.toContain("Record Evidence")
+    expect(html).not.toContain("local review only")
     expect(html).not.toContain("Gate passed")
     expect(html).not.toContain("Approved")
     expect(html).not.toContain("Requirement complete")
@@ -281,21 +207,9 @@ describe("EvidenceLitePanel", () => {
     expect(fetchMock).toHaveBeenCalledWith("/api/saved-deals/deal-1/evidence", {
       headers: { accept: "application/json" },
     })
-    expect(container.textContent).toContain("No evidence records yet.")
-    expect(container.textContent).not.toContain("No Evidence Lite records yet.")
-
-    const form = container.querySelector("form")
-    if (!form) {
-      throw new Error("create form not found")
-    }
-
-    const linkedGateOptions = getSelectOptionTexts(form, "Linked Gate")
-    const evidenceTypeOptions = getSelectOptionTexts(form, "Evidence Type")
-
-    expect(linkedGateOptions).toContain("Solicitor review")
-    expect(linkedGateOptions).not.toContain("SOLICITOR_FEEDBACK")
-    expect(evidenceTypeOptions).toContain("Title review")
-    expect(evidenceTypeOptions).not.toContain("GENERAL")
+    expect(container.textContent).toContain("No Evidence Lite records have been added for this deal.")
+    expect(container.textContent).toContain("Evidence Lite does not replace required Investor Shield evidence.")
+    expect(container.querySelector("form")).toBeNull()
   })
 
   it("loads and renders canonical evidence records", async () => {
@@ -305,10 +219,11 @@ describe("EvidenceLitePanel", () => {
         evidence: [
           makeEvidenceRecord({
             id: "evidence-1",
-            linkedGate: "TITLE",
+            linkedGate: "SOLICITOR_REVIEW",
             title: "Title pack",
-            note: "Reviewed locally",
+            note: "Controlled QA evidence only; not substantive due diligence evidence.",
             reviewed: false,
+            status: "MISSING",
           }),
           makeEvidenceRecord({
             id: "evidence-2",
@@ -317,6 +232,7 @@ describe("EvidenceLitePanel", () => {
             title: "Solicitor review note",
             note: "Signed locally",
             reviewed: true,
+            reviewerNote: "Follow up with the conveyancer.",
             status: "REVIEWED",
             createdAt: "2026-06-27T00:00:00.000Z",
             updatedAt: "2026-06-27T01:00:00.000Z",
@@ -330,137 +246,51 @@ describe("EvidenceLitePanel", () => {
 
     expect(articles).toHaveLength(2)
     expect(articles[0].textContent).toContain("Title pack")
-    expect(articles[0].textContent).toContain("Title review / Title")
+    expect(articles[0].textContent).toContain("Evidence ID: evidence-1")
+    expect(articles[0].textContent).toContain("Evidence type: Title review")
+    expect(articles[0].textContent).toContain("Linked gate: Solicitor review")
+    expect(articles[0].textContent).toContain("MISSING")
     expect(articles[0].textContent).toContain("Not reviewed")
-    expect(articles[0].textContent).toContain("Reviewed locally")
+    expect(articles[0].textContent).toContain(
+      "Controlled QA evidence only; not substantive due diligence evidence."
+    )
     expect(articles[0].textContent).toContain("Created 2026-06-26 00:00 UTC")
     expect(articles[0].textContent).toContain("Updated 2026-06-26 00:00 UTC")
     expect(articles[1].textContent).toContain("Solicitor review note")
-    expect(articles[1].textContent).toContain("Solicitor review / Solicitor review")
+    expect(articles[1].textContent).toContain("Evidence ID: evidence-2")
+    expect(articles[1].textContent).toContain("Evidence type: Solicitor review")
+    expect(articles[1].textContent).toContain("Linked gate: Solicitor review")
+    expect(articles[1].textContent).toContain("REVIEWED")
     expect(articles[1].textContent).toContain("Reviewed")
     expect(articles[1].textContent).toContain("Signed locally")
+    expect(articles[1].textContent).toContain("Reviewer note: Follow up with the conveyancer.")
     expect(articles[1].textContent).toContain("Created 2026-06-27 00:00 UTC")
     expect(articles[1].textContent).toContain("Updated 2026-06-27 01:00 UTC")
+    expect(articles[0].textContent).not.toContain("Reviewer note:")
     expect(container.textContent).not.toContain("Gate passed")
   })
 
-  it("submits a minimal evidence record and refreshes the list", async () => {
+  it("shows a safe error message when the evidence request fails", async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(
         makeJsonResponse({
-          success: true,
-          evidence: [],
-        })
-      )
-      .mockResolvedValueOnce(
-        makeJsonResponse({
-          success: true,
-          evidence: makeEvidenceRecord({
-            id: "evidence-3",
-            evidenceType: "TITLE_REVIEW",
-            linkedGate: "SOLICITOR_REVIEW",
-            title: "Title pack",
-            note: "Checked locally",
-            reviewed: true,
-            status: "RECORDED",
-          }),
-        })
-      )
-      .mockResolvedValueOnce(
-        makeJsonResponse({
-          success: true,
-          evidence: [
-            makeEvidenceRecord({
-              id: "evidence-3",
-              evidenceType: "TITLE_REVIEW",
-              linkedGate: "SOLICITOR_REVIEW",
-              title: "Title pack",
-              note: "Checked locally",
-              reviewed: true,
-              status: "RECORDED",
-            }),
-          ],
-        })
+          success: false,
+          error: "EVIDENCE_LITE_READ_FAILED",
+          traceId: "trace-evidence-lite",
+        }, { status: 500 })
       )
 
     const container = await renderPanel(fetchMock)
-    const form = container.querySelector("form")
-
-    if (!form) {
-      throw new Error("create form not found")
-    }
-
-    await setFieldValue(getControlByLabel(form, "Evidence Type"), "TITLE_REVIEW")
-    await setFieldValue(getControlByLabel(form, "Linked Gate"), "SOLICITOR_REVIEW")
-    await setFieldValue(getControlByLabel(form, "Title"), "Title pack")
-    await setFieldValue(getControlByLabel(form, "Note"), "Checked locally")
-    await setCheckboxValue(getControlByLabel(form, "Mark as reviewed") as HTMLInputElement, true)
-    await clickElement(getButtonByText(form, "Record Evidence"))
-    await flushEffects()
-
-    expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/saved-deals/deal-1/evidence", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        accept: "application/json",
-      },
-      body: JSON.stringify({
-        evidenceType: "TITLE_REVIEW",
-        linkedGate: "SOLICITOR_REVIEW",
-        title: "Title pack",
-        note: "Checked locally",
-        reviewed: true,
-        status: "MISSING",
-      }),
-    })
-    expect(fetchMock).toHaveBeenCalledTimes(3)
-    expect(container.textContent).toContain("Evidence record created for local review only.")
-    expect(getRecordArticles(container)).toHaveLength(1)
-    expect(container.textContent).toContain("Title pack")
-    expect(container.textContent).toContain("Reviewed")
-    expect(container.textContent).not.toContain("SOLICITOR_FEEDBACK")
-  })
-
-  it("shows a validation error from a failed create request", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(
-        makeJsonResponse({
-          success: true,
-          evidence: [],
-        })
-      )
-      .mockResolvedValueOnce(
-        makeJsonResponse(
-          {
-            success: false,
-            error: "Invalid evidence input.",
-            validation: {
-              errors: [{ field: "note", message: "note must be a non-empty string" }],
-            },
-          },
-          { status: 400 }
-        )
-      )
-
-    const container = await renderPanel(fetchMock)
-    const form = container.querySelector("form")
-
-    if (!form) {
-      throw new Error("create form not found")
-    }
-
-    await setFieldValue(getControlByLabel(form, "Title"), "Broken title")
-    await setFieldValue(getControlByLabel(form, "Note"), "Broken note")
-    await clickElement(getButtonByText(form, "Record Evidence"))
-    await flushEffects()
-
-    expect(fetchMock).toHaveBeenCalledTimes(2)
-    expect(container.textContent).toContain("note must be a non-empty string")
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(container.textContent).toContain(
+      "Evidence Lite could not be loaded right now. Investor Shield requirements are unchanged."
+    )
+    expect(container.textContent).not.toContain("EVIDENCE_LITE_READ_FAILED")
     expect(container.textContent).not.toContain("stack")
     expect(container.textContent).not.toContain("SQL")
     expect(container.textContent).not.toContain("repository")
+    expect(container.textContent).not.toContain("token")
   })
 
   it("loads evidence through the route helper", async () => {
@@ -507,7 +337,8 @@ describe("EvidenceLitePanel", () => {
     ])
   })
 
-  it("mounts the Evidence Lite panel on the canonical saved-deal detail surface", async () => {
+  it("mounts the Evidence Lite panel on the canonical saved-deal detail surface in production mode", async () => {
+    const originalNodeEnv = process.env.NODE_ENV
     const requests: string[] = []
     const alphaEvidence = createDeferred<Response>()
 
@@ -641,13 +472,14 @@ describe("EvidenceLitePanel", () => {
           success: true,
           evidence: [
             makeEvidenceRecord({
-              id: "evidence-beta-1",
+              id: "evidence_9f9a344c-ed1c-4510-bb46-c8d3b88fce96",
               dealId: "deal-beta",
               evidenceType: "TITLE_REVIEW",
-              linkedGate: "TITLE",
-              title: "Title pack",
-              note: "Reviewed locally",
+              linkedGate: "SOLICITOR_REVIEW",
+              title: "Controlled QA title review",
+              note: "Controlled QA evidence only; not substantive due diligence evidence. Verified via canonical POST and PATCH.",
               reviewed: false,
+              status: "MISSING",
             }),
             makeEvidenceRecord({
               id: "evidence-beta-2",
@@ -679,77 +511,106 @@ describe("EvidenceLitePanel", () => {
       throw new Error(`unexpected request: ${method} ${path}`)
     })
 
-    const container = await renderHome(fetchMock)
+    process.env.NODE_ENV = "production"
 
-    await waitForText(container, "10 Alpha Street")
-    expect(requests.filter((request) => request.includes("/evidence"))).toHaveLength(0)
-    expect(container.textContent).toContain("Select a saved deal from the list to view read-only detail.")
-    expect(container.textContent).toContain("Saved Deal Detail")
+    try {
+      const container = await renderHome(fetchMock)
 
-    const alphaViewButton = getViewButtonForAddress(container, "10 Alpha Street")
-    await clickElement(alphaViewButton)
-    await waitForText(container, "Loading evidence records...")
-    expect(requests).toContain("GET /api/saved-deals/deal-alpha/evidence")
-    expect(container.textContent).toContain("Saved deal: 10 Alpha Street (deal-alpha)")
-    expect(container.textContent).toContain("Loading evidence records...")
-    expect(container.textContent).toContain("Investor Summary")
-    expect(container.textContent).toContain("Investor Shield")
-    expect(container.textContent).toContain("Operator Command")
+      await waitForText(container, "10 Alpha Street")
+      expect(requests.filter((request) => request.includes("/evidence"))).toHaveLength(0)
+      expect(container.textContent).toContain("Select a saved deal from the list to view read-only detail.")
+      expect(container.textContent).toContain("Saved Deal Detail")
 
-    await act(async () => {
-      alphaEvidence.resolve(
-        makeJsonResponse({
-          success: true,
-          evidence: [],
-        })
+      const alphaViewButton = getViewButtonForAddress(container, "10 Alpha Street")
+      await clickElement(alphaViewButton)
+      await waitForText(container, "Loading Evidence Lite records...")
+      expect(requests).toContain("GET /api/saved-deals/deal-alpha/evidence")
+      expect(container.textContent).toContain("Saved deal: 10 Alpha Street (deal-alpha)")
+      expect(container.textContent).toContain("Loading Evidence Lite records...")
+      expect(container.textContent).toContain("Investor Summary")
+      expect(container.textContent).toContain("Investor Shield")
+      expect(container.textContent).toContain("Operator Command")
+
+      await act(async () => {
+        alphaEvidence.resolve(
+          makeJsonResponse({
+            success: true,
+            evidence: [],
+          })
+        )
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      })
+
+      await waitForText(container, "No Evidence Lite records have been added for this deal.")
+      const emptyEvidencePanel = getEvidencePanel(container)
+      expect(emptyEvidencePanel.textContent).toContain("No Evidence Lite records have been added for this deal.")
+      expect(emptyEvidencePanel.textContent).toContain(
+        "Evidence Lite does not replace required Investor Shield evidence."
       )
-      await new Promise((resolve) => setTimeout(resolve, 0))
-    })
+      expect(emptyEvidencePanel.textContent).not.toContain("Gate passed")
+      expect(emptyEvidencePanel.textContent).not.toContain("Blocker cleared")
+      expect(emptyEvidencePanel.textContent).not.toContain("Approved")
 
-    await waitForText(container, "No evidence records yet.")
-    const emptyEvidencePanel = getEvidencePanel(container)
-    expect(emptyEvidencePanel.textContent).toContain("No evidence records yet.")
-    expect(emptyEvidencePanel.textContent).not.toContain("Gate passed")
-    expect(emptyEvidencePanel.textContent).not.toContain("Blocker cleared")
-    expect(emptyEvidencePanel.textContent).not.toContain("Approved")
+      const betaViewButton = getViewButtonForAddress(container, "20 Beta Street")
+      await clickElement(betaViewButton)
+      await waitForText(container, "Controlled QA title review")
+      expect(requests).toContain("GET /api/saved-deals/deal-beta/evidence")
+      expect(container.textContent).toContain("Saved deal: 20 Beta Street (deal-beta)")
 
-    const betaViewButton = getViewButtonForAddress(container, "20 Beta Street")
-    await clickElement(betaViewButton)
-    await waitForText(container, "Title pack")
-    expect(requests).toContain("GET /api/saved-deals/deal-beta/evidence")
-    expect(container.textContent).toContain("Saved deal: 20 Beta Street (deal-beta)")
+      const populatedEvidencePanel = getEvidencePanel(container)
+      expect(populatedEvidencePanel.textContent).toContain("Controlled QA title review")
+      expect(populatedEvidencePanel.textContent).toContain(
+        "Evidence ID: evidence_9f9a344c-ed1c-4510-bb46-c8d3b88fce96"
+      )
+      expect(populatedEvidencePanel.textContent).toContain("Evidence type: Title review")
+      expect(populatedEvidencePanel.textContent).toContain("Linked gate: Solicitor review")
+      expect(populatedEvidencePanel.textContent).toContain("MISSING")
+      expect(populatedEvidencePanel.textContent).toContain("Not reviewed")
+      expect(populatedEvidencePanel.textContent).toContain("Reviewed")
+      expect(populatedEvidencePanel.textContent).toContain(
+        "Controlled QA evidence only; not substantive due diligence evidence. Verified via canonical POST and PATCH."
+      )
+      expect(populatedEvidencePanel.textContent).toContain("Signed locally")
+      expect(populatedEvidencePanel.textContent).not.toContain("Gate passed")
+      expect(populatedEvidencePanel.textContent).not.toContain("Blocker cleared")
+      expect(populatedEvidencePanel.textContent).not.toContain("Approved")
+      expect(populatedEvidencePanel.textContent).not.toContain("Record Evidence")
 
-    const populatedEvidencePanel = getEvidencePanel(container)
-    expect(populatedEvidencePanel.textContent).toContain("Title pack")
-    expect(populatedEvidencePanel.textContent).toContain("Title review / Title")
-    expect(populatedEvidencePanel.textContent).toContain("Not reviewed")
-    expect(populatedEvidencePanel.textContent).toContain("Reviewed")
-    expect(populatedEvidencePanel.textContent).toContain("Reviewed locally")
-    expect(populatedEvidencePanel.textContent).toContain("Signed locally")
-    expect(populatedEvidencePanel.textContent).not.toContain("Gate passed")
-    expect(populatedEvidencePanel.textContent).not.toContain("Blocker cleared")
-    expect(populatedEvidencePanel.textContent).not.toContain("Approved")
+      const gammaViewButton = getViewButtonForAddress(container, "30 Gamma Street")
+      await clickElement(gammaViewButton)
+      await waitForText(
+        container,
+        "Evidence Lite could not be loaded right now. Investor Shield requirements are unchanged."
+      )
+      expect(requests).toContain("GET /api/saved-deals/deal-gamma/evidence")
 
-    const gammaViewButton = getViewButtonForAddress(container, "30 Gamma Street")
-    await clickElement(gammaViewButton)
-    await waitForText(container, "EVIDENCE_LITE_READ_FAILED")
-    expect(requests).toContain("GET /api/saved-deals/deal-gamma/evidence")
+      const errorEvidencePanel = getEvidencePanel(container)
+      expect(errorEvidencePanel.textContent).toContain(
+        "Evidence Lite could not be loaded right now. Investor Shield requirements are unchanged."
+      )
+      expect(errorEvidencePanel.textContent).not.toContain("EVIDENCE_LITE_READ_FAILED")
+      expect(errorEvidencePanel.textContent).not.toContain("SQL")
+      expect(errorEvidencePanel.textContent).not.toContain("stack")
+      expect(errorEvidencePanel.textContent).not.toContain("repository")
 
-    const errorEvidencePanel = getEvidencePanel(container)
-    expect(errorEvidencePanel.textContent).toContain("EVIDENCE_LITE_READ_FAILED")
-    expect(errorEvidencePanel.textContent).not.toContain("SQL")
-    expect(errorEvidencePanel.textContent).not.toContain("stack")
-    expect(errorEvidencePanel.textContent).not.toContain("repository")
+      expect(requests.filter((request) => request.startsWith("POST "))).toHaveLength(0)
+      expect(requests.filter((request) => request.startsWith("PATCH "))).toHaveLength(0)
+      expect(requests.filter((request) => request.startsWith("PUT "))).toHaveLength(0)
+      expect(requests.filter((request) => request.startsWith("DELETE "))).toHaveLength(0)
 
-    for (const forbidden of ["upload", "ocr", "ai", "workflow", "security", "guard"]) {
-      expect(requests.join(" ")).not.toContain(forbidden)
+      for (const forbidden of ["upload", "ocr", "ai", "workflow", "security", "guard"]) {
+        expect(requests.join(" ")).not.toContain(forbidden)
+      }
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv
     }
   })
 
-  it("keeps the production gate in the app source and only renders the panel in non-production", () => {
+  it("removes the production gate from the app source while keeping the panel mounted on the saved-deal surface", () => {
     const appSource = readFileSync(path.resolve(process.cwd(), "app/page.tsx"), "utf8")
 
-    expect(appSource).toContain('const showEvidenceLitePanel = process.env.NODE_ENV !== "production"')
+    expect(appSource).not.toContain('const showEvidenceLitePanel = process.env.NODE_ENV !== "production"')
+    expect(appSource).not.toContain("{showEvidenceLitePanel ? (")
     expect(appSource).toContain("<EvidenceLitePanel")
   })
 })
