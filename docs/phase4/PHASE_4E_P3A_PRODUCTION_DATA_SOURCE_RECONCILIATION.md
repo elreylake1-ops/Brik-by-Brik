@@ -12,7 +12,7 @@ Record the read-only reconciliation between the repository-local database target
 
 | Item | Value |
 | --- | --- |
-| Repository | `C:\Users\user\Documents\Lake Views Property\deal-analyzer` |
+| Repository | `C:\Users\user\Documents\Brik by Brik Engine\deal-analyzer` |
 | Branch | `main` |
 | `HEAD` | `778e6513a09c9c4f2a4a583d4b1756c00f0f7194` |
 | `origin/main` | `778e6513a09c9c4f2a4a583d4b1756c00f0f7194` |
