@@ -141,67 +141,272 @@ Files requiring change before editing:
 
 ## Implementation Commit
 
-Pending.
+- Commit: `c2ab59b`
+- Message: `feat: activate evidence lite production ui`
+- Push target: `origin/main`
+- Result: pushed successfully
 
 ## Production Deployment
 
-Pending.
+- Deployment ID: `dpl_HEbuDrQd13HgKDbh6Sq1AFed9BXB`
+- Project: `brikbybrik-engine/brik-by-brik-engine`
+- Deployment URL: `https://brik-by-brik-engine-3p05uu9nv-brikbybrik-engine.vercel.app`
+- Production alias: `https://brik-by-brik-engine-chi.vercel.app`
+- Additional aliases:
+  - `https://brik-by-brik-engine-brikbybrik-engine.vercel.app`
+  - `https://brik-by-brik-engine-git-main-brikbybrik-engine.vercel.app`
+- Target: `production`
+- State: `READY`
+- Creation time: `Mon Jun 29 2026 19:54:34 GMT+0800 (Singapore Standard Time)`
+- Build log confirmation:
+  - Git branch: `main`
+  - Git repository: `github.com/elreylake1-ops/Brik-by-Brik`
+  - Deployed commit: `c2ab59b`
 
 ## Deployment-to-Commit Match
 
-Pending.
+Passed.
+
+- Vercel build logs show:
+  `Cloning github.com/elreylake1-ops/Brik-by-Brik (Branch: main, Commit: c2ab59b)`
+- The deployed production alias points at deployment `dpl_HEbuDrQd13HgKDbh6Sq1AFed9BXB`.
+- The deployed commit matches the implementation commit exactly.
 
 ## Live API Pre-Browser Verification
 
-Pending.
+Passed.
+
+Read-only GET checks before browser proof:
+
+- `/api/saved-deals`
+  - `200`
+  - saved deal count: `1`
+  - returned deal ID: `4b0e02bc-1cc6-40d2-a6b0-d7685c2b6863`
+- `/api/saved-deals/4b0e02bc-1cc6-40d2-a6b0-d7685c2b6863`
+  - `200`
+  - classification: `CONDITIONAL`
+  - governance: `MANUAL_REVIEW_REQUIRED`
+  - capital protection: `PROTECTED`
+  - pipeline: `UNDER_ANALYSIS`
+- `/api/saved-deals/4b0e02bc-1cc6-40d2-a6b0-d7685c2b6863/investor-shield-ui`
+  - `200`
+  - overall status: `BLOCKED`
+  - progression: `BLOCKED`
+  - `canProgress: false`
+  - missing-evidence gates: `10`
+- `/api/saved-deals/4b0e02bc-1cc6-40d2-a6b0-d7685c2b6863/investor-summary`
+  - `200`
+  - route success: `true`
+  - deal address matches the controlled QA fixture
+- `/api/saved-deals/4b0e02bc-1cc6-40d2-a6b0-d7685c2b6863/tasks`
+  - `200`
+  - task count: `0`
+- `/api/saved-deals/4b0e02bc-1cc6-40d2-a6b0-d7685c2b6863/offers`
+  - `200`
+  - offer count: `0`
+- `/api/saved-deals/4b0e02bc-1cc6-40d2-a6b0-d7685c2b6863/evidence`
+  - `200`
+  - evidence count: `1`
+  - evidence ID: `evidence_9f9a344c-ed1c-4510-bb46-c8d3b88fce96`
+  - evidence type: `TITLE_REVIEW`
+  - linked gate: `SOLICITOR_REVIEW`
+  - status: `MISSING`
+  - reviewed: `false`
+  - reviewer note: `null`
+
+No `42P01`, `28P01`, or unexpected `500` response was observed in the pre-browser route sweep.
 
 ## Live Browser Navigation
 
-Pending.
+Passed.
+
+Playwright navigated the live production alias through the actual user interface:
+
+1. Opened `https://brik-by-brik-engine-chi.vercel.app`
+2. Waited for the controlled QA saved deal to appear in the saved-deals table
+3. Opened the deal via the visible `View` action in the canonical saved-deal list row
+4. Waited for the production Evidence Lite panel to render on the saved-deal detail surface
+5. Verified the surrounding Investor Summary, Investor Shield, and Operator Command surfaces remained present
 
 ## Populated-State Proof
 
-Pending.
+Passed.
+
+The rendered production page showed:
+
+- controlled deal address:
+  `QA Controlled Production Verification Deal - Keep For Live Evidence Lite`
+- deal ID:
+  `4b0e02bc-1cc6-40d2-a6b0-d7685c2b6863`
+- classification:
+  `CONDITIONAL`
+- governance:
+  `MANUAL_REVIEW_REQUIRED`
+- capital protection:
+  `PROTECTED`
+- pipeline:
+  `UNDER_ANALYSIS`
+- Evidence Lite record title:
+  `Controlled QA evidence record`
+- evidence ID:
+  `evidence_9f9a344c-ed1c-4510-bb46-c8d3b88fce96`
+- evidence type:
+  `Title review`
+- linked gate:
+  `Solicitor review`
+- status:
+  `MISSING`
+- reviewed label:
+  `Not reviewed`
+- controlled note:
+  `Controlled QA evidence only; not substantive due diligence evidence. Verified via canonical POST and PATCH.`
+- separation copy:
+  `Evidence Lite does not replace required Investor Shield evidence.`
+
+No gate-passed, blocker-cleared, approved, or equivalent authoritative approval wording appeared in the rendered Evidence Lite surface.
 
 ## Browser Refresh Persistence Proof
 
-Pending.
+Passed.
+
+- After the populated record rendered, a full browser refresh was performed.
+- The page reloaded normally.
+- The controlled deal row remained available.
+- The same deal was reopened through the normal `View` action.
+- The same retained evidence ID rendered again:
+  `evidence_9f9a344c-ed1c-4510-bb46-c8d3b88fce96`
+- The same `MISSING` status, `Not reviewed` state, linked gate, and controlled QA note remained visible.
+- No duplicate record appeared.
 
 ## Fresh Browser Context Proof
 
-Pending.
+Passed.
+
+- A second fresh Playwright browser context loaded the production alias independently.
+- The controlled deal was reopened from the saved-deals list.
+- The same retained Evidence Lite record rendered again with the same ID and values.
+- This provided server-backed persistence proof independent of the first browser context.
 
 ## Mobile Viewport Proof
 
-Pending.
+Passed.
+
+- A mobile-sized browser context rendered the populated production page and Evidence Lite panel.
+- Screenshot captured:
+  `production-evidence-lite-mobile.png`
+- Measured viewport result:
+  - `scrollWidth: 417`
+  - `innerWidth: 417`
+- No horizontal overflow was detected in the captured mobile viewport.
 
 ## Empty-State Proof
 
-Local mocked browser proof is covered by the focused panel and saved-deal detail integration tests. Screenshot capture pending.
+Passed.
+
+- Browser proof used the live production UI with a controlled route interception for the Evidence Lite GET call only.
+- Intercepted response:
+  `200` with `[]`
+- Verified rendered empty-state copy:
+  `No Evidence Lite records have been added for this deal.`
+- Verified separation reminder remained visible.
+- Screenshot captured:
+  `evidence-lite-empty-state.png`
+- This screenshot is local mocked-state browser proof, not a production data mutation.
 
 ## Safe Error-State Proof
 
-Local mocked browser proof is covered by the focused panel and saved-deal detail integration tests. Screenshot capture pending.
+Passed.
+
+- Browser proof used the live production UI with a controlled route interception for the Evidence Lite GET call only.
+- Intercepted response:
+  `500` with safe route payload
+- Verified rendered user-safe message:
+  `Evidence Lite could not be loaded right now. Investor Shield requirements are unchanged.`
+- Verified the UI did not surface `EVIDENCE_LITE_READ_FAILED`, SQL text, or stack text.
+- Screenshot captured:
+  `evidence-lite-safe-error-state.png`
+- This screenshot is local mocked-state browser proof, not a production data mutation.
 
 ## Browser Network Mutation Check
 
-Local focused integration proof confirms the rendered page flow issues no Evidence Lite `POST`, `PATCH`, `PUT`, or `DELETE` request. Live browser mutation check pending.
+Passed.
+
+- Live browser instrumentation recorded requests during initial load, refresh, and the fresh browser context.
+- Observed non-GET / non-HEAD requests: `0`
+- No Evidence Lite `POST`, `PATCH`, `PUT`, or `DELETE` request occurred.
+- No saved-deal mutation request occurred.
+- No task, offer, waiver, override, upload, OCR, AI, or workflow mutation request occurred.
+- Browser console error count: `0`
 
 ## Investor Shield Separation Reproof
 
-Local proof complete. Live production reproof pending.
+Passed.
+
+- The live browser and live route checks both showed Investor Shield remained `BLOCKED`.
+- Missing-evidence gate count remained `10`.
+- `canProgress` remained `false`.
+- The Evidence Lite record was rendered only as informational review context.
+- No Evidence Lite content was shown as satisfying, waiving, or approving an Investor Shield gate.
 
 ## Production Before/After Counts
 
-Pending.
+Read-only before/after route checks remained unchanged:
+
+Before browser proof:
+
+- saved deals: `1`
+- Evidence Lite records: `1`
+- tasks: `0`
+- offers: `0`
+- Shield overall: `BLOCKED`
+- missing-evidence gates: `10`
+
+After browser proof:
+
+- saved deals: `1`
+- returned saved deal ID: `4b0e02bc-1cc6-40d2-a6b0-d7685c2b6863`
+- Evidence Lite records: `1`
+- retained evidence ID unchanged:
+  `evidence_9f9a344c-ed1c-4510-bb46-c8d3b88fce96`
+- tasks: `0`
+- offers: `0`
+- Shield overall: `BLOCKED`
+- Shield progression: `BLOCKED`
+- `canProgress: false`
+- missing-evidence gates: `10`
+- classification: `CONDITIONAL`
+- governance: `MANUAL_REVIEW_REQUIRED`
+- capital protection: `PROTECTED`
+- pipeline: `UNDER_ANALYSIS`
+
+Additional note:
+
+- A direct workstation reconnect to the pulled production `DATABASE_URL` for auxiliary table count re-query was not available because the connection refused local TCP access.
+- Zero-mutation proof therefore relied on:
+  - live browser request capture showing no write method
+  - unchanged before/after route-level counts and statuses
+  - the absence of any runtime control in the activated Evidence Lite panel that could issue a production write
 
 ## Screenshot Index
 
-Pending.
+- `production-evidence-lite-populated.png`
+  - live production deal opened
+  - production Evidence Lite panel visible
+  - retained record visible
+  - linked gate and `MISSING` status visible
+- `production-evidence-lite-after-refresh.png`
+  - same record visible again after full browser refresh and normal reopen flow
+- `production-evidence-lite-mobile.png`
+  - populated live production state in a mobile viewport
+  - no horizontal overflow detected
+- `evidence-lite-empty-state.png`
+  - controlled local mocked browser proof of the empty state on the live UI
+- `evidence-lite-safe-error-state.png`
+  - controlled local mocked browser proof of the safe error state on the live UI
 
 ## Final Validation
 
-Pending after deployment and browser proof.
+Pending final local rerun after this documentation update.
 
 ## Explicit Non-Implementation
 
@@ -232,31 +437,31 @@ Confirmed in the implementation step:
 
 ## Final Phase 4E Acceptance Matrix
 
-| Requirement                            | Result  | Evidence |
-| -------------------------------------- | ------- | -------- |
-| Evidence Lite visible in production    | Pending | Awaiting live deployment and browser proof |
-| Development-only guard removed         | Passed  | `app/page.tsx` source and focused test |
-| Production-safe copy                   | Passed  | `EvidenceLitePanel.tsx` and focused test |
-| Controlled record displayed            | Pending | Awaiting live browser proof |
-| Record persists after refresh          | Pending | Awaiting live browser proof |
-| Fresh browser context persistence      | Pending | Awaiting live browser proof |
-| Empty state verified                   | Passed  | Focused panel test and local detail-surface integration test |
-| Loading state verified                 | Passed  | Focused panel test and local detail-surface integration test |
-| Safe error state verified              | Passed  | Focused panel test and local detail-surface integration test |
-| Mobile layout verified                 | Pending | Awaiting browser screenshot proof |
-| No duplicate evidence                  | Pending | Awaiting live browser and API proof |
-| No production mutation during UI proof | Pending | Awaiting live browser and API proof |
-| Investor Shield remains blocked        | Pending | Awaiting live browser and API proof |
-| Evidence Lite remains informational    | Passed  | Production-safe copy and local integration assertions |
-| Build passes                           | Passed  | `npm run build` |
-| Lint passes                            | Passed  | `npm run lint` |
-| Full suite passes                      | Passed  | `npm test` |
-| Deployment commit verified             | Pending | Awaiting deployment |
+| Requirement                            | Result | Evidence |
+| -------------------------------------- | ------ | -------- |
+| Evidence Lite visible in production    | Passed | live production browser proof and populated screenshot |
+| Development-only guard removed         | Passed | `app/page.tsx` source and focused test |
+| Production-safe copy                   | Passed | `EvidenceLitePanel.tsx`, focused test, live browser proof |
+| Controlled record displayed            | Passed | live route checks and populated screenshot |
+| Record persists after refresh          | Passed | refresh screenshot and retained ID reproof |
+| Fresh browser context persistence      | Passed | second browser-context reproof |
+| Empty state verified                   | Passed | focused test plus mocked browser screenshot |
+| Loading state verified                 | Passed | focused test plus live browser navigation |
+| Safe error state verified              | Passed | focused test plus mocked browser screenshot |
+| Mobile layout verified                 | Passed | mobile screenshot and equal scroll/inner widths |
+| No duplicate evidence                  | Passed | before/after route counts plus browser reproof |
+| No production mutation during UI proof | Passed | no non-GET requests observed; counts unchanged |
+| Investor Shield remains blocked        | Passed | live route checks and live browser proof |
+| Evidence Lite remains informational    | Passed | copy, live browser proof, and Shield separation checks |
+| Build passes                           | Passed | `npm run build` |
+| Lint passes                            | Passed | `npm run lint` |
+| Full suite passes                      | Passed | `npm test` |
+| Deployment commit verified             | Passed | Vercel build log commit `c2ab59b` |
 
 ## Result
 
-Pending.
+`PHASE 4E EVIDENCE LITE COMPLETE — PRODUCTION UI AND REFRESH PERSISTENCE VERIFIED`
 
 ## Recommended Next Step
 
-Pending until the deployment and live browser proof are complete.
+`Proceed to the approved browser-rendered Investor Summary and Evidence Pack review document. Binary PDF generation remains deferred until visual review approval.`
