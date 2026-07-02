@@ -52,11 +52,63 @@ describe("mapPdfEvidencePackToInvestorReview", () => {
     expect(viewModel.header.reviewPurpose).toBe("Investor decision support")
     expect(viewModel.header.dealId).toBe(PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId)
     expect(viewModel.header.generatedAt).toBe("2026-06-14 12:15 UTC")
-    expect(viewModel.overview.governance.value).toBe("MANUAL_REVIEW_REQUIRED")
-    expect(viewModel.overview.pipeline.value).toBe("UNDER_ANALYSIS")
+    expect(viewModel.overview.governance.value).toBe("Manual Review Required")
+    expect(viewModel.overview.pipeline.value).toBe("Under Analysis")
     expect(viewModel.investmentSummary.trueMao20.value).toBe("£113,800.00")
     expect(viewModel.recommendedNextAction).toBe("Review title and refurb evidence")
     expect(viewModel.evidenceLiteRows[0]?.linkedGate).toBe("Title Review")
+  })
+
+  it("humanizes underscore-separated decision and status values while leaving single-word values unchanged", () => {
+    const pack = {
+      ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
+      investorShield: {
+        ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorShield,
+        overallStatus: "BLOCKED",
+        progressionDecision: "NEEDS_REVIEW",
+      },
+      investorSummary: {
+        ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorSummary,
+        classification: "STRONG_DEAL",
+        capitalProtectionState: "HIGH_RISK",
+      },
+    }
+
+    const viewModel = mapPdfEvidencePackToInvestorReview({
+      pack,
+      savedDeal: makeSavedDealRecord({
+        id: pack.meta.savedDealId,
+        governance_state: "MANUAL_REVIEW_REQUIRED",
+        pipeline_state: "UNDER_ANALYSIS",
+      }),
+    })
+
+    // Canonical inputs remain accepted and drive the mapper without error.
+    expect(pack.investorSummary.classification).toBe("STRONG_DEAL")
+    expect(pack.investorSummary.capitalProtectionState).toBe("HIGH_RISK")
+
+    // Underscore-separated values are humanized for display.
+    expect(viewModel.overview.classification.value).toBe("Strong Deal")
+    expect(viewModel.overview.capitalProtection.value).toBe("High Risk")
+    expect(viewModel.overview.governance.value).toBe("Manual Review Required")
+    expect(viewModel.overview.pipeline.value).toBe("Under Analysis")
+    expect(viewModel.decisionSummary.progressionDecision.value).toBe("Needs Review")
+
+    // Already-readable single-word values remain exactly as they were.
+    expect(viewModel.decisionSummary.overallStatus.value).toBe("BLOCKED")
+
+    const decisionAndStatusValues = [
+      viewModel.overview.classification.value,
+      viewModel.overview.governance.value,
+      viewModel.overview.capitalProtection.value,
+      viewModel.overview.pipeline.value,
+      viewModel.decisionSummary.overallStatus.value,
+      viewModel.decisionSummary.progressionDecision.value,
+    ]
+    const rawEnumPattern = /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/
+    for (const value of decisionAndStatusValues) {
+      expect(rawEnumPattern.test(value)).toBe(false)
+    }
   })
 
   it("keeps required gates separate from advisory content and does not assign success to missing states", () => {

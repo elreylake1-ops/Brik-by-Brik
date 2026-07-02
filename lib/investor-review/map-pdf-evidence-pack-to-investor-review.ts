@@ -87,6 +87,17 @@ function displayActionText(actionText: string): string {
   return actionText === "Review solicitor feedback" ? "Complete Solicitor Review" : actionText
 }
 
+function displayDecisionValue(value: string): string {
+  if (!value.includes("_")) {
+    return value
+  }
+
+  return value
+    .split("_")
+    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+    .join(" ")
+}
+
 function overallStatusTone(status: string | null | undefined): InvestorReviewSemanticTone {
   const normalized = status?.trim().toUpperCase() ?? ""
   if (normalized === "CLEAR") {
@@ -265,8 +276,8 @@ function mapTasks(pack: PdfEvidencePack): readonly InvestorReviewTaskRow[] {
   return pack.investorSummary.activeTasks.map((task) => ({
     taskId: task.taskId,
     title: task.title,
-    taskType: task.taskType,
-    status: task.status,
+    taskType: displayDecisionValue(task.taskType),
+    status: displayDecisionValue(task.status),
     priority: task.priority,
     dueDate: text(task.dueDate),
     blockerReason: text(task.blockerReason),
@@ -281,8 +292,8 @@ function mapLatestOffer(pack: PdfEvidencePack): InvestorReviewOfferSummary {
 
   return {
     amount: money(offer.amount),
-    offerType: offer.offerType,
-    offerStatus: offer.offerStatus,
+    offerType: displayDecisionValue(offer.offerType),
+    offerStatus: displayDecisionValue(offer.offerStatus),
     rationale: text(offer.rationale),
     sellerResponse: text(offer.sellerResponse),
     createdAt: formatTimestamp(offer.createdAt),
@@ -318,15 +329,15 @@ export function mapPdfEvidencePackToInvestorReview(
       propertyIdentity: { label: "Property identity", value: text(pack.identity.address) },
       classification: {
         label: "Classification",
-        value: text(pack.investorSummary.classification),
+        value: displayDecisionValue(text(pack.investorSummary.classification)),
       },
       governance: {
         label: "Governance",
-        value: text(savedDeal.governance_state),
+        value: displayDecisionValue(text(savedDeal.governance_state)),
       },
       capitalProtection: {
         label: "Capital protection",
-        value: text(pack.investorSummary.capitalProtectionState),
+        value: displayDecisionValue(text(pack.investorSummary.capitalProtectionState)),
         tone:
           pack.investorSummary.capitalProtectionState === "SAFE"
             ? "success"
@@ -336,7 +347,7 @@ export function mapPdfEvidencePackToInvestorReview(
       },
       pipeline: {
         label: "Pipeline",
-        value: text(savedDeal.pipeline_state),
+        value: displayDecisionValue(text(savedDeal.pipeline_state)),
       },
     },
     investmentSummary: {
@@ -358,12 +369,12 @@ export function mapPdfEvidencePackToInvestorReview(
     decisionSummary: {
       overallStatus: {
         label: "Shield overall status",
-        value: pack.investorShield.overallStatus,
+        value: displayDecisionValue(pack.investorShield.overallStatus),
         tone: overallStatusTone(pack.investorShield.overallStatus),
       },
       progressionDecision: {
         label: "Progression decision",
-        value: pack.investorShield.progressionDecision,
+        value: displayDecisionValue(pack.investorShield.progressionDecision),
         tone: overallStatusTone(pack.investorShield.progressionDecision),
       },
       canProgress: {

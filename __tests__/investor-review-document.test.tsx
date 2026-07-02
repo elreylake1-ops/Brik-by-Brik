@@ -55,9 +55,9 @@ describe("InvestorReviewDocument", () => {
     expect(html).toContain("Investor decision support")
     expect(html).toContain("12 Lake View Road, Leeds")
     expect(html).toContain("MARGINAL")
-    expect(html).toContain("MANUAL_REVIEW_REQUIRED")
+    expect(html).toContain("Manual Review Required")
     expect(html).toContain("CAUTION")
-    expect(html).toContain("UNDER_ANALYSIS")
+    expect(html).toContain("Under Analysis")
     expect(html).toContain("£113,800.00")
     expect(html).toContain("BLOCKED")
     expect(html).toContain("Review title and refurb evidence")
@@ -218,6 +218,20 @@ describe("InvestorReviewDocument", () => {
     expect(html).toContain(
       "AI-assisted visual review is advisory only and cannot replace human, professional, builder, document, or measurement evidence."
     )
+  })
+
+  it("humanizes underscore-separated decision and status values in the rendered document", () => {
+    const html = renderDocument()
+
+    expect(html).toContain("Manual Review Required")
+    expect(html).toContain("Under Analysis")
+    expect(html).not.toContain("MANUAL_REVIEW_REQUIRED")
+    expect(html).not.toContain("UNDER_ANALYSIS")
+
+    // Single-word status values remain unchanged.
+    expect(html).toContain("MARGINAL")
+    expect(html).toContain("BLOCKED")
+    expect(html).toContain("CAUTION")
   })
 
   it("uses safe wrapping classes for long ids and notes and requires no client-only behavior", () => {
