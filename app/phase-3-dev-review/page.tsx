@@ -1,5 +1,8 @@
 import type { Metadata } from "next"
-import type { Phase3MergedOrchestrationOutput } from "@/types/phase3-orchestration"
+import InvestorReviewDocument from "@/components/investor-review/InvestorReviewDocument"
+import type { Phase3MergedOrchestrationOutput, Phase3OrchestrationOutput } from "@/types/phase3-orchestration"
+import { INVESTOR_REVIEW_CONFIDENTIALITY_LABEL } from "@/lib/investor-review/investor-review-view-model"
+import { mapPdfEvidencePackToInvestorReview } from "@/lib/investor-review/map-pdf-evidence-pack-to-investor-review"
 import {
   PHASE3_REVIEW_SURFACE_DISPLAY_CONTRACT,
   PHASE3_REVIEW_SURFACE_FIXTURE_PAIRS,
@@ -8,6 +11,9 @@ import noDealWeakComparableMerged from "@/__tests__/fixtures/phase3-merged-orche
 import reviewRequiredLegalConflictMerged from "@/__tests__/fixtures/phase3-merged-orchestration/review-required-with-legal-conflict-hints-merged.json"
 import cleanProceedOperatorNoteMerged from "@/__tests__/fixtures/phase3-merged-orchestration/clean-proceed-with-accepted-operator-note-merged.json"
 import intakeMissingLenderMerged from "@/__tests__/fixtures/phase3-merged-orchestration/intake-with-missing-lender-hints-merged.json"
+import { PDF_EVIDENCE_PACK_COMPLETE_FIXTURE } from "@/__tests__/fixtures/pdf-evidence-pack-fixtures"
+import valuationReviewGapOutput from "@/__tests__/fixtures/phase3-orchestration/valuation-review-gap.json"
+import type { SavedDealRecord } from "@/lib/operator-command/saved-deals-repository"
 
 export const metadata: Metadata = {
   title: "Phase 3 Developer Review - Advisory Fixtures",
@@ -17,6 +23,11 @@ export const metadata: Metadata = {
 type ScenarioEntry = {
   label: string
   output: Phase3MergedOrchestrationOutput
+}
+
+type AdditionalDealEntry = {
+  label: string
+  output: Phase3OrchestrationOutput
 }
 
 const FIXTURE_BY_ID: Record<string, Phase3MergedOrchestrationOutput> = {
@@ -29,6 +40,41 @@ const FIXTURE_BY_ID: Record<string, Phase3MergedOrchestrationOutput> = {
   intake_with_missing_lender_hints:
     intakeMissingLenderMerged as Phase3MergedOrchestrationOutput,
 }
+
+const ADDITIONAL_DEMO_DEAL: AdditionalDealEntry = {
+  label: "Valuation Review Gap",
+  output: valuationReviewGapOutput as Phase3OrchestrationOutput,
+}
+
+const ADDITIONAL_DEMO_SAVED_DEAL: SavedDealRecord = {
+  id: "deal-pdf-complete-001",
+  created_at: "2026-06-14T10:30:00.000Z",
+  updated_at: "2026-06-14T10:30:00.000Z",
+  archived_at: null,
+  address: "22 Lake View Road, Leeds",
+  listing_url: null,
+  purchase_price: 125000,
+  gdv_realistic: 200000,
+  refurb_cost: 25000,
+  classification: "STRONG_DEAL",
+  governance_state: "MANUAL_REVIEW_REQUIRED",
+  capital_protection_state: "PROTECTED",
+  pipeline_state: "UNDER_ANALYSIS",
+  engine_result_json: {},
+  risk_summary_json: {},
+  next_action: "Review lender criteria and solicitor evidence",
+}
+
+const ADDITIONAL_DEMO_REVIEW_VIEW_MODEL = mapPdfEvidencePackToInvestorReview({
+  pack: {
+    ...PDF_EVIDENCE_PACK_COMPLETE_FIXTURE,
+    meta: {
+      ...PDF_EVIDENCE_PACK_COMPLETE_FIXTURE.meta,
+      confidentialityLabel: INVESTOR_REVIEW_CONFIDENTIALITY_LABEL,
+    },
+  },
+  savedDeal: ADDITIONAL_DEMO_SAVED_DEAL,
+})
 
 function buildScenarioEntries(): ScenarioEntry[] {
   return PHASE3_REVIEW_SURFACE_FIXTURE_PAIRS.map((pair) => ({
@@ -47,9 +93,7 @@ export function Phase3DevReviewContent() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
             Developer Review Only
           </p>
-          <h1 className="mt-2 text-2xl font-bold text-amber-900">
-            Developer Review Only — Advisory Phase 3 Output
-          </h1>
+          <h1 className="mt-2 text-2xl font-bold text-amber-900">Advisory Phase 3 Output</h1>
           <p className="mt-2 text-sm text-amber-900">
             This page is fixture-only and does not change calculator, governance, or Phase 2 review behavior.
           </p>
@@ -174,6 +218,55 @@ export function Phase3DevReviewContent() {
           </section>
         ))}
 
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+            Additional populated demo deal
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-gray-900">{ADDITIONAL_DEMO_DEAL.label}</h2>
+          <p className="mt-2 text-sm text-gray-700">
+            Existing locked orchestration output surfaced as a separate read-only demo case.
+          </p>
+
+          <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-lg border border-gray-200 p-3">
+              <div className="text-xs uppercase tracking-wide text-gray-500">workflowState</div>
+              <div className="mt-1 font-semibold text-gray-900">{ADDITIONAL_DEMO_DEAL.output.workflowState}</div>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-3">
+              <div className="text-xs uppercase tracking-wide text-gray-500">globalDealState</div>
+              <div className="mt-1 font-semibold text-gray-900">{ADDITIONAL_DEMO_DEAL.output.globalDealState}</div>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-3">
+              <div className="text-xs uppercase tracking-wide text-gray-500">governanceEscalationRoute</div>
+              <div className="mt-1 font-semibold text-gray-900">
+                {ADDITIONAL_DEMO_DEAL.output.governanceEscalationRoute}
+              </div>
+            </div>
+            <div className="rounded-lg border border-gray-200 p-3">
+              <div className="text-xs uppercase tracking-wide text-gray-500">evidence gap count</div>
+              <div className="mt-1 font-semibold text-gray-900">{ADDITIONAL_DEMO_DEAL.output.metadata.evidenceGaps.length}</div>
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-600">Populated tasks</h3>
+            <ul className="mt-3 grid gap-3">
+              {ADDITIONAL_DEMO_DEAL.output.tasks.map((task) => (
+                <li key={task.id} className="rounded-lg border border-gray-200 p-3 text-sm">
+                  <p className="font-semibold text-gray-900">{task.title}</p>
+                  <p className="mt-1 text-gray-700">
+                    route: {task.route} | status: {task.status} | blocksProgression: {String(task.blocksProgression)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-5 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+            Escalation reason: {ADDITIONAL_DEMO_DEAL.output.escalation.reason}
+          </div>
+        </section>
+
         <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm text-sm text-gray-600">
           <p>
             Route contract: {PHASE3_REVIEW_SURFACE_DISPLAY_CONTRACT.routeName} | mode:{" "}
@@ -181,6 +274,21 @@ export function Phase3DevReviewContent() {
             {String(PHASE3_REVIEW_SURFACE_DISPLAY_CONTRACT.advisoryOnly)}
           </p>
         </section>
+
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+            Additional populated demo / test deal
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-gray-900">{ADDITIONAL_DEMO_DEAL.label}</h2>
+          <p className="mt-2 text-sm text-gray-700">
+            Existing locked orchestration output now sits beside a safe populated review document preview using the
+            same read-only InvestorReviewDocument component as production.
+          </p>
+        </section>
+
+        <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+          <InvestorReviewDocument viewModel={ADDITIONAL_DEMO_REVIEW_VIEW_MODEL} />
+        </div>
       </div>
     </main>
   )

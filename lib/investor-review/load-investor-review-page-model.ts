@@ -1,9 +1,10 @@
 import { loadPdfEvidencePackForDeal } from "@/lib/pdf-evidence-pack/load-pdf-evidence-pack"
 import { mapPdfEvidencePackToInvestorReview } from "@/lib/investor-review/map-pdf-evidence-pack-to-investor-review"
-import type { InvestorReviewViewModel } from "@/lib/investor-review/investor-review-view-model"
+import {
+  INVESTOR_REVIEW_CONFIDENTIALITY_LABEL,
+  type InvestorReviewViewModel,
+} from "@/lib/investor-review/investor-review-view-model"
 import { getSavedDealById } from "@/lib/operator-command/saved-deals-repository"
-
-const INVESTOR_REVIEW_CONFIDENTIALITY_LABEL = "INTERNAL USE ONLY"
 
 export type LoadInvestorReviewPageModelResult =
   | {

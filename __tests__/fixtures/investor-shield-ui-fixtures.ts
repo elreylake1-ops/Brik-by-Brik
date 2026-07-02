@@ -388,7 +388,7 @@ export const waiverVisibilityFixture = baseModel({
       taskRecommendationIds: [],
       waiver: {
         isWaived: true,
-        reason: "Solicitor review accepted under controlled waiver.",
+        reason: "Solicitor Review accepted under controlled waiver.",
         waivedBy: "compliance-review",
         waivedAt: "2026-06-09T00:00:00.000Z",
         warningText: "Waiver must remain distinct from satisfied evidence.",
@@ -400,7 +400,7 @@ export const waiverVisibilityFixture = baseModel({
   ],
   waiverSummary: {
     isWaived: true,
-    reason: "Solicitor review accepted under controlled waiver.",
+    reason: "Solicitor Review accepted under controlled waiver.",
     waivedBy: "compliance-review",
     waivedAt: "2026-06-09T00:00:00.000Z",
     warningText: "Waiver remains visibly distinct from satisfied evidence.",
@@ -419,4 +419,3 @@ export const waiverVisibilityFixture = baseModel({
     doesNotClearGate: true,
   },
 })
-

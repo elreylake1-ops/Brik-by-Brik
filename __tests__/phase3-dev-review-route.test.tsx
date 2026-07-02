@@ -12,7 +12,7 @@ describe("phase3 dev review route", () => {
   it("renders the phase-3-dev-review page with developer-only banner", () => {
     const html = renderToStaticMarkup(<Phase3DevReviewPage />)
 
-    expect(html).toContain("Developer Review Only — Advisory Phase 3 Output")
+    expect(html).toContain("Advisory Phase 3 Output")
     expect(html).toContain(
       "This page is fixture-only and does not change calculator, governance, or Phase 2 review behavior."
     )
@@ -29,14 +29,46 @@ describe("phase3 dev review route", () => {
     expect(deterministicIndex).toBeLessThan(advisoryIndex)
   })
 
-  it("renders all four fixture labels and capital protection dominance copy", () => {
+  it("renders all four fixture labels, the additional populated demo deal, and capital protection dominance copy", () => {
     const html = renderToStaticMarkup(<Phase3DevReviewPage />)
 
     expect(html).toContain("No Deal with Weak Comparable Hints")
     expect(html).toContain("Review Required with Legal Conflict Hints")
     expect(html).toContain("Clean Proceed with Accepted Operator Note")
     expect(html).toContain("Intake with Missing Lender Hints")
+    expect(html).toContain("Additional populated demo deal")
+    expect(html).toContain("Valuation Review Gap")
+    expect(html).toContain("valuation_review")
+    expect(html).toContain("Brik by Brik Investor Review")
+    expect(html).toContain("INTERNAL INVESTOR DECISION SUPPORT")
+    expect(html).toContain("Investor decision support")
+    expect(html).not.toContain("INVESTOR INVESTOR DECISION SUPPORT")
+    expect(html).toContain("Required hard gates")
+    expect(html).toContain("Evidence Lite records")
+    expect(html).toContain("22 Lake View Road, Leeds")
     expect(html).toContain("Capital protection remains dominant. Evidence hints do not soften this outcome.")
+  })
+
+  it("renders the populated demo Investor Review with canonical financial and Shield values and no visible solicitor naming defects", () => {
+    const html = renderToStaticMarkup(<Phase3DevReviewPage />)
+
+    expect(html).toContain("£125,000.00")
+    expect(html).toContain("£180,000.00")
+    expect(html).toContain("£200,000.00")
+    expect(html).toContain("£220,000.00")
+    expect(html).toContain("£123,800.00")
+    expect(html).toContain("£113,800.00")
+    expect(html).toContain("£103,800.00")
+    expect(html).toContain("STRONG_DEAL")
+    expect(html).toContain("SAFE")
+    expect(html).toContain("CLEAR")
+    expect(html).toContain("Evidence Lite records")
+    expect(html).toContain("Recommended next action")
+
+    expect(html).not.toContain("SOLICITOR_FEEDBACK")
+    expect(html).not.toContain("Solicitor Feedback")
+    expect(html).not.toContain("SOLICITOR REVIEW")
+    expect(html).not.toContain("Review solicitor feedback")
   })
 
   it("does not contain approve/send-offer/action/upload calls-to-action", () => {

@@ -290,7 +290,7 @@ export const INVESTOR_SHIELD_EVALUATOR_FIXTURES: readonly InvestorShieldEvaluato
           gateKey: "SOLICITOR_FEEDBACK",
           type: "REVIEW_GATE",
           title: "Review gate",
-          reason: "Solicitor Feedback was waived and requires manual justification review.",
+          reason: "Solicitor Review was waived and requires manual justification review.",
           severity: "BLOCKER",
           source: "system_default",
           idempotencyKey:
@@ -328,7 +328,7 @@ export const INVESTOR_SHIELD_EVALUATOR_FIXTURES: readonly InvestorShieldEvaluato
           gateKey: "SOLICITOR_FEEDBACK",
           type: "REVIEW_GATE",
           title: "Review gate",
-          reason: "Solicitor Feedback was waived and requires manual justification review.",
+          reason: "Solicitor Review was waived and requires manual justification review.",
           severity: "BLOCKER",
           source: "system_default",
           idempotencyKey:

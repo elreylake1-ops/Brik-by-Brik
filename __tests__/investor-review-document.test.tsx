@@ -52,6 +52,7 @@ describe("InvestorReviewDocument", () => {
 
     expect(html).toContain("Brik by Brik Investor Review")
     expect(html).toContain("INTERNAL USE ONLY")
+    expect(html).toContain("Investor decision support")
     expect(html).toContain("12 Lake View Road, Leeds")
     expect(html).toContain("MARGINAL")
     expect(html).toContain("MANUAL_REVIEW_REQUIRED")
@@ -71,7 +72,7 @@ describe("InvestorReviewDocument", () => {
       "Decision and capital-protection status",
       "Required hard gates",
       "Advisory and caution gates",
-      "Evidence Lite notes",
+      "Evidence Lite records",
       "Missing evidence and blockers",
       "Tasks and offers",
       "Recommended next action",
@@ -103,7 +104,7 @@ describe("InvestorReviewDocument", () => {
     const html = renderDocument()
 
     expect(html).toContain(
-      "Evidence Lite is informational and does not by itself satisfy, waive, approve, or override Investor Shield requirements."
+      "Evidence Lite is read-only evidence notes. It is informational only and does not satisfy, waive, approve, or override Investor Shield requirements."
     )
     expect(html).not.toContain("Reviewer note:")
   })
@@ -124,6 +125,75 @@ describe("InvestorReviewDocument", () => {
     expect(html).not.toContain("Print")
     expect(html).not.toContain("Approve")
     expect(html).not.toContain("Delete")
+  })
+
+  it("normalizes solicitor gate naming and shows the missing-and-unreviewed Evidence Lite clarification", () => {
+    const viewModel = mapPdfEvidencePackToInvestorReview({
+      pack: {
+        ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
+        investorShield: {
+          ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorShield,
+          blockingGateKeys: ["SOLICITOR_FEEDBACK"],
+          missingEvidenceGateKeys: ["SOLICITOR_FEEDBACK"],
+          taskRecommendations: [
+            {
+              gateKey: "SOLICITOR_FEEDBACK",
+              type: "REQUEST_EVIDENCE",
+              title: "Review solicitor feedback",
+              reason: "Solicitor feedback is still missing.",
+              severity: "BLOCKER",
+              source: "system_default",
+              idempotencyKey: "investor-shield:test-solicitor:SOLICITOR_FEEDBACK:REQUEST_EVIDENCE",
+            },
+          ],
+        },
+        investorSummary: {
+          ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorSummary,
+          investorShield: {
+            ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorSummary.investorShield,
+            blockedGates: [
+              {
+                gateKey: "SOLICITOR_FEEDBACK",
+                label: "Solicitor Review",
+                gateType: "required",
+                blockerReason: "Solicitor review evidence remains outstanding.",
+              },
+            ],
+          },
+          recommendedNextAction: {
+            source: "INVESTOR_SHIELD_FALLBACK",
+            actionText: "Review solicitor feedback",
+          },
+        },
+        evidenceIndex: [
+          {
+            evidenceId: "evi-solicitor-review-001",
+            evidenceType: "SOLICITOR_REVIEW",
+            title: "Solicitor review note",
+            description: "Awaiting solicitor sign-off.",
+            provenanceLabel: "Evidence Lite",
+            capturedAt: "2026-06-12T09:00:00.000Z",
+            reviewedAt: null,
+            reviewStatus: "MISSING",
+            relatedGateIds: ["SOLICITOR_REVIEW"],
+            controlledReferenceState: "MISSING",
+            controlledReferenceLabel: null,
+          },
+        ],
+      },
+      savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId }),
+    })
+
+    const html = renderToStaticMarkup(<InvestorReviewDocument viewModel={viewModel} />)
+
+    expect(html).toContain("Solicitor Review")
+    expect(html).not.toContain("SOLICITOR_FEEDBACK")
+    expect(html).not.toContain("Solicitor Feedback")
+    expect(html).not.toContain("SOLICITOR REVIEW")
+    expect(html).not.toContain("Review solicitor feedback")
+    expect(html).toContain("Evidence record present, but not reviewed and not sufficient to satisfy gate.")
+    expect(html).toContain("MISSING")
+    expect(html).toContain("Not reviewed")
   })
 
   it("uses safe wrapping classes for long ids and notes and requires no client-only behavior", () => {

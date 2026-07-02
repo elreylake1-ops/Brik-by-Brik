@@ -71,7 +71,7 @@ function buildChecks(): readonly InvestorShieldCheck[] {
         severity: "BLOCKER",
         confidence: "HIGH",
         requiredEvidence: gate.evidenceTypes,
-        summary: "Solicitor feedback was waived for this preview.",
+    summary: "Solicitor Review was waived for this preview.",
         updatedAt: FIXED_TIMESTAMP,
       }
     }
@@ -166,7 +166,7 @@ function buildEvidenceItems(): readonly EvidenceItem[] {
       evidenceType: "SOLICITOR_FEEDBACK",
       source: "document",
       confidence: "HIGH",
-      label: "Solicitor review note",
+    label: "Solicitor Review note",
       createdAt: FIXED_TIMESTAMP,
     },
     {

@@ -138,7 +138,7 @@ describe("investor shield gate summary panel", () => {
             ...makeModel().gateSummaries,
             {
               key: "SOLICITOR_FEEDBACK",
-              label: "Solicitor Feedback",
+    label: "Solicitor Review",
               description: "Requires solicitor review.",
               requiredLabel: "Required",
               status: "WAIVED",
@@ -170,7 +170,7 @@ describe("investor shield gate summary panel", () => {
             ...makeModel().gateSummaries,
             {
               key: "SOLICITOR_FEEDBACK",
-              label: "Solicitor Feedback",
+    label: "Solicitor Review",
               description: "Requires solicitor review.",
               requiredLabel: "Required",
               status: "WAIVED",

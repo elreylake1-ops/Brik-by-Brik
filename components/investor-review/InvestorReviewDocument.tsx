@@ -192,7 +192,7 @@ export default function InvestorReviewDocument({ viewModel }: Props) {
         </section>
 
         <section aria-labelledby="evidence-lite-notes" className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-          <SectionHeading id="evidence-lite-notes">Evidence Lite notes</SectionHeading>
+          <SectionHeading id="evidence-lite-notes">Evidence Lite records</SectionHeading>
           <div className="mt-4 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950">
             {viewModel.evidenceLiteNotice}
           </div>
@@ -204,7 +204,7 @@ export default function InvestorReviewDocument({ viewModel }: Props) {
                 <li key={row.evidenceId} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
-                      <p className="text-xs uppercase tracking-[0.18em] text-gray-500">Evidence Lite</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-gray-500">Evidence note</p>
                       <h3 className="mt-1 text-base font-semibold text-gray-950">{row.title}</h3>
                       <p className="mt-2 break-all text-xs text-gray-500">Evidence ID: {row.evidenceId}</p>
                     </div>
@@ -235,6 +235,11 @@ export default function InvestorReviewDocument({ viewModel }: Props) {
                       <dd className="mt-1 break-words text-sm text-gray-800">{row.referenceLabel ?? "Not available"}</dd>
                     </div>
                   </dl>
+                  {row.clarificationNote ? (
+                    <p className="mt-4 break-words rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                      {row.clarificationNote}
+                    </p>
+                  ) : null}
                   {row.note ? <p className="mt-4 break-words text-sm text-gray-700">{row.note}</p> : null}
                   {row.reviewerNote ? (
                     <p className="mt-2 break-words text-sm text-gray-700">

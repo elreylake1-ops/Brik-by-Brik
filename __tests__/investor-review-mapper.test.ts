@@ -49,12 +49,14 @@ describe("mapPdfEvidencePackToInvestorReview", () => {
 
     expect(viewModel.header.title).toBe("Brik by Brik Investor Review")
     expect(viewModel.header.confidentialityLabel).toBe("INTERNAL USE ONLY")
+    expect(viewModel.header.reviewPurpose).toBe("Investor decision support")
     expect(viewModel.header.dealId).toBe(PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId)
     expect(viewModel.header.generatedAt).toBe("2026-06-14 12:15 UTC")
     expect(viewModel.overview.governance.value).toBe("MANUAL_REVIEW_REQUIRED")
     expect(viewModel.overview.pipeline.value).toBe("UNDER_ANALYSIS")
     expect(viewModel.investmentSummary.trueMao20.value).toBe("£113,800.00")
     expect(viewModel.recommendedNextAction).toBe("Review title and refurb evidence")
+    expect(viewModel.evidenceLiteRows[0]?.linkedGate).toBe("Title Review")
   })
 
   it("keeps required gates separate from advisory content and does not assign success to missing states", () => {
@@ -111,6 +113,64 @@ describe("mapPdfEvidencePackToInvestorReview", () => {
         linkedGate: "Title Review",
       })
     )
+  })
+
+  it("normalizes the solicitor gate display key while keeping canonical SOLICITOR_FEEDBACK keying intact", () => {
+    const pack = {
+      ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
+      investorShield: {
+        ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorShield,
+        blockingGateKeys: ["SOLICITOR_FEEDBACK"],
+        missingEvidenceGateKeys: ["SOLICITOR_FEEDBACK"],
+        taskRecommendations: [
+          {
+            gateKey: "SOLICITOR_FEEDBACK",
+            type: "REQUEST_EVIDENCE",
+            title: "Review solicitor feedback",
+            reason: "Solicitor feedback is still missing.",
+            severity: "BLOCKER",
+            source: "system_default",
+            idempotencyKey: "investor-shield:test-solicitor:SOLICITOR_FEEDBACK:REQUEST_EVIDENCE",
+          },
+        ],
+      },
+      investorSummary: {
+        ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorSummary,
+        investorShield: {
+          ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorSummary.investorShield,
+          blockedGates: [
+            {
+              gateKey: "SOLICITOR_FEEDBACK",
+              label: "Solicitor Review",
+              gateType: "required" as const,
+              blockerReason: "Solicitor review evidence remains outstanding.",
+            },
+          ],
+        },
+      },
+    }
+
+    const viewModel = mapPdfEvidencePackToInvestorReview({
+      pack,
+      savedDeal: makeSavedDealRecord({ id: pack.meta.savedDealId }),
+    })
+
+    const solicitorRequiredGate = viewModel.requiredGateRows.find((row) => row.label === "Solicitor Review")
+    expect(solicitorRequiredGate).toBeDefined()
+    expect(solicitorRequiredGate?.gateKey).toBe("SOLICITOR_REVIEW")
+    expect(solicitorRequiredGate?.status).toBe("Blocked")
+    expect(solicitorRequiredGate?.missingEvidenceState).toBe("Missing evidence recorded")
+
+    const solicitorBlockerRow = viewModel.blockerRows.find((row) => row.label === "Solicitor Review")
+    expect(solicitorBlockerRow).toBeDefined()
+    expect(solicitorBlockerRow?.gateKey).toBe("SOLICITOR_REVIEW")
+
+    expect(viewModel.followUpRequirements).toContain("Complete Solicitor Review")
+    expect(viewModel.followUpRequirements).not.toContain("Review solicitor feedback")
+
+    const html = JSON.stringify(viewModel)
+    expect(html).not.toContain("SOLICITOR_FEEDBACK")
+    expect(html).not.toContain("Solicitor Feedback")
   })
 
   it("maps locked empty-state text and unavailable optional values without inventing zero values", () => {

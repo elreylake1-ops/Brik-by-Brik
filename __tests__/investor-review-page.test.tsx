@@ -82,7 +82,7 @@ describe("InvestorReviewPage", () => {
       expect(html).toContain("Required hard gates")
       expect(html).toContain("Advisory and caution gates")
       expect(html).toContain(
-        "Evidence Lite is informational and does not by itself satisfy, waive, approve, or override Investor Shield requirements."
+        "Evidence Lite is read-only evidence notes. It is informational only and does not satisfy, waive, approve, or override Investor Shield requirements."
       )
       expect(notFoundMock).not.toHaveBeenCalled()
     })

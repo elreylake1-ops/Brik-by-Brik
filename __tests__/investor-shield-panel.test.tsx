@@ -52,7 +52,7 @@ describe("InvestorShieldPanel", () => {
     expect(html).toContain("Solicitor Review")
     expect(html).toContain("Waived gate")
     expect(html).toContain("Waiver status: Active")
-    expect(html).toContain("Solicitor review accepted under controlled waiver.")
+    expect(html).toContain("Solicitor Review accepted under controlled waiver.")
     expect(html).toContain("Waiver does not equal satisfied evidence.")
     expect(html).toContain("Review waiver reason before relying on progression.")
     expect(html).toContain('Manual review: <span class="font-semibold text-amber-700">Required</span>')

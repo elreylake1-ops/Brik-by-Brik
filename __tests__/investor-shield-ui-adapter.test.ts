@@ -27,7 +27,7 @@ function makeChecks(): readonly InvestorShieldCheck[] {
     requiredEvidence: gate.evidenceTypes,
     summary:
       gate.key === "SOLICITOR_FEEDBACK"
-        ? "Solicitor feedback was waived for this preview."
+    ? "Solicitor Review was waived for this preview."
         : `${gate.label} summary`,
     updatedAt: "2026-06-06T00:00:00.000Z",
   }))

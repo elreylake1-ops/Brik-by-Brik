@@ -104,9 +104,9 @@ export const INVESTOR_SHIELD_DEFAULT_GATES: readonly InvestorShieldGateDefinitio
   },
   {
     key: "SOLICITOR_FEEDBACK",
-    label: "Solicitor Feedback",
+    label: "Solicitor Review",
     description:
-      "Requires solicitor feedback before progression where legal issues may affect title certainty, timing, or transaction safety.",
+      "Requires solicitor review before progression where legal issues may affect title certainty, timing, or transaction safety.",
     required: true,
     defaultSeverity: "BLOCKER",
     evidenceTypes: ["SOLICITOR_FEEDBACK"],

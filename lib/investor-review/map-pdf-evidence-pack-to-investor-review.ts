@@ -4,6 +4,7 @@ import {
   INVESTOR_REVIEW_EMPTY_OFFERS_LABEL,
   INVESTOR_REVIEW_EMPTY_TASKS_LABEL,
   INVESTOR_REVIEW_EVIDENCE_LITE_NOTICE,
+  INVESTOR_REVIEW_EVIDENCE_NOT_SUFFICIENT_NOTICE,
   INVESTOR_REVIEW_NOT_AVAILABLE_LABEL,
   type InvestorReviewAdvisoryItem,
   type InvestorReviewBlockerRow,
@@ -58,10 +59,30 @@ function labelFor(value: string): string {
 }
 
 function gateLabelFor(value: string): string {
+  if (value === "SOLICITOR_FEEDBACK" || value === "SOLICITOR_REVIEW") {
+    return "Solicitor Review"
+  }
+
   return (
     INVESTOR_SHIELD_DEFAULT_GATES.find((gate) => gate.key === value)?.label ??
     labelFor(value)
   )
+}
+
+function displayGateKey(gateKey: string): string {
+  return gateKey === "SOLICITOR_FEEDBACK" ? "SOLICITOR_REVIEW" : gateKey
+}
+
+function evidenceTypeLabelFor(value: string): string {
+  if (value === "SOLICITOR_REVIEW" || value === "SOLICITOR_FEEDBACK") {
+    return "Solicitor Review"
+  }
+
+  return labelFor(value)
+}
+
+function displayActionText(actionText: string): string {
+  return actionText === "Review solicitor feedback" ? "Complete Solicitor Review" : actionText
 }
 
 function overallStatusTone(status: string | null | undefined): InvestorReviewSemanticTone {
@@ -144,7 +165,7 @@ function mapRequiredGateRows(pack: PdfEvidencePack): readonly InvestorReviewGate
     )
 
     return {
-      gateKey: gate.key,
+      gateKey: displayGateKey(gate.key),
       label: gate.label,
       status: status.label,
       statusTone: status.tone,
@@ -199,7 +220,7 @@ function mapEvidenceLiteRows(pack: PdfEvidencePack): readonly InvestorReviewEvid
     return {
       evidenceId: item.evidenceId,
       title: item.title,
-      evidenceType: labelFor(item.evidenceType),
+      evidenceType: evidenceTypeLabelFor(item.evidenceType),
       linkedGate:
         item.relatedGateIds.length > 0
           ? item.relatedGateIds.map(gateLabelFor).join(", ")
@@ -212,24 +233,28 @@ function mapEvidenceLiteRows(pack: PdfEvidencePack): readonly InvestorReviewEvid
       reviewerNote: null,
       referenceLabel: item.controlledReferenceLabel,
       relevantTimestamp: formatTimestamp(item.reviewedAt ?? item.capturedAt),
+      clarificationNote:
+        item.reviewStatus === "MISSING" && !reviewed
+          ? INVESTOR_REVIEW_EVIDENCE_NOT_SUFFICIENT_NOTICE
+          : null,
     }
   })
 }
 
 function mapBlockerRows(pack: PdfEvidencePack): readonly InvestorReviewBlockerRow[] {
   return pack.investorSummary.investorShield.blockedGates.map((gate) => ({
-    gateKey: gate.gateKey,
+    gateKey: displayGateKey(gate.gateKey),
     label: gate.label ?? labelFor(gate.gateKey),
     blockerReason: text(gate.blockerReason),
   }))
 }
 
 function mapFollowUpRequirements(pack: PdfEvidencePack): readonly string[] {
-  const fromTasks = pack.investorShield.taskRecommendations.map((item) => item.title)
+  const fromTasks = pack.investorShield.taskRecommendations.map((item) => displayActionText(item.title))
   const fromAction =
     pack.investorSummary.recommendedNextAction.actionText === null
       ? []
-      : [pack.investorSummary.recommendedNextAction.actionText]
+      : [displayActionText(pack.investorSummary.recommendedNextAction.actionText)]
 
   return [...new Set([...fromTasks, ...fromAction])]
 }
@@ -263,6 +288,10 @@ function mapLatestOffer(pack: PdfEvidencePack): InvestorReviewOfferSummary {
 }
 
 function buildPurpose(pack: PdfEvidencePack): string {
+  if (pack.meta.audience === "INVESTOR" && pack.meta.purpose === "INVESTOR_DECISION_SUPPORT") {
+    return "Investor decision support"
+  }
+
   return `${labelFor(pack.meta.audience)} ${labelFor(pack.meta.purpose)}`
 }
 
@@ -370,7 +399,7 @@ export function mapPdfEvidencePackToInvestorReview(
     emptyTasksText: INVESTOR_REVIEW_EMPTY_TASKS_LABEL,
     latestOffer: mapLatestOffer(pack),
     emptyOffersText: INVESTOR_REVIEW_EMPTY_OFFERS_LABEL,
-    recommendedNextAction: text(pack.investorSummary.recommendedNextAction.actionText),
+    recommendedNextAction: displayActionText(text(pack.investorSummary.recommendedNextAction.actionText)),
     footer: {
       confidentialityLabel: pack.meta.confidentialityLabel,
       generatedAt: formatTimestamp(pack.meta.generatedAt),

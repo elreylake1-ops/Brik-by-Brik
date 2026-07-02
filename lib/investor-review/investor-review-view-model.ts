@@ -1,4 +1,6 @@
 export const INVESTOR_REVIEW_NOT_AVAILABLE_LABEL = "Not available" as const
+export const INVESTOR_REVIEW_CONFIDENTIALITY_LABEL =
+  "INTERNAL INVESTOR DECISION SUPPORT" as const
 export const INVESTOR_REVIEW_EMPTY_EVIDENCE_LITE_LABEL =
   "No Evidence Lite records are currently attached to this deal." as const
 export const INVESTOR_REVIEW_EMPTY_TASKS_LABEL =
@@ -8,7 +10,9 @@ export const INVESTOR_REVIEW_EMPTY_OFFERS_LABEL =
 export const INVESTOR_REVIEW_EMPTY_ADVISORY_LABEL =
   "No advisory or caution items are currently recorded." as const
 export const INVESTOR_REVIEW_EVIDENCE_LITE_NOTICE =
-  "Evidence Lite is informational and does not by itself satisfy, waive, approve, or override Investor Shield requirements." as const
+  "Evidence Lite is read-only evidence notes. It is informational only and does not satisfy, waive, approve, or override Investor Shield requirements." as const
+export const INVESTOR_REVIEW_EVIDENCE_NOT_SUFFICIENT_NOTICE =
+  "Evidence record present, but not reviewed and not sufficient to satisfy gate." as const
 
 export type InvestorReviewSemanticTone =
   | "neutral"
@@ -95,6 +99,7 @@ export type InvestorReviewEvidenceLiteRow = {
   reviewerNote: string | null
   referenceLabel: string | null
   relevantTimestamp: string
+  clarificationNote: string | null
 }
 
 export type InvestorReviewBlockerRow = {

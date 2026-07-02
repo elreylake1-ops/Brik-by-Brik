@@ -12,7 +12,7 @@ describe("InvestorShieldWaiverDisplay", () => {
 
     expect(html).toContain("Waived gate")
     expect(html).toContain("Waiver status: Active")
-    expect(html).toContain("Waiver reason: Solicitor review accepted under controlled waiver.")
+    expect(html).toContain("Waiver reason: Solicitor Review accepted under controlled waiver.")
     expect(html).toContain("Waived by: compliance-review")
     expect(html).toContain("Waived at: 2026-06-09T00:00:00.000Z")
     expect(html).toContain("Waiver does not equal satisfied evidence.")

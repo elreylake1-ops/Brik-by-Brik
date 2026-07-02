@@ -179,7 +179,7 @@ describe("EvidenceLitePanel", () => {
 
     expect(html).toContain("Evidence Lite")
     expect(html).toContain(
-      "Deal-linked evidence notes for review and follow-up. Evidence Lite is informational and does not by itself satisfy or waive Investor Shield requirements."
+      "Deal-linked evidence notes for review and follow-up. Evidence Lite is read-only and informational only. It does not satisfy, waive, approve, or override Investor Shield requirements."
     )
     expect(html).toContain("Evidence Lite does not replace required Investor Shield evidence.")
     expect(html).toContain("Recorded evidence")
@@ -229,7 +229,7 @@ describe("EvidenceLitePanel", () => {
             id: "evidence-2",
             linkedGate: "SOLICITOR_REVIEW",
             evidenceType: "SOLICITOR_REVIEW",
-            title: "Solicitor review note",
+            title: "Solicitor Review note",
             note: "Signed locally",
             reviewed: true,
             reviewerNote: "Follow up with the conveyancer.",
@@ -248,7 +248,7 @@ describe("EvidenceLitePanel", () => {
     expect(articles[0].textContent).toContain("Title pack")
     expect(articles[0].textContent).toContain("Evidence ID: evidence-1")
     expect(articles[0].textContent).toContain("Evidence type: Title review")
-    expect(articles[0].textContent).toContain("Linked gate: Solicitor review")
+    expect(articles[0].textContent).toContain("Linked gate: Solicitor Review")
     expect(articles[0].textContent).toContain("MISSING")
     expect(articles[0].textContent).toContain("Not reviewed")
     expect(articles[0].textContent).toContain(
@@ -256,10 +256,10 @@ describe("EvidenceLitePanel", () => {
     )
     expect(articles[0].textContent).toContain("Created 2026-06-26 00:00 UTC")
     expect(articles[0].textContent).toContain("Updated 2026-06-26 00:00 UTC")
-    expect(articles[1].textContent).toContain("Solicitor review note")
+    expect(articles[1].textContent).toContain("Solicitor Review note")
     expect(articles[1].textContent).toContain("Evidence ID: evidence-2")
-    expect(articles[1].textContent).toContain("Evidence type: Solicitor review")
-    expect(articles[1].textContent).toContain("Linked gate: Solicitor review")
+    expect(articles[1].textContent).toContain("Evidence type: Solicitor Review")
+    expect(articles[1].textContent).toContain("Linked gate: Solicitor Review")
     expect(articles[1].textContent).toContain("REVIEWED")
     expect(articles[1].textContent).toContain("Reviewed")
     expect(articles[1].textContent).toContain("Signed locally")
@@ -486,7 +486,7 @@ describe("EvidenceLitePanel", () => {
               dealId: "deal-beta",
               evidenceType: "SOLICITOR_REVIEW",
               linkedGate: "SOLICITOR_REVIEW",
-              title: "Solicitor review note",
+              title: "Solicitor Review note",
               note: "Signed locally",
               reviewed: true,
               status: "REVIEWED",
@@ -563,7 +563,7 @@ describe("EvidenceLitePanel", () => {
         "Evidence ID: evidence_9f9a344c-ed1c-4510-bb46-c8d3b88fce96"
       )
       expect(populatedEvidencePanel.textContent).toContain("Evidence type: Title review")
-      expect(populatedEvidencePanel.textContent).toContain("Linked gate: Solicitor review")
+      expect(populatedEvidencePanel.textContent).toContain("Linked gate: Solicitor Review")
       expect(populatedEvidencePanel.textContent).toContain("MISSING")
       expect(populatedEvidencePanel.textContent).toContain("Not reviewed")
       expect(populatedEvidencePanel.textContent).toContain("Reviewed")

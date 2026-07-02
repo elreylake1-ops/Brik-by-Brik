@@ -21,7 +21,8 @@ const LABEL_OVERRIDES: Record<string, string> = {
   SURVEY_NOTE: "Survey note",
   LENDER_NOTE: "Lender note",
   RENTAL_DEMAND: "Rental demand",
-  SOLICITOR_REVIEW: "Solicitor review",
+  SOLICITOR_REVIEW: "Solicitor Review",
+  SOLICITOR_FEEDBACK: "Solicitor Review",
   SOLD_COMPS: "Sold comparables",
   BUILDER_PROPOSAL_CONTRACT: "Builder proposal / contract",
   DAMP_STRUCTURAL: "Damp / structural",
@@ -155,11 +156,11 @@ export default function EvidenceLitePanel({ savedDealId, dealAddress }: Props) {
         <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs uppercase tracking-wide text-gray-500">Evidence Lite</p>
-            <h3 className="text-sm font-semibold text-gray-900">Evidence Lite</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Evidence notes</h3>
             <p className="mt-1 text-sm text-gray-600">
               Deal-linked evidence notes for review and follow-up. Evidence Lite is
-              informational and does not by itself satisfy or waive Investor Shield
-              requirements.
+              read-only and informational only. It does not satisfy, waive, approve,
+              or override Investor Shield requirements.
             </p>
           </div>
           <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">

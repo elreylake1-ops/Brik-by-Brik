@@ -31,7 +31,7 @@ describe("InvestorShieldGateRow", () => {
 
     expect(html).toContain("Solicitor Review")
     expect(html).toContain("Waiver active")
-    expect(html).toContain("Solicitor review accepted under controlled waiver.")
+    expect(html).toContain("Solicitor Review accepted under controlled waiver.")
     expect(html).toContain("distinct from satisfied evidence")
     expect(html).toContain('Manual review: <span class="font-semibold text-amber-700">Required</span>')
   })

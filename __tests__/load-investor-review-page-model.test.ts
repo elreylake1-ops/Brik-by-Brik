@@ -110,7 +110,7 @@ describe("loadInvestorReviewPageModel", () => {
     expect(loadPdfEvidencePackForDealMock).toHaveBeenCalledWith({
       dealId: "deal-123",
       generatedAt: "2026-07-01T10:00:00.000Z",
-      confidentialityLabel: "INTERNAL USE ONLY",
+      confidentialityLabel: "INTERNAL INVESTOR DECISION SUPPORT",
     })
   })
 
