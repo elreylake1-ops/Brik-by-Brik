@@ -157,19 +157,20 @@ describe("mapPdfEvidencePackToInvestorReview", () => {
 
     const solicitorRequiredGate = viewModel.requiredGateRows.find((row) => row.label === "Solicitor Review")
     expect(solicitorRequiredGate).toBeDefined()
-    expect(solicitorRequiredGate?.gateKey).toBe("SOLICITOR_REVIEW")
+    expect(solicitorRequiredGate?.gateKey).toBe("Solicitor Review")
     expect(solicitorRequiredGate?.status).toBe("Blocked")
     expect(solicitorRequiredGate?.missingEvidenceState).toBe("Missing evidence recorded")
 
     const solicitorBlockerRow = viewModel.blockerRows.find((row) => row.label === "Solicitor Review")
     expect(solicitorBlockerRow).toBeDefined()
-    expect(solicitorBlockerRow?.gateKey).toBe("SOLICITOR_REVIEW")
+    expect(solicitorBlockerRow?.gateKey).toBe("Solicitor Review")
 
     expect(viewModel.followUpRequirements).toContain("Complete Solicitor Review")
     expect(viewModel.followUpRequirements).not.toContain("Review solicitor feedback")
 
     const html = JSON.stringify(viewModel)
     expect(html).not.toContain("SOLICITOR_FEEDBACK")
+    expect(html).not.toContain("SOLICITOR_REVIEW")
     expect(html).not.toContain("Solicitor Feedback")
   })
 

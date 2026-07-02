@@ -66,9 +66,11 @@ describe("phase3 dev review route", () => {
     expect(html).toContain("Recommended next action")
 
     expect(html).not.toContain("SOLICITOR_FEEDBACK")
+    expect(html).not.toContain("SOLICITOR_REVIEW")
     expect(html).not.toContain("Solicitor Feedback")
     expect(html).not.toContain("SOLICITOR REVIEW")
     expect(html).not.toContain("Review solicitor feedback")
+    expect(html).toContain('data-testid="populated-investor-review-demo"')
   })
 
   it("does not contain approve/send-offer/action/upload calls-to-action", () => {

@@ -286,7 +286,10 @@ export function Phase3DevReviewContent() {
           </p>
         </section>
 
-        <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+        <div
+          data-testid="populated-investor-review-demo"
+          className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm"
+        >
           <InvestorReviewDocument viewModel={ADDITIONAL_DEMO_REVIEW_VIEW_MODEL} />
         </div>
       </div>

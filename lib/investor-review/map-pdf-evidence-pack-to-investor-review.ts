@@ -70,7 +70,9 @@ function gateLabelFor(value: string): string {
 }
 
 function displayGateKey(gateKey: string): string {
-  return gateKey === "SOLICITOR_FEEDBACK" ? "SOLICITOR_REVIEW" : gateKey
+  return gateKey === "SOLICITOR_FEEDBACK" || gateKey === "SOLICITOR_REVIEW"
+    ? "Solicitor Review"
+    : gateKey
 }
 
 function evidenceTypeLabelFor(value: string): string {
