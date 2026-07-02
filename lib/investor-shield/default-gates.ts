@@ -12,7 +12,11 @@ const INVESTOR_SHIELD_REFURB_ADVISORY_ONLY_SUB_GATES: readonly InvestorShieldRef
 
 const REFURB_CERTAINTY_DESCRIPTION =
   "Requires human-supported refurbishment evidence across media, measurements, builder quote support, and specialist inputs. " +
-  `${INVESTOR_SHIELD_REFURB_ADVISORY_ONLY_SUB_GATES.join(", ")} is advisory-only and cannot replace human, professional, builder, document, or measurement evidence.`
+  "AI-assisted visual review is advisory only and cannot replace human, professional, builder, document, or measurement evidence."
+
+if (!INVESTOR_SHIELD_REFURB_ADVISORY_ONLY_SUB_GATES.includes("AI_VISUAL_REVIEW_ADVISORY")) {
+  throw new Error("AI_VISUAL_REVIEW_ADVISORY must remain classified as advisory-only in the static config.")
+}
 
 export const INVESTOR_SHIELD_DEFAULT_GATES: readonly InvestorShieldGateDefinition[] = [
   {

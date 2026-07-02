@@ -197,6 +197,29 @@ describe("InvestorReviewDocument", () => {
     expect(html).toContain("Not reviewed")
   })
 
+  it("does not render any raw canonical gate identifier or the raw AI advisory sub-gate key", () => {
+    const html = renderDocument()
+
+    const machineIdentifiers = [
+      "REFURB_CERTAINTY",
+      "BUILDER_PROPOSAL_CONTRACT",
+      "DAMP_STRUCTURAL",
+      "LENDER_CRITERIA",
+      "PLANNING_BUILDING_CONTROL",
+      "SOLD_COMPS",
+      "AI_VISUAL_REVIEW_ADVISORY",
+    ]
+
+    for (const identifier of machineIdentifiers) {
+      expect(html).not.toContain(identifier)
+    }
+
+    expect(html).toContain("Refurb Certainty")
+    expect(html).toContain(
+      "AI-assisted visual review is advisory only and cannot replace human, professional, builder, document, or measurement evidence."
+    )
+  })
+
   it("uses safe wrapping classes for long ids and notes and requires no client-only behavior", () => {
     const html = renderDocument()
 

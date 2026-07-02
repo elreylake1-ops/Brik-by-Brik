@@ -174,6 +174,70 @@ describe("mapPdfEvidencePackToInvestorReview", () => {
     expect(html).not.toContain("Solicitor Feedback")
   })
 
+  it("replaces the raw AI_VISUAL_REVIEW_ADVISORY identifier with readable copy in gate helper text", () => {
+    const viewModel = mapPdfEvidencePackToInvestorReview({
+      pack: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
+      savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId }),
+    })
+
+    const refurbGate = viewModel.requiredGateRows.find((row) => row.label === "Refurb Certainty")
+    expect(refurbGate).toBeDefined()
+    expect(refurbGate?.helperText).not.toContain("AI_VISUAL_REVIEW_ADVISORY")
+    expect(refurbGate?.helperText).toContain(
+      "AI-assisted visual review is advisory only and cannot replace human, professional, builder, document, or measurement evidence."
+    )
+  })
+
+  it("keeps canonical gate keys internal while every required gate carries its readable label", () => {
+    const pack = {
+      ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
+      investorShield: {
+        ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorShield,
+        blockingGateKeys: ["SOLD_COMPS", "TITLE", "REFURB_CERTAINTY", "BUILDER_PROPOSAL_CONTRACT", "DAMP_STRUCTURAL", "LENDER_CRITERIA", "SOLICITOR_FEEDBACK"],
+      },
+    }
+
+    const viewModel = mapPdfEvidencePackToInvestorReview({
+      pack,
+      savedDeal: makeSavedDealRecord({ id: pack.meta.savedDealId }),
+    })
+
+    const expectedLabels = [
+      "Sold Comparables",
+      "Title Review",
+      "Refurb Certainty",
+      "Builder Proposal and Contract",
+      "Damp and Structural Review",
+      "Lender Criteria",
+      "Solicitor Review",
+      "Leasehold Review",
+      "Planning and Building Control",
+      "Rental Demand",
+    ]
+
+    const actualLabels = viewModel.requiredGateRows.map((row) => row.label)
+    for (const expectedLabel of expectedLabels) {
+      expect(actualLabels).toContain(expectedLabel)
+    }
+
+    expect(viewModel.requiredGateRows).toHaveLength(10)
+
+    const blockedLabels = viewModel.requiredGateRows
+      .filter((row) => row.status === "Blocked")
+      .map((row) => row.label)
+    expect(blockedLabels).toEqual(
+      expect.arrayContaining([
+        "Sold Comparables",
+        "Title Review",
+        "Refurb Certainty",
+        "Builder Proposal and Contract",
+        "Damp and Structural Review",
+        "Lender Criteria",
+        "Solicitor Review",
+      ])
+    )
+  })
+
   it("maps locked empty-state text and unavailable optional values without inventing zero values", () => {
     const emptyViewModel = mapPdfEvidencePackToInvestorReview({
       pack: PDF_EVIDENCE_PACK_EMPTY_FIXTURE,

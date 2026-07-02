@@ -73,6 +73,28 @@ describe("phase3 dev review route", () => {
     expect(html).toContain('data-testid="populated-investor-review-demo"')
   })
 
+  it("does not render raw canonical gate identifiers or the AI advisory sub-gate key in the populated demo", () => {
+    const html = renderToStaticMarkup(<Phase3DevReviewPage />)
+
+    const machineIdentifiers = [
+      "REFURB_CERTAINTY",
+      "BUILDER_PROPOSAL_CONTRACT",
+      "DAMP_STRUCTURAL",
+      "LENDER_CRITERIA",
+      "PLANNING_BUILDING_CONTROL",
+      "AI_VISUAL_REVIEW_ADVISORY",
+    ]
+
+    for (const identifier of machineIdentifiers) {
+      expect(html).not.toContain(identifier)
+    }
+
+    expect(html).toContain("Refurb Certainty")
+    expect(html).toContain(
+      "AI-assisted visual review is advisory only and cannot replace human, professional, builder, document, or measurement evidence."
+    )
+  })
+
   it("does not contain approve/send-offer/action/upload calls-to-action", () => {
     const html = renderToStaticMarkup(<Phase3DevReviewPage />)
 
