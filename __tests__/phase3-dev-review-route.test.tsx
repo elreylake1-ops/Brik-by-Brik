@@ -96,6 +96,17 @@ describe("phase3 dev review route", () => {
     )
   })
 
+  it("renders the allowed progression decision with the positive tone, not the negative tone", () => {
+    const html = renderToStaticMarkup(<Phase3DevReviewPage />)
+
+    expect(html).toContain(
+      '<div class="rounded-xl border px-4 py-3 border-emerald-200 bg-emerald-50 text-emerald-900"><p class="text-xs uppercase tracking-wide opacity-80">Progression decision</p><p class="mt-1 break-words text-sm font-semibold">Can Progress</p></div>'
+    )
+    expect(html).not.toContain(
+      '<div class="rounded-xl border px-4 py-3 border-red-200 bg-red-50 text-red-900"><p class="text-xs uppercase tracking-wide opacity-80">Progression decision</p>'
+    )
+  })
+
   it("does not contain approve/send-offer/action/upload calls-to-action", () => {
     const html = renderToStaticMarkup(<Phase3DevReviewPage />)
 

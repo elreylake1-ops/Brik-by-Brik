@@ -10,6 +10,7 @@ import {
 import type { SavedDealRecord } from "@/lib/operator-command/saved-deals-repository"
 import {
   PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
+  PDF_EVIDENCE_PACK_COMPLETE_FIXTURE,
   PDF_EVIDENCE_PACK_EMPTY_FIXTURE,
   PDF_EVIDENCE_PACK_PRIVACY_MINIMIZED_FIXTURE,
 } from "./fixtures/pdf-evidence-pack-fixtures"
@@ -109,6 +110,29 @@ describe("mapPdfEvidencePackToInvestorReview", () => {
     for (const value of decisionAndStatusValues) {
       expect(rawEnumPattern.test(value)).toBe(false)
     }
+  })
+
+  it("assigns a positive tone to an allowed CAN_PROGRESS decision and a negative tone to a blocked decision", () => {
+    const readyViewModel = mapPdfEvidencePackToInvestorReview({
+      pack: PDF_EVIDENCE_PACK_COMPLETE_FIXTURE,
+      savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_COMPLETE_FIXTURE.meta.savedDealId }),
+    })
+
+    expect(PDF_EVIDENCE_PACK_COMPLETE_FIXTURE.investorShield.progressionDecision).toBe("CAN_PROGRESS")
+    expect(readyViewModel.decisionSummary.progressionDecision.value).toBe("Can Progress")
+    expect(readyViewModel.decisionSummary.progressionDecision.tone).toBe("success")
+    expect(readyViewModel.decisionSummary.overallStatus.tone).toBe("success")
+    expect(readyViewModel.decisionSummary.canProgress.tone).toBe("success")
+
+    const blockedViewModel = mapPdfEvidencePackToInvestorReview({
+      pack: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
+      savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId }),
+    })
+
+    expect(PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorShield.progressionDecision).toBe("BLOCKED")
+    expect(blockedViewModel.decisionSummary.progressionDecision.tone).toBe("blocked")
+    expect(blockedViewModel.decisionSummary.overallStatus.tone).toBe("blocked")
+    expect(blockedViewModel.decisionSummary.canProgress.tone).toBe("blocked")
   })
 
   it("keeps required gates separate from advisory content and does not assign success to missing states", () => {

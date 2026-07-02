@@ -109,6 +109,17 @@ function overallStatusTone(status: string | null | undefined): InvestorReviewSem
   return "blocked"
 }
 
+function progressionDecisionTone(decision: string | null | undefined): InvestorReviewSemanticTone {
+  const normalized = decision?.trim().toUpperCase() ?? ""
+  if (normalized === "CAN_PROGRESS") {
+    return "success"
+  }
+  if (normalized === "CAUTION" || normalized === "NEEDS_REVIEW") {
+    return "caution"
+  }
+  return "blocked"
+}
+
 function gateStatusFromArrays(input: {
   gateKey: string
   blockingGateKeys: readonly string[]
@@ -375,7 +386,7 @@ export function mapPdfEvidencePackToInvestorReview(
       progressionDecision: {
         label: "Progression decision",
         value: displayDecisionValue(pack.investorShield.progressionDecision),
-        tone: overallStatusTone(pack.investorShield.progressionDecision),
+        tone: progressionDecisionTone(pack.investorShield.progressionDecision),
       },
       canProgress: {
         label: "Can progress",
