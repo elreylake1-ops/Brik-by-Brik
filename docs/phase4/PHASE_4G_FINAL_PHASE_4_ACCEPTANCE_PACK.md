@@ -20,38 +20,38 @@ Reference:
 
 Production GET of the blocked QA review page returned HTTP 200 and the browser render showed the blocked investor review state, including:
 
-- `CONDITIONAL` classification
-- `MANUAL_REVIEW_REQUIRED` governance
-- `PROTECTED` capital protection
-- `UNDER_ANALYSIS` pipeline
-- `BLOCKED` Shield status
-- `Can progress: No`
+- canonical `CONDITIONAL`, rendered `Conditional`
+- canonical `MANUAL_REVIEW_REQUIRED`, rendered `Manual Review Required`
+- canonical `PROTECTED`, rendered `Protected`
+- canonical `UNDER_ANALYSIS`, rendered `Under Analysis`
+- canonical `BLOCKED`, rendered `Blocked`
+- canonical `CAN_PROGRESS`, rendered `Can Progress: No`
 - `Missing evidence count: 10`
 - `Blocked gate count: 7`
 - Evidence Lite shown as informational only
 
 The final approved screenshot set for this blocked state is stored outside the repository at:
 
-- `C:\Users\user\Documents\...\review-screenshots-4F-R3C6\blocked-review-status-clean-desktop.png`
-- `C:\Users\user\Documents\...\review-screenshots-4F-R3C6\blocked-review-status-clean-mobile.png`
+- `blocked-review-status-clean-desktop.png`
+- `blocked-review-status-clean-mobile.png`
 
 ## Populated Demo Example
 
 Production GET of the populated demo page returned HTTP 200 and the browser render showed the populated positive progression state, including:
 
-- `STRONG_DEAL` classification
-- `MANUAL_REVIEW_REQUIRED` governance
-- `SAFE` capital protection
-- `UNDER_ANALYSIS` pipeline
-- `CLEAR` Shield status
-- `CAN_PROGRESS: Yes`
+- canonical `STRONG_DEAL`, rendered `Strong Deal`
+- canonical `MANUAL_REVIEW_REQUIRED`, rendered `Manual Review Required`
+- canonical `SAFE`, rendered `Safe`
+- canonical `UNDER_ANALYSIS`, rendered `Under Analysis`
+- canonical `CLEAR`, rendered `Clear`
+- canonical `CAN_PROGRESS`, rendered `Can Progress: Yes`
 - populated GDV and True MAO values
 - populated tasks and offer content
 
 The final approved screenshot set for this populated state is stored outside the repository at:
 
-- `C:\Users\user\Documents\...\review-screenshots-4F-R3C7\populated-review-final-tone-desktop.png`
-- `C:\Users\user\Documents\...\review-screenshots-4F-R3C7\populated-review-final-tone-mobile.png`
+- `populated-review-final-tone-desktop.png`
+- `populated-review-final-tone-mobile.png`
 
 ## Desktop and Mobile Screenshot Evidence
 
@@ -59,10 +59,10 @@ Approved screenshot inventory used for the visual pass:
 
 | Scenario | File |
 | --- | --- |
-| Blocked desktop | `C:\Users\user\Documents\...\review-screenshots-4F-R3C6\blocked-review-status-clean-desktop.png` |
-| Blocked mobile | `C:\Users\user\Documents\...\review-screenshots-4F-R3C6\blocked-review-status-clean-mobile.png` |
-| Populated desktop | `C:\Users\user\Documents\...\review-screenshots-4F-R3C7\populated-review-final-tone-desktop.png` |
-| Populated mobile | `C:\Users\user\Documents\...\review-screenshots-4F-R3C7\populated-review-final-tone-mobile.png` |
+| Blocked desktop | `blocked-review-status-clean-desktop.png` |
+| Blocked mobile | `blocked-review-status-clean-mobile.png` |
+| Populated desktop | `populated-review-final-tone-desktop.png` |
+| Populated mobile | `populated-review-final-tone-mobile.png` |
 
 Visual pass result:
 
@@ -75,11 +75,11 @@ Visual pass result:
 - no PDF, download, upload, approval, or mutation controls were visible
 - blocked screenshots are the final post-machine-identifier and status-label versions
 - populated screenshots include the final positive progression-tone correction
-- screenshot paths are recorded outside the repository; the parent folder is redacted in this document to avoid reintroducing legacy branding text
+- screenshots are stored outside the repository and will be attached separately to the client acceptance message
 
-## Production Supabase Confirmation
+## Production Database Confirmation
 
-Production saved-deals data is live and readable through the production API, which is backed by the production Supabase/database connection.
+Production database-backed API reads succeeded through the configured production connection.
 
 Read-only proof:
 
@@ -117,19 +117,20 @@ This matches the existing route-level safe-not-found behavior and does not expos
 
 ## Missing Investor Shield Proof
 
-Missing Investor Shield behavior is documented and test-backed, not reproduced by mutating production data.
+This is a `TEST-BASED LIMITATION` under the current Shield model.
 
 Relevant proofs:
 
 - [__tests__/investor-shield-ui-route.test.ts](../../__tests__/investor-shield-ui-route.test.ts)
 - [__tests__/fetch-investor-shield-ui-model.test.ts](../../__tests__/fetch-investor-shield-ui-model.test.ts)
+- route behavior in [app/api/saved-deals/[id]/investor-shield-ui/route.ts](../../app/api/saved-deals/[id]/investor-shield-ui/route.ts)
 
 Test-backed safe behavior:
 
 - missing or blank ids return a safe 400 with `Investor Shield status could not be loaded. Pipeline rules remain unchanged.`
 - a missing saved deal returns HTTP 404 with `Saved deal not found.`
 
-This is the approved safe proof for the missing Investor Shield case. No production record was created, deleted, or modified to force a different state.
+The repository does not currently prove a separate existing-deal / missing-Investor-Shield-record 404. The current route first checks that the saved deal exists, then derives the Shield UI model from the saved deal plus evaluation input. No production record was created, deleted, or modified to force a different state.
 
 ## Evidence Lite Proof
 
@@ -228,14 +229,21 @@ No insert, update, delete, migration, or production task creation was performed.
 
 ## Deterministic Engine Confirmation
 
-The deterministic engine logic remains unchanged in this phase.
+Phase 4G began from baseline commit `7bef3afd36451659f84d7ac7e6aa924c8c146bc6`.
+
+Phase 4G changes were limited to:
+
+- `docs/phase4/PHASE_4G_FINAL_PHASE_4_ACCEPTANCE_PACK.md`
+- `__tests__/legacy-branding-guard.test.ts`
+
+The acceptance-pack commit was `267cbac79ba700faeef886ed7fd697ec8922e8e4`.
+The validation stabilization commit was `f61c5f835a5777c03104d7fadceb0f38e6232834`.
 
 Evidence:
 
-- repository baseline remained at `7bef3afd36451659f84d7ac7e6aa924c8c146bc6`
-- only the acceptance-pack markdown file was added
-- no production source files were modified
-- no engine, classification, or formula code was changed
+- the branding guard test scan scope was narrowed to active source and documentation surfaces
+- no production runtime source files were modified
+- no deterministic engine, formula, classification, governance, capital-protection, migration, or database code was changed
 - existing deterministic tests continue to prove stable outputs and stable task IDs for repeated identical inputs
 
 ## Prohibited Feature Confirmation
@@ -256,7 +264,6 @@ were added in this phase.
 
 ## Remaining Limitations
 
-- The missing Investor Shield proof is test-based, as required, because the production record was not mutated to synthesize a missing-state example.
 - The visual pass relied on the final approved screenshot set stored outside the repository, together with live read-only production verification.
 
 ## Result
