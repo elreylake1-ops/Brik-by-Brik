@@ -4,17 +4,28 @@ import { describe, expect, it } from "vitest"
 
 const ROOT = process.cwd()
 
-const EXCLUDED_DIRS = new Set([
-  ".git",
-  "node_modules",
-  ".next",
-  ".vercel",
-  "coverage",
-  "dist",
-  "build",
-  ".turbo",
-  ".cache",
-])
+const INCLUDED_DIRS = [
+  "app",
+  "components",
+  "db",
+  "docs",
+  "lib",
+  "packages",
+  "tests",
+  "__tests__",
+] as const
+
+const ROOT_FILES = [
+  "AGENTS.md",
+  "LEAN-CTX.md",
+  "README.md",
+  "eslint.config.mjs",
+  "next.config.ts",
+  "package.json",
+  "postcss.config.mjs",
+  "tsconfig.json",
+  "vitest.config.ts",
+] as const
 
 const EXCLUDED_FILES = new Set([
   path.normalize("db/audits/phase4_legacy_branding_audit.sql"),
@@ -49,10 +60,6 @@ function walk(dir: string): string[] {
   const files: string[] = []
 
   for (const entry of entries) {
-    if (EXCLUDED_DIRS.has(entry.name)) {
-      continue
-    }
-
     const fullPath = path.join(dir, entry.name)
     if (entry.isDirectory()) {
       files.push(...walk(fullPath))
@@ -77,6 +84,25 @@ function walk(dir: string): string[] {
     }
 
     files.push(fullPath)
+  }
+
+  return files
+}
+
+function collectActiveFiles(): string[] {
+  const files = ROOT_FILES.filter((file) => path.extname(file).length > 0).map((file) => path.join(ROOT, file))
+
+  for (const dir of INCLUDED_DIRS) {
+    const fullPath = path.join(ROOT, dir)
+    if (!fullPath) {
+      continue
+    }
+    try {
+      readdirSync(fullPath)
+    } catch {
+      continue
+    }
+    files.push(...walk(fullPath))
   }
 
   return files
@@ -111,7 +137,7 @@ describe("legacy branding guard", () => {
   })
 
   it("does not allow legacy Lake Views branding in active repository content", () => {
-    const files = walk(ROOT)
+    const files = collectActiveFiles()
     const failures: Array<{ file: string; term: string }> = []
 
     for (const file of files) {

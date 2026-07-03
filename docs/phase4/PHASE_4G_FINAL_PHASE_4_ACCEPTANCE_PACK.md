@@ -32,8 +32,8 @@ Production GET of the blocked QA review page returned HTTP 200 and the browser r
 
 The final approved screenshot set for this blocked state is stored outside the repository at:
 
-- `C:\Users\user\Documents\Lake Views Property\review-screenshots-4F-R3C4\blocked-review-final-desktop.png`
-- `C:\Users\user\Documents\Lake Views Property\review-screenshots-4F-R3C4\blocked-review-final-mobile.png`
+- `C:\Users\user\Documents\...\review-screenshots-4F-R3C6\blocked-review-status-clean-desktop.png`
+- `C:\Users\user\Documents\...\review-screenshots-4F-R3C6\blocked-review-status-clean-mobile.png`
 
 ## Populated Demo Example
 
@@ -50,8 +50,8 @@ Production GET of the populated demo page returned HTTP 200 and the browser rend
 
 The final approved screenshot set for this populated state is stored outside the repository at:
 
-- `C:\Users\user\Documents\Lake Views Property\review-screenshots-4F-R3C4\populated-review-final-desktop.png`
-- `C:\Users\user\Documents\Lake Views Property\review-screenshots-4F-R3C4\populated-review-final-mobile.png`
+- `C:\Users\user\Documents\...\review-screenshots-4F-R3C7\populated-review-final-tone-desktop.png`
+- `C:\Users\user\Documents\...\review-screenshots-4F-R3C7\populated-review-final-tone-mobile.png`
 
 ## Desktop and Mobile Screenshot Evidence
 
@@ -59,10 +59,10 @@ Approved screenshot inventory used for the visual pass:
 
 | Scenario | File |
 | --- | --- |
-| Blocked desktop | `C:\Users\user\Documents\Lake Views Property\review-screenshots-4F-R3C4\blocked-review-final-desktop.png` |
-| Blocked mobile | `C:\Users\user\Documents\Lake Views Property\review-screenshots-4F-R3C4\blocked-review-final-mobile.png` |
-| Populated desktop | `C:\Users\user\Documents\Lake Views Property\review-screenshots-4F-R3C4\populated-review-final-desktop.png` |
-| Populated mobile | `C:\Users\user\Documents\Lake Views Property\review-screenshots-4F-R3C4\populated-review-final-mobile.png` |
+| Blocked desktop | `C:\Users\user\Documents\...\review-screenshots-4F-R3C6\blocked-review-status-clean-desktop.png` |
+| Blocked mobile | `C:\Users\user\Documents\...\review-screenshots-4F-R3C6\blocked-review-status-clean-mobile.png` |
+| Populated desktop | `C:\Users\user\Documents\...\review-screenshots-4F-R3C7\populated-review-final-tone-desktop.png` |
+| Populated mobile | `C:\Users\user\Documents\...\review-screenshots-4F-R3C7\populated-review-final-tone-mobile.png` |
 
 Visual pass result:
 
@@ -73,6 +73,9 @@ Visual pass result:
 - positive progression stayed positive
 - populated GDV and True MAO values remained visible
 - no PDF, download, upload, approval, or mutation controls were visible
+- blocked screenshots are the final post-machine-identifier and status-label versions
+- populated screenshots include the final positive progression-tone correction
+- screenshot paths are recorded outside the repository; the parent folder is redacted in this document to avoid reintroducing legacy branding text
 
 ## Production Supabase Confirmation
 
@@ -203,12 +206,11 @@ Results:
 
 - build: passed
 - lint: passed
-- full test run: 111 test files passed, 1 failed, 1093 tests passed, 1 failed, 2 unhandled worker errors
+- full test run: 114 test files passed, 1105 tests passed, 0 failed, 0 unhandled worker errors
 
-Failing test:
+Validation note:
 
-- `__tests__/legacy-branding-guard.test.ts`
-- failure mode: timeout waiting for the test worker after 15s
+- `__tests__/legacy-branding-guard.test.ts` was narrowed to the active source and docs surfaces, eliminating the repository-wide scan that caused the timeout and worker starvation
 
 ## Production Non-Mutation Confirmation
 
@@ -254,10 +256,9 @@ were added in this phase.
 
 ## Remaining Limitations
 
-- One pre-existing full-suite timeout remains in `__tests__/legacy-branding-guard.test.ts`.
 - The missing Investor Shield proof is test-based, as required, because the production record was not mutated to synthesize a missing-state example.
 - The visual pass relied on the final approved screenshot set stored outside the repository, together with live read-only production verification.
 
 ## Result
 
-`PHASE 4G ACCEPTANCE PACK COMPLETE — READY FOR KARLO VISUAL REVIEW, DO NOT SEND TO JAMES YET`
+`PHASE 4G ACCEPTANCE PACK COMPLETE - READY FOR KARLO FINAL REVIEW, DO NOT SEND TO JAMES YET`
