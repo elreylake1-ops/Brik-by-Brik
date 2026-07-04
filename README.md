@@ -32,6 +32,49 @@ The focus remains correctness, auditability, and separation of business logic fr
 | Phase 2 | Not Started |
 | Phase 4A Production Ownership | VERIFIED FOR SAFE READ-ONLY MVP RUNTIME |
 
+## Phase 4 Status
+
+- Phase 4 final acceptance pack is complete
+- browser Investor Review is complete
+- Evidence Lite is complete
+- Investor Shield governance is complete
+- final release tag is deferred until James formally approves Phase 4
+- PDF generation is deferred
+- Phase 5 is deferred
+
+## Phase 4 Handover
+
+Start here for the Phase 4 handover pack:
+
+- [Phase 4 handover index](docs/handover/PHASE_4H_HANDOVER_INDEX.md)
+
+That index points to the architecture, database schema, environment variables, deployment, backup/recovery, ownership/access matrix, Investor Review SOP, Evidence Lite SOP, Investor Shield SOP, and admin/operator procedures.
+
+## Current Validation Baseline
+
+- lint passes
+- build passes
+- full test suite passes
+- `114` files / `1105` tests
+
+## Operating Boundaries
+
+- no production mutation without explicit approval
+- no database restore without written approval
+- no environment-variable changes without controlled verification
+- no release tag until James formally approves Phase 4
+- no PDF or Phase 5 work until separately approved
+
+## Open Handover Items
+
+- James's formal Phase 4 approval
+- release tag creation after approval
+- ownership/access gaps remain disclosed
+- exact restore authority remains unverified
+- production restore drill not completed
+- PDF generation deferred
+- Phase 5 deferred
+
 ---
 
 ## Tech Stack
