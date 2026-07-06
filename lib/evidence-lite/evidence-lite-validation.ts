@@ -1,15 +1,31 @@
 import {
+  EVIDENCE_COMMAND_BLOCKER_IMPACTS,
+  EVIDENCE_COMMAND_DEFAULTS,
+  EVIDENCE_COMMAND_PROFESSIONAL_GATES,
+  EVIDENCE_COMMAND_REVIEW_STATES,
+  EVIDENCE_COMMAND_STATUSES,
+  EVIDENCE_COMMAND_STRENGTHS,
+  EVIDENCE_COMMAND_TYPES,
   EVIDENCE_LITE_EVIDENCE_TYPES,
   EVIDENCE_LITE_GATES,
   EVIDENCE_LITE_STATUSES,
+  type EvidenceCommandBlockerImpact,
+  type EvidenceCommandInput,
+  type EvidenceCommandProfessionalGate,
+  type EvidenceCommandReviewState,
+  type EvidenceCommandStatus,
+  type EvidenceCommandStrength,
+  type EvidenceCommandType,
   type EvidenceLiteEvidenceType,
   type EvidenceLiteGateKey,
   type EvidenceLiteStatus,
   type EvidenceLiteValidationError,
   type EvidenceLiteValidationResult,
+  type NormalizedEvidenceCommandInput,
   type NormalizedCreateEvidenceLiteInput,
   type NormalizedUpdateEvidenceLiteInput,
 } from "@/types/evidence-lite"
+import { INVESTOR_SHIELD_GATE_KEYS, type InvestorShieldGateKey } from "@/types/investor-shield"
 
 const CREATE_ALLOWED_FIELDS = new Set([
   "dealId",
@@ -35,6 +51,28 @@ const UPDATE_NOTE_MAX_LENGTH = 5000
 const EVIDENCE_LITE_EVIDENCE_TYPE_SET = new Set<string>(EVIDENCE_LITE_EVIDENCE_TYPES)
 const EVIDENCE_LITE_GATE_SET = new Set<string>(EVIDENCE_LITE_GATES)
 const EVIDENCE_LITE_STATUS_SET = new Set<string>(EVIDENCE_LITE_STATUSES)
+const EVIDENCE_COMMAND_TYPE_SET = new Set<string>(EVIDENCE_COMMAND_TYPES)
+const EVIDENCE_COMMAND_STATUS_SET = new Set<string>(EVIDENCE_COMMAND_STATUSES)
+const EVIDENCE_COMMAND_STRENGTH_SET = new Set<string>(EVIDENCE_COMMAND_STRENGTHS)
+const EVIDENCE_COMMAND_REVIEW_STATE_SET = new Set<string>(EVIDENCE_COMMAND_REVIEW_STATES)
+const EVIDENCE_COMMAND_BLOCKER_IMPACT_SET = new Set<string>(EVIDENCE_COMMAND_BLOCKER_IMPACTS)
+const EVIDENCE_COMMAND_PROFESSIONAL_GATE_SET = new Set<string>(EVIDENCE_COMMAND_PROFESSIONAL_GATES)
+const INVESTOR_SHIELD_GATE_SET = new Set<string>(INVESTOR_SHIELD_GATE_KEYS)
+const EVIDENCE_COMMAND_ALLOWED_FIELDS = new Set([
+  "evidenceType",
+  "linkedInvestorShieldGate",
+  "linkedProfessionalGate",
+  "title",
+  "evidenceSummary",
+  "evidenceStatus",
+  "evidenceStrength",
+  "reviewState",
+  "blockerImpact",
+  "recommendedNextAction",
+  "expiryOrUpdateDate",
+  "source",
+  "mobileCaptureNote",
+])
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -72,6 +110,86 @@ function normalizeEvidenceLiteEvidenceType(value: unknown): EvidenceLiteEvidence
   return EVIDENCE_LITE_EVIDENCE_TYPE_SET.has(trimmed)
     ? (trimmed as EvidenceLiteEvidenceType)
     : undefined
+}
+
+function normalizeControlledEnum<T extends string>(
+  value: unknown,
+  allowedValues: ReadonlySet<string>
+): T | undefined {
+  if (typeof value !== "string") {
+    return undefined
+  }
+
+  const trimmed = value.trim()
+  return allowedValues.has(trimmed) ? (trimmed as T) : undefined
+}
+
+function normalizeOptionalTextField(value: unknown): string | null | undefined {
+  if (value === undefined || value === null) {
+    return null
+  }
+
+  if (typeof value !== "string") {
+    return undefined
+  }
+
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+function isDateLikeString(value: string): boolean {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [yearText, monthText, dayText] = value.split("-")
+    const year = Number(yearText)
+    const month = Number(monthText)
+    const day = Number(dayText)
+    const date = new Date(Date.UTC(year, month - 1, day))
+
+    return (
+      date.getUTCFullYear() === year &&
+      date.getUTCMonth() === month - 1 &&
+      date.getUTCDate() === day
+    )
+  }
+
+  return !Number.isNaN(Date.parse(value))
+}
+
+function normalizeOptionalDateLikeField(value: unknown): string | null | undefined {
+  if (value === undefined || value === null) {
+    return null
+  }
+
+  if (typeof value !== "string") {
+    return undefined
+  }
+
+  const trimmed = value.trim()
+  if (trimmed.length === 0) {
+    return null
+  }
+
+  return isDateLikeString(trimmed) ? trimmed : undefined
+}
+
+function normalizeDefaultedEnumField<T extends string>(
+  value: unknown,
+  allowedValues: ReadonlySet<string>,
+  defaultValue: T
+): T | undefined {
+  if (value === undefined || value === null) {
+    return defaultValue
+  }
+
+  return normalizeControlledEnum<T>(value, allowedValues)
+}
+
+function normalizeEvidenceCommandType(value: unknown): EvidenceCommandType | undefined {
+  return normalizeControlledEnum<EvidenceCommandType>(value, EVIDENCE_COMMAND_TYPE_SET)
+}
+
+function normalizeInvestorShieldGateKey(value: unknown): InvestorShieldGateKey | undefined {
+  return normalizeControlledEnum<InvestorShieldGateKey>(value, INVESTOR_SHIELD_GATE_SET)
 }
 
 function pushError(
@@ -300,6 +418,185 @@ export function validateUpdateEvidenceLiteInput(
       ? ["linkedGate normalized from SOLICITOR_FEEDBACK to SOLICITOR_REVIEW"]
       : [],
   }
+}
+
+export function validateEvidenceCommandInput(
+  input: unknown
+): EvidenceLiteValidationResult<NormalizedEvidenceCommandInput> {
+  const errors: EvidenceLiteValidationError[] = []
+  if (!isPlainObject(input)) {
+    return {
+      valid: false,
+      errors: [{ field: "root", message: "input must be a plain object" }],
+      warnings: [],
+    }
+  }
+
+  validateKnownFields(input, EVIDENCE_COMMAND_ALLOWED_FIELDS, errors)
+
+  const evidenceType = normalizeEvidenceCommandType(input.evidenceType)
+  if (!evidenceType) {
+    pushError(
+      errors,
+      "evidenceType",
+      `evidenceType must be one of: ${EVIDENCE_COMMAND_TYPES.join(", ")}`
+    )
+  }
+
+  const linkedInvestorShieldGate = normalizeInvestorShieldGateKey(input.linkedInvestorShieldGate)
+  if (!linkedInvestorShieldGate) {
+    pushError(
+      errors,
+      "linkedInvestorShieldGate",
+      `linkedInvestorShieldGate must be one of: ${INVESTOR_SHIELD_GATE_KEYS.join(", ")}`
+    )
+  }
+
+  const linkedProfessionalGate = normalizeDefaultedEnumField<EvidenceCommandProfessionalGate>(
+    input.linkedProfessionalGate,
+    EVIDENCE_COMMAND_PROFESSIONAL_GATE_SET,
+    EVIDENCE_COMMAND_DEFAULTS.linkedProfessionalGate
+  )
+  if (!linkedProfessionalGate) {
+    pushError(
+      errors,
+      "linkedProfessionalGate",
+      `linkedProfessionalGate must be one of: ${EVIDENCE_COMMAND_PROFESSIONAL_GATES.join(", ")}`
+    )
+  }
+
+  const title = normalizeTrimmedText(input.title)
+  if (!title) {
+    pushError(errors, "title", "title must be a non-empty string")
+  }
+
+  const evidenceSummary = normalizeTrimmedText(input.evidenceSummary)
+  if (!evidenceSummary) {
+    pushError(errors, "evidenceSummary", "evidenceSummary must be a non-empty string")
+  }
+
+  const evidenceStatus = normalizeDefaultedEnumField<EvidenceCommandStatus>(
+    input.evidenceStatus,
+    EVIDENCE_COMMAND_STATUS_SET,
+    EVIDENCE_COMMAND_DEFAULTS.evidenceStatus
+  )
+  if (!evidenceStatus) {
+    pushError(
+      errors,
+      "evidenceStatus",
+      `evidenceStatus must be one of: ${EVIDENCE_COMMAND_STATUSES.join(", ")}`
+    )
+  }
+
+  const evidenceStrength = normalizeDefaultedEnumField<EvidenceCommandStrength>(
+    input.evidenceStrength,
+    EVIDENCE_COMMAND_STRENGTH_SET,
+    EVIDENCE_COMMAND_DEFAULTS.evidenceStrength
+  )
+  if (!evidenceStrength) {
+    pushError(
+      errors,
+      "evidenceStrength",
+      `evidenceStrength must be one of: ${EVIDENCE_COMMAND_STRENGTHS.join(", ")}`
+    )
+  }
+
+  const reviewState = normalizeDefaultedEnumField<EvidenceCommandReviewState>(
+    input.reviewState,
+    EVIDENCE_COMMAND_REVIEW_STATE_SET,
+    EVIDENCE_COMMAND_DEFAULTS.reviewState
+  )
+  if (!reviewState) {
+    pushError(
+      errors,
+      "reviewState",
+      `reviewState must be one of: ${EVIDENCE_COMMAND_REVIEW_STATES.join(", ")}`
+    )
+  }
+
+  const blockerImpact = normalizeDefaultedEnumField<EvidenceCommandBlockerImpact>(
+    input.blockerImpact,
+    EVIDENCE_COMMAND_BLOCKER_IMPACT_SET,
+    EVIDENCE_COMMAND_DEFAULTS.blockerImpact
+  )
+  if (!blockerImpact) {
+    pushError(
+      errors,
+      "blockerImpact",
+      `blockerImpact must be one of: ${EVIDENCE_COMMAND_BLOCKER_IMPACTS.join(", ")}`
+    )
+  }
+
+  const recommendedNextAction = normalizeOptionalTextField(input.recommendedNextAction)
+  if (recommendedNextAction === undefined) {
+    pushError(errors, "recommendedNextAction", "recommendedNextAction must be a string or null")
+  }
+
+  const expiryOrUpdateDate = normalizeOptionalDateLikeField(input.expiryOrUpdateDate)
+  if (expiryOrUpdateDate === undefined) {
+    pushError(
+      errors,
+      "expiryOrUpdateDate",
+      "expiryOrUpdateDate must be a date-like string when provided"
+    )
+  }
+
+  const source = normalizeOptionalTextField(input.source)
+  if (source === undefined) {
+    pushError(errors, "source", "source must be a string or null")
+  }
+
+  const mobileCaptureNote = normalizeOptionalTextField(input.mobileCaptureNote)
+  if (mobileCaptureNote === undefined) {
+    pushError(errors, "mobileCaptureNote", "mobileCaptureNote must be a string or null")
+  }
+
+  if (
+    errors.length > 0 ||
+    !evidenceType ||
+    !linkedInvestorShieldGate ||
+    !linkedProfessionalGate ||
+    !title ||
+    !evidenceSummary ||
+    !evidenceStatus ||
+    !evidenceStrength ||
+    !reviewState ||
+    !blockerImpact ||
+    recommendedNextAction === undefined ||
+    expiryOrUpdateDate === undefined ||
+    source === undefined ||
+    mobileCaptureNote === undefined
+  ) {
+    return { valid: false, errors, warnings: [] }
+  }
+
+  return {
+    valid: true,
+    value: {
+      evidenceType,
+      linkedInvestorShieldGate,
+      linkedProfessionalGate,
+      title,
+      evidenceSummary,
+      evidenceStatus,
+      evidenceStrength,
+      reviewState,
+      blockerImpact,
+      recommendedNextAction,
+      expiryOrUpdateDate,
+      source,
+      mobileCaptureNote,
+    },
+    errors: [],
+    warnings: [],
+  }
+}
+
+export function normalizeEvidenceCommandInput(
+  input: EvidenceCommandInput | null | undefined
+): NormalizedEvidenceCommandInput | undefined {
+  const result = validateEvidenceCommandInput(input)
+  return result.valid ? result.value : undefined
 }
 
 export { normalizeEvidenceLiteEvidenceType, normalizeEvidenceLiteStatus, normalizeTrimmedText }
