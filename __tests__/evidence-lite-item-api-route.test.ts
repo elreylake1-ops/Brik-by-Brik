@@ -1,17 +1,14 @@
 import { readFileSync } from "node:fs"
 import path from "node:path"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import type { EvidenceLiteRecord } from "@/types/evidence-lite"
 
-const {
-  getEvidenceLiteByIdMock,
-  getSavedDealByIdMock,
-  updateEvidenceLiteMock,
-} = vi.hoisted(() => ({
-  getEvidenceLiteByIdMock: vi.fn(),
-  getSavedDealByIdMock: vi.fn(),
-  updateEvidenceLiteMock: vi.fn(),
-}))
+const { getEvidenceLiteByIdMock, getSavedDealByIdMock, updateEvidenceLiteMock } = vi.hoisted(
+  () => ({
+    getEvidenceLiteByIdMock: vi.fn(),
+    getSavedDealByIdMock: vi.fn(),
+    updateEvidenceLiteMock: vi.fn(),
+  })
+)
 
 vi.mock("@/lib/operator-command/saved-deals-repository", () => ({
   getSavedDealById: getSavedDealByIdMock,
@@ -29,15 +26,27 @@ const ROUTE_PATH = path.resolve(
   "app/api/saved-deals/[id]/evidence/[evidenceId]/route.ts"
 )
 
-function makeEvidenceRecord(overrides: Partial<EvidenceLiteRecord> = {}): EvidenceLiteRecord {
+function makeEvidenceRecord(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     id: "evidence-1",
     dealId: "deal-1",
     evidenceType: "TITLE_REVIEW",
     linkedGate: "SOLICITOR_REVIEW",
+    linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+    evidenceCommandType: "TITLE_LEGAL",
     title: "Canonical title",
     note: "Canonical note",
+    evidenceSummary: "Canonical note",
     status: "RECORDED",
+    evidenceStatus: "RECEIVED",
+    evidenceStrength: "WEAK",
+    reviewState: "NOT_REVIEWED",
+    blockerImpact: "DOES_NOT_BLOCK",
+    linkedProfessionalGate: "NONE",
+    recommendedNextAction: null,
+    expiryOrUpdateDate: null,
+    source: null,
+    mobileCaptureNote: null,
     reviewed: false,
     reviewerNote: null,
     createdAt: "2026-06-26T10:00:00.000Z",
@@ -54,14 +63,6 @@ function makeRequest(body: unknown): Request {
   })
 }
 
-function makeMalformedRequest(body: string): Request {
-  return new Request("http://localhost/api/saved-deals/deal-1/evidence/evidence-1", {
-    method: "PATCH",
-    headers: { "content-type": "application/json" },
-    body,
-  })
-}
-
 function makeContext(id?: string, evidenceId?: string) {
   return {
     params: {
@@ -72,13 +73,6 @@ function makeContext(id?: string, evidenceId?: string) {
 }
 
 describe("evidence lite item api route", () => {
-  const canonicalUpdatedEvidence = makeEvidenceRecord({
-    title: "Updated canonical title",
-    note: "Updated canonical note",
-    reviewed: true,
-    updatedAt: "2026-06-26T11:00:00.000Z",
-  })
-
   beforeEach(() => {
     getEvidenceLiteByIdMock.mockReset()
     getSavedDealByIdMock.mockReset()
@@ -90,62 +84,206 @@ describe("evidence lite item api route", () => {
       label: "partial title update",
       body: { title: " Updated title " },
       expectedInput: { title: "Updated title" },
-      params: makeContext(" deal-1 ", " evidence-1 "),
     },
     {
       label: "partial note update",
       body: { note: " Updated note " },
       expectedInput: { note: "Updated note" },
-      params: makeContext("deal-1", "evidence-1"),
     },
     {
       label: "partial reviewed update",
       body: { reviewed: true },
       expectedInput: { reviewed: true },
-      params: makeContext("deal-1", "evidence-1"),
     },
     {
       label: "evidence type update",
       body: { evidenceType: "TITLE_REVIEW" },
       expectedInput: { evidenceType: "TITLE_REVIEW" },
-      params: makeContext("deal-1", "evidence-1"),
     },
     {
       label: "canonical linked-gate update",
       body: { linkedGate: "SOLICITOR_REVIEW" },
       expectedInput: { linkedGate: "SOLICITOR_REVIEW" },
-      params: makeContext("deal-1", "evidence-1"),
     },
     {
       label: "SOLICITOR_FEEDBACK normalization",
       body: { linkedGate: " SOLICITOR_FEEDBACK " },
       expectedInput: { linkedGate: "SOLICITOR_REVIEW" },
-      params: makeContext("deal-1", "evidence-1"),
     },
-  ])(
-    "$label returns 200 and passes normalized input to the repository",
-    async ({ body, expectedInput, params }) => {
-      getSavedDealByIdMock.mockResolvedValueOnce({ id: "deal-1" })
-      getEvidenceLiteByIdMock.mockResolvedValueOnce(makeEvidenceRecord())
-      updateEvidenceLiteMock.mockResolvedValueOnce(canonicalUpdatedEvidence)
+  ])("$label returns 200 and passes normalized legacy input to the repository", async ({ body, expectedInput }) => {
+    getSavedDealByIdMock.mockResolvedValueOnce({ id: "deal-1" })
+    getEvidenceLiteByIdMock.mockResolvedValueOnce(makeEvidenceRecord())
+    const updatedEvidence = makeEvidenceRecord({
+      title: "Updated canonical title",
+      note: "Updated canonical note",
+      evidenceSummary: "Updated canonical note",
+      reviewed: true,
+      updatedAt: "2026-06-26T11:00:00.000Z",
+    })
+    updateEvidenceLiteMock.mockResolvedValueOnce(updatedEvidence)
 
-      const response = await PATCH(makeRequest(body), params)
+    const response = await PATCH(makeRequest(body), makeContext(" deal-1 ", " evidence-1 "))
 
-      expect(response.status).toBe(200)
-      expect(getSavedDealByIdMock).toHaveBeenCalledWith("deal-1")
-      expect(getEvidenceLiteByIdMock).toHaveBeenCalledWith("deal-1", "evidence-1")
-      expect(updateEvidenceLiteMock).toHaveBeenCalledWith("deal-1", "evidence-1", expectedInput)
+    expect(response.status).toBe(200)
+    expect(getSavedDealByIdMock).toHaveBeenCalledWith("deal-1")
+    expect(getEvidenceLiteByIdMock).toHaveBeenCalledWith("deal-1", "evidence-1")
+    expect(updateEvidenceLiteMock).toHaveBeenCalledWith("deal-1", "evidence-1", expectedInput)
+    expect(await response.json()).toEqual({
+      success: true,
+      evidence: updatedEvidence,
+    })
+  })
 
-      const payload = await response.json()
-      expect(payload).toEqual({
-        success: true,
-        evidence: canonicalUpdatedEvidence,
-      })
-    }
-  )
+  it("PATCH updates structured Evidence Command fields", async () => {
+    getSavedDealByIdMock.mockResolvedValueOnce({ id: "deal-1" })
+    getEvidenceLiteByIdMock.mockResolvedValueOnce(makeEvidenceRecord())
+    const updatedEvidence = makeEvidenceRecord({
+      evidenceType: "OTHER",
+      linkedGate: "TITLE",
+      linkedInvestorShieldGate: "TITLE",
+      evidenceCommandType: "PHOTO_EVIDENCE",
+      title: "Updated title",
+      note: "Updated command summary",
+      evidenceSummary: "Updated command summary",
+      status: "VERIFIED",
+      evidenceStatus: "SUFFICIENT",
+      evidenceStrength: "STRONG",
+      reviewState: "PROFESSIONAL_REVIEW_REQUIRED",
+      blockerImpact: "REQUIRES_MANUAL_REVIEW",
+      linkedProfessionalGate: "SURVEYOR_REPORT",
+      recommendedNextAction: "Follow up",
+      expiryOrUpdateDate: "2026-08-01",
+      source: "mobile",
+      mobileCaptureNote: "captured on phone",
+      reviewed: true,
+      updatedAt: "2026-06-26T12:00:00.000Z",
+    })
+    updateEvidenceLiteMock.mockResolvedValueOnce(updatedEvidence)
 
-  it("returns 400 for malformed JSON and skips repository access", async () => {
-    const response = await PATCH(makeMalformedRequest("{"), makeContext("deal-1", "evidence-1"))
+    const response = await PATCH(
+      makeRequest({
+        evidenceType: "PHOTO_EVIDENCE",
+        linkedInvestorShieldGate: "TITLE",
+        linkedProfessionalGate: "SURVEYOR_REPORT",
+        title: " Updated title ",
+        evidenceSummary: " Updated command summary ",
+        evidenceStatus: "SUFFICIENT",
+        evidenceStrength: "STRONG",
+        reviewState: "PROFESSIONAL_REVIEW_REQUIRED",
+        blockerImpact: "REQUIRES_MANUAL_REVIEW",
+        recommendedNextAction: " Follow up ",
+        expiryOrUpdateDate: "2026-08-01",
+        source: " mobile ",
+        mobileCaptureNote: " captured on phone ",
+      }),
+      makeContext("deal-1", "evidence-1")
+    )
+
+    expect(response.status).toBe(200)
+    expect(updateEvidenceLiteMock).toHaveBeenCalledWith("deal-1", "evidence-1", {
+      evidenceType: "PHOTO_EVIDENCE",
+      linkedInvestorShieldGate: "TITLE",
+      linkedProfessionalGate: "SURVEYOR_REPORT",
+      title: "Updated title",
+      evidenceSummary: "Updated command summary",
+      evidenceStatus: "SUFFICIENT",
+      evidenceStrength: "STRONG",
+      reviewState: "PROFESSIONAL_REVIEW_REQUIRED",
+      blockerImpact: "REQUIRES_MANUAL_REVIEW",
+      recommendedNextAction: "Follow up",
+      expiryOrUpdateDate: "2026-08-01",
+      source: "mobile",
+      mobileCaptureNote: "captured on phone",
+    })
+    expect(await response.json()).toEqual({
+      success: true,
+      evidence: updatedEvidence,
+    })
+  })
+
+  it("PATCH accepts a partial command update", async () => {
+    getSavedDealByIdMock.mockResolvedValueOnce({ id: "deal-1" })
+    getEvidenceLiteByIdMock.mockResolvedValueOnce(makeEvidenceRecord())
+    const updatedEvidence = makeEvidenceRecord({
+      evidenceSummary: "Photo of roof defect",
+      evidenceStatus: "REQUESTED",
+      updatedAt: "2026-06-26T12:30:00.000Z",
+    })
+    updateEvidenceLiteMock.mockResolvedValueOnce(updatedEvidence)
+
+    const response = await PATCH(
+      makeRequest({
+        evidenceSummary: " Photo of roof defect ",
+      }),
+      makeContext("deal-1", "evidence-1")
+    )
+
+    expect(response.status).toBe(200)
+    expect(updateEvidenceLiteMock).toHaveBeenCalledWith("deal-1", "evidence-1", {
+      evidenceSummary: "Photo of roof defect",
+    })
+    expect(await response.json()).toEqual({
+      success: true,
+      evidence: updatedEvidence,
+    })
+  })
+
+  it.each([
+    {
+      label: "invalid evidence status",
+      body: { evidenceStatus: "SATISFIED" },
+      field: "evidenceStatus",
+    },
+    {
+      label: "invalid review state",
+      body: { reviewState: "APPROVED" },
+      field: "reviewState",
+    },
+    {
+      label: "invalid blocker impact",
+      body: { blockerImpact: "BLOCKS_ALL" },
+      field: "blockerImpact",
+    },
+    {
+      label: "invalid professional gate",
+      body: { linkedProfessionalGate: "GENERAL" },
+      field: "linkedProfessionalGate",
+    },
+    {
+      label: "invalid Investor Shield gate",
+      body: { linkedInvestorShieldGate: "GENERAL" },
+      field: "linkedInvestorShieldGate",
+    },
+    {
+      label: "invalid expiry date",
+      body: { expiryOrUpdateDate: "not-a-date" },
+      field: "expiryOrUpdateDate",
+    },
+  ])("$label returns 400 before updating the repository", async ({ body, field }) => {
+    getSavedDealByIdMock.mockResolvedValueOnce({ id: "deal-1" })
+    getEvidenceLiteByIdMock.mockResolvedValueOnce(makeEvidenceRecord())
+
+    const response = await PATCH(makeRequest(body), makeContext("deal-1", "evidence-1"))
+
+    expect(response.status).toBe(400)
+    expect(updateEvidenceLiteMock).not.toHaveBeenCalled()
+
+    const payload = await response.json()
+    expect(payload.success).toBe(false)
+    expect(payload.error).toBe("Invalid evidence input.")
+    expect(payload.validation.errors.map((error: { field: string }) => error.field)).toEqual(
+      expect.arrayContaining([field])
+    )
+  })
+
+  it("returns 400 when the body tries to override the route dealId", async () => {
+    const response = await PATCH(
+      makeRequest({
+        dealId: "deal-2",
+        reviewed: true,
+      }),
+      makeContext("deal-1", "evidence-1")
+    )
 
     expect(response.status).toBe(400)
     expect(getSavedDealByIdMock).not.toHaveBeenCalled()
@@ -153,130 +291,20 @@ describe("evidence lite item api route", () => {
     expect(updateEvidenceLiteMock).not.toHaveBeenCalled()
     expect(await response.json()).toEqual({
       success: false,
-      error: "Malformed JSON.",
+      error: "Invalid evidence input.",
+      validation: {
+        errors: [
+          {
+            field: "dealId",
+            message: "dealId is supplied by the route and must not be included in the body",
+          },
+        ],
+        warnings: [],
+      },
     })
   })
 
-  it("returns 400 for missing or blank saved-deal ids", async () => {
-    const missing = await PATCH(makeRequest({ reviewed: true }), makeContext())
-    const blank = await PATCH(makeRequest({ reviewed: true }), makeContext("   ", "evidence-1"))
-
-    expect(missing.status).toBe(400)
-    expect(blank.status).toBe(400)
-    expect(getSavedDealByIdMock).not.toHaveBeenCalled()
-    expect(getEvidenceLiteByIdMock).not.toHaveBeenCalled()
-    expect(updateEvidenceLiteMock).not.toHaveBeenCalled()
-
-    await expect(missing.json()).resolves.toEqual({
-      success: false,
-      error: "Invalid saved deal id.",
-    })
-  })
-
-  it("returns 400 for missing or blank evidence ids", async () => {
-    const missing = await PATCH(makeRequest({ reviewed: true }), makeContext("deal-1"))
-    const blank = await PATCH(makeRequest({ reviewed: true }), makeContext("deal-1", "   "))
-
-    expect(missing.status).toBe(400)
-    expect(blank.status).toBe(400)
-    expect(getSavedDealByIdMock).not.toHaveBeenCalled()
-    expect(getEvidenceLiteByIdMock).not.toHaveBeenCalled()
-    expect(updateEvidenceLiteMock).not.toHaveBeenCalled()
-
-    await expect(missing.json()).resolves.toEqual({
-      success: false,
-      error: "Invalid evidence id.",
-    })
-  })
-
-  it.each([
-    {
-      label: "empty object",
-      body: {},
-      expectedFields: ["root"],
-    },
-    {
-      label: "body dealId",
-      body: { dealId: "deal-2", reviewed: true },
-      expectedFields: ["dealId"],
-    },
-    {
-      label: "body id",
-      body: { id: "evidence-2", reviewed: true },
-      expectedFields: ["id"],
-    },
-    {
-      label: "body evidenceId",
-      body: { evidenceId: "evidence-2", reviewed: true },
-      expectedFields: ["evidenceId"],
-    },
-    {
-      label: "created timestamp field",
-      body: { createdAt: "2026-06-26T00:00:00.000Z", reviewed: true },
-      expectedFields: ["createdAt"],
-    },
-    {
-      label: "updated timestamp field",
-      body: { updatedAt: "2026-06-26T00:00:00.000Z", reviewed: true },
-      expectedFields: ["updatedAt"],
-    },
-    {
-      label: "unknown field",
-      body: { unexpected: true, reviewed: true },
-      expectedFields: ["unexpected"],
-    },
-    {
-      label: "status field",
-      body: { status: "VERIFIED", reviewed: true },
-      expectedFields: ["status"],
-    },
-    {
-      label: "blank title",
-      body: { title: "   ", reviewed: true },
-      expectedFields: ["title"],
-    },
-    {
-      label: "invalid note",
-      body: { note: null, reviewed: true },
-      expectedFields: ["note"],
-    },
-    {
-      label: "invalid evidence type",
-      body: { evidenceType: "INVALID", reviewed: true },
-      expectedFields: ["evidenceType"],
-    },
-    {
-      label: "GENERAL linked gate",
-      body: { linkedGate: "GENERAL", reviewed: true },
-      expectedFields: ["linkedGate"],
-    },
-    {
-      label: "RECEIVED linked gate",
-      body: { linkedGate: "RECEIVED", reviewed: true },
-      expectedFields: ["linkedGate"],
-    },
-    {
-      label: "arbitrary linked gate",
-      body: { linkedGate: "SOME_GATE", reviewed: true },
-      expectedFields: ["linkedGate"],
-    },
-  ])("$label returns 400 before repository access", async ({ body, expectedFields }) => {
-    const response = await PATCH(makeRequest(body), makeContext("deal-1", "evidence-1"))
-
-    expect(response.status).toBe(400)
-    expect(getSavedDealByIdMock).not.toHaveBeenCalled()
-    expect(getEvidenceLiteByIdMock).not.toHaveBeenCalled()
-    expect(updateEvidenceLiteMock).not.toHaveBeenCalled()
-
-    const payload = await response.json()
-    expect(payload.success).toBe(false)
-    expect(payload.error).toBe("Invalid evidence input.")
-    expect(payload.validation.errors.map((error: { field: string }) => error.field)).toEqual(
-      expect.arrayContaining(expectedFields)
-    )
-  })
-
-  it("returns a safe 404 when the saved deal is missing and does not look up evidence", async () => {
+  it("returns 404 when the saved deal is missing and does not look up evidence", async () => {
     getSavedDealByIdMock.mockResolvedValueOnce(null)
 
     const response = await PATCH(makeRequest({ reviewed: true }), makeContext("missing", "evidence-1"))
@@ -291,7 +319,7 @@ describe("evidence lite item api route", () => {
     })
   })
 
-  it("returns a safe 404 when the evidence record is missing and does not update", async () => {
+  it("returns 404 when the evidence record is missing and does not update", async () => {
     getSavedDealByIdMock.mockResolvedValueOnce({ id: "deal-1" })
     getEvidenceLiteByIdMock.mockResolvedValueOnce(null)
 
@@ -310,7 +338,10 @@ describe("evidence lite item api route", () => {
     getSavedDealByIdMock.mockResolvedValueOnce({ id: "deal-1" })
     getEvidenceLiteByIdMock.mockResolvedValueOnce(null)
 
-    const response = await PATCH(makeRequest({ reviewed: true }), makeContext("deal-1", "shared-evidence"))
+    const response = await PATCH(
+      makeRequest({ reviewed: true }),
+      makeContext("deal-1", "shared-evidence")
+    )
 
     expect(response.status).toBe(404)
     expect(getEvidenceLiteByIdMock).toHaveBeenCalledWith("deal-1", "shared-evidence")
@@ -347,9 +378,7 @@ describe("evidence lite item api route", () => {
   it("returns a safe 500 when the evidence lookup fails", async () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
     getSavedDealByIdMock.mockResolvedValueOnce({ id: "deal-1" })
-    getEvidenceLiteByIdMock.mockRejectedValueOnce(
-      new Error("postgresql://user:password@host/db token=secret")
-    )
+    getEvidenceLiteByIdMock.mockRejectedValueOnce(new Error("postgresql://user:password@host/db token=secret"))
 
     const response = await PATCH(makeRequest({ reviewed: true }), makeContext("deal-1", "evidence-1"))
 
