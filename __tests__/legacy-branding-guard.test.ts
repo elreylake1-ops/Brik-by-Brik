@@ -121,7 +121,7 @@ describe("legacy branding guard", () => {
   })
 
   it("keeps active source and docs covered while skipping only explicit audit artifacts", () => {
-    const files = walk(ROOT)
+    const files = collectActiveFiles()
 
     expect(files).toContain(path.join(ROOT, "app", "page.tsx"))
     expect(files).toContain(path.join(ROOT, "components", "ResultsDisplay.tsx"))
