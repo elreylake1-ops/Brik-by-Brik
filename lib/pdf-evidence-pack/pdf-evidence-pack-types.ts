@@ -1,6 +1,17 @@
 import type { InvestorShieldEnforcementResult } from "@/types/investor-shield-enforcement"
 import type { InvestorSummaryViewModel } from "@/types/investor-summary"
-import type { EvidenceLiteEvidenceType, EvidenceLiteGateKey, EvidenceLiteStatus } from "@/types/evidence-lite"
+import type {
+  EvidenceCommandBlockerImpact,
+  EvidenceCommandProfessionalGate,
+  EvidenceCommandReviewState,
+  EvidenceCommandStatus,
+  EvidenceCommandStrength,
+  EvidenceCommandType,
+  EvidenceLiteEvidenceType,
+  EvidenceLiteGateKey,
+  EvidenceLiteStatus,
+} from "@/types/evidence-lite"
+import type { InvestorShieldGateKey } from "@/types/investor-shield"
 
 export const PDF_EVIDENCE_PACK_SCHEMA_VERSION = "pdf-evidence-pack-v1" as const
 export type PdfEvidencePackSchemaVersion = typeof PDF_EVIDENCE_PACK_SCHEMA_VERSION
@@ -41,6 +52,18 @@ export type PdfEvidencePackEvidenceItem = {
   relatedGateIds: readonly EvidenceLiteGateKey[]
   controlledReferenceState: PdfEvidencePackReferenceState
   controlledReferenceLabel: string | null
+  evidenceCommandType?: EvidenceCommandType | null
+  linkedInvestorShieldGate?: InvestorShieldGateKey | null
+  linkedProfessionalGate?: EvidenceCommandProfessionalGate | null
+  evidenceSummary?: string | null
+  evidenceStatus?: EvidenceCommandStatus | null
+  evidenceStrength?: EvidenceCommandStrength | null
+  reviewState?: EvidenceCommandReviewState | null
+  blockerImpact?: EvidenceCommandBlockerImpact | null
+  recommendedNextAction?: string | null
+  expiryOrUpdateDate?: string | null
+  source?: string | null
+  mobileCaptureNote?: string | null
 }
 
 export type PdfEvidencePackDisclaimer = {

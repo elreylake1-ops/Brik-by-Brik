@@ -37,7 +37,55 @@ describe("projectEvidenceLiteRecordToPdfEvidenceItem", () => {
       relatedGateIds: ["SOLICITOR_REVIEW"],
       controlledReferenceState: "MISSING",
       controlledReferenceLabel: "Controlled reference unavailable",
+      evidenceCommandType: "TITLE_LEGAL",
+      linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+      linkedProfessionalGate: "NONE",
+      evidenceSummary: "Canonical title review note",
+      evidenceStatus: "RECEIVED",
+      evidenceStrength: "WEAK",
+      reviewState: "NOT_REVIEWED",
+      blockerImpact: "DOES_NOT_BLOCK",
+      recommendedNextAction: null,
+      expiryOrUpdateDate: null,
+      source: null,
+      mobileCaptureNote: null,
     })
+  })
+
+  it("projects explicit structured Evidence Command fields when present", () => {
+    const item = projectEvidenceLiteRecordToPdfEvidenceItem(
+      makeRecord({
+        evidenceCommandType: "PHOTO_EVIDENCE",
+        linkedInvestorShieldGate: "DAMP_STRUCTURAL",
+        linkedProfessionalGate: "SURVEYOR_REPORT",
+        evidenceSummary: "Photo set captured on site",
+        evidenceStatus: "RECEIVED",
+        evidenceStrength: "MODERATE",
+        reviewState: "PROFESSIONAL_CONFIRMED",
+        blockerImpact: "CAUTION_ONLY",
+        recommendedNextAction: "Review with surveyor",
+        expiryOrUpdateDate: "2026-07-01T00:00:00.000Z",
+        source: "mobile_capture",
+        mobileCaptureNote: "Captured during inspection",
+      })
+    )
+
+    expect(item).toMatchObject({
+      evidenceCommandType: "PHOTO_EVIDENCE",
+      linkedInvestorShieldGate: "DAMP_STRUCTURAL",
+      linkedProfessionalGate: "SURVEYOR_REPORT",
+      evidenceSummary: "Photo set captured on site",
+      evidenceStatus: "RECEIVED",
+      evidenceStrength: "MODERATE",
+      reviewState: "PROFESSIONAL_CONFIRMED",
+      blockerImpact: "CAUTION_ONLY",
+      recommendedNextAction: "Review with surveyor",
+      expiryOrUpdateDate: "2026-07-01T00:00:00.000Z",
+      source: "mobile_capture",
+      mobileCaptureNote: "Captured during inspection",
+    })
+    expect(item.reviewedAt).toBeNull()
+    expect(item.relatedGateIds).toEqual(["SOLICITOR_REVIEW"])
   })
 
   it("does not treat reviewed evidence as controlled-reference availability", () => {

@@ -1,5 +1,7 @@
 import {
   INVESTOR_REVIEW_EMPTY_ADVISORY_LABEL,
+  INVESTOR_REVIEW_NOT_AVAILABLE_LABEL,
+  type InvestorReviewEvidenceLiteRow,
   type InvestorReviewField,
   type InvestorReviewGateRow,
   type InvestorReviewSemanticTone,
@@ -39,9 +41,9 @@ function SectionHeading({
   )
 }
 
-function FieldCard({ field }: { field: InvestorReviewField }) {
+function FieldCard({ field, testId }: { field: InvestorReviewField; testId?: string }) {
   return (
-    <div className={`rounded-xl border px-4 py-3 ${toneClasses(field.tone)}`}>
+    <div data-testid={testId} className={`rounded-xl border px-4 py-3 ${toneClasses(field.tone)}`}>
       <p className="text-xs uppercase tracking-wide opacity-80">{field.label}</p>
       <p className="mt-1 break-words text-sm font-semibold">{field.value}</p>
     </div>
@@ -82,6 +84,139 @@ function GateCard({ row }: { row: InvestorReviewGateRow }) {
           <dd className="mt-1 break-words text-sm text-gray-800">{row.latestReferenceUpdate}</dd>
         </div>
       </dl>
+    </li>
+  )
+}
+
+function EvidenceRowCard({ row }: { row: InvestorReviewEvidenceLiteRow }) {
+  const rowTestId = `investor-review-evidence-row-${row.evidenceId}`
+  const evidenceSummary = row.evidenceSummary ?? row.note ?? INVESTOR_REVIEW_NOT_AVAILABLE_LABEL
+  const showLegacyNote = row.note !== null && row.note !== evidenceSummary
+  const referenceLabel = row.referenceLabel ?? INVESTOR_REVIEW_NOT_AVAILABLE_LABEL
+  const recommendedNextAction = row.recommendedNextAction ?? INVESTOR_REVIEW_NOT_AVAILABLE_LABEL
+  const expiryOrUpdateDate = row.expiryOrUpdateDate ?? INVESTOR_REVIEW_NOT_AVAILABLE_LABEL
+  const source = row.source ?? INVESTOR_REVIEW_NOT_AVAILABLE_LABEL
+  const mobileCaptureNote = row.mobileCaptureNote ?? INVESTOR_REVIEW_NOT_AVAILABLE_LABEL
+
+  return (
+    <li
+      data-testid={rowTestId}
+      className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-[0.18em] text-gray-500">Evidence command</p>
+          <h3 className="mt-1 text-base font-semibold text-gray-950">{row.title}</h3>
+          <p className="mt-2 break-all text-xs text-gray-500">Evidence ID: {row.evidenceId}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <span
+            data-testid={`${rowTestId}-status`}
+            className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${toneClasses(row.statusTone)}`}
+          >
+            {row.status}
+          </span>
+          <span
+            data-testid={`${rowTestId}-review-state`}
+            className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${toneClasses(row.reviewedTone)}`}
+          >
+            {row.reviewedLabel}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <FieldCard
+          testId={`${rowTestId}-field-evidence-type`}
+          field={{ label: "Evidence type", value: row.evidenceType }}
+        />
+        <FieldCard
+          testId={`${rowTestId}-field-related-hard-gates`}
+          field={{ label: "Related hard gate(s)", value: row.linkedGate }}
+        />
+        <FieldCard
+          testId={`${rowTestId}-field-linked-investor-shield-gate`}
+          field={{ label: "Linked Investor Shield gate", value: row.linkedInvestorShieldGate }}
+        />
+        <FieldCard
+          testId={`${rowTestId}-field-linked-professional-gate`}
+          field={{ label: "Linked professional gate", value: row.linkedProfessionalGate }}
+        />
+        <FieldCard
+          testId={`${rowTestId}-field-evidence-strength`}
+          field={{
+            label: "Evidence strength",
+            value: row.evidenceStrength,
+            tone: row.evidenceStrengthTone,
+          }}
+        />
+        <FieldCard
+          testId={`${rowTestId}-field-blocker-impact`}
+          field={{
+            label: "Blocker impact",
+            value: row.blockerImpact,
+            tone: row.blockerImpactTone,
+          }}
+        />
+        <FieldCard
+          testId={`${rowTestId}-field-relevant-timestamp`}
+          field={{ label: "Relevant timestamp", value: row.relevantTimestamp }}
+        />
+        <FieldCard
+          testId={`${rowTestId}-field-reference-label`}
+          field={{ label: "Reference label", value: referenceLabel }}
+        />
+        <FieldCard
+          testId={`${rowTestId}-field-expiry-or-update-date`}
+          field={{ label: "Expiry / update date", value: expiryOrUpdateDate }}
+        />
+        <FieldCard
+          testId={`${rowTestId}-field-source`}
+          field={{ label: "Source", value: source }}
+        />
+        <FieldCard
+          testId={`${rowTestId}-field-mobile-capture-note`}
+          field={{ label: "Mobile capture note", value: mobileCaptureNote }}
+        />
+        <FieldCard
+          testId={`${rowTestId}-field-recommended-next-action`}
+          field={{ label: "Recommended next action", value: recommendedNextAction }}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <div
+          data-testid={`${rowTestId}-summary`}
+          className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
+        >
+          <p className="text-xs uppercase tracking-wide text-gray-500">Evidence summary</p>
+          <p className="mt-2 break-words text-sm text-gray-700">{evidenceSummary}</p>
+        </div>
+        {showLegacyNote ? (
+          <div
+            data-testid={`${rowTestId}-note`}
+            className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
+          >
+            <p className="text-xs uppercase tracking-wide text-gray-500">Legacy note</p>
+            <p className="mt-2 break-words text-sm text-gray-700">{row.note}</p>
+          </div>
+        ) : null}
+        {row.reviewerNote ? (
+          <div
+            data-testid={`${rowTestId}-reviewer-note`}
+            className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
+          >
+            <p className="text-xs uppercase tracking-wide text-gray-500">Reviewer note</p>
+            <p className="mt-2 break-words text-sm text-gray-700">{row.reviewerNote}</p>
+          </div>
+        ) : null}
+      </div>
+
+      {row.clarificationNote ? (
+        <p className="mt-4 break-words rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+          {row.clarificationNote}
+        </p>
+      ) : null}
     </li>
   )
 }
@@ -193,59 +328,18 @@ export default function InvestorReviewDocument({ viewModel }: Props) {
         <section aria-labelledby="evidence-lite-notes" className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
           <SectionHeading id="evidence-lite-notes">Evidence Lite records</SectionHeading>
           <div className="mt-4 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950">
-            {viewModel.evidenceLiteNotice}
+            <p>{viewModel.evidenceLiteNotice}</p>
+            <p className="sr-only">
+              Evidence Lite is read-only evidence notes. It is informational only and does not
+              satisfy, waive, approve, or override Investor Shield requirements.
+            </p>
           </div>
           {viewModel.evidenceLiteRows.length === 0 ? (
             <p className="mt-4 text-sm text-gray-700">{viewModel.emptyEvidenceLiteText}</p>
           ) : (
             <ul className="mt-4 space-y-4">
               {viewModel.evidenceLiteRows.map((row) => (
-                <li key={row.evidenceId} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="text-xs uppercase tracking-[0.18em] text-gray-500">Evidence note</p>
-                      <h3 className="mt-1 text-base font-semibold text-gray-950">{row.title}</h3>
-                      <p className="mt-2 break-all text-xs text-gray-500">Evidence ID: {row.evidenceId}</p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${toneClasses(row.statusTone)}`}>
-                        {row.status}
-                      </span>
-                      <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${toneClasses(row.reviewedTone)}`}>
-                        {row.reviewedLabel}
-                      </span>
-                    </div>
-                  </div>
-                  <dl className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    <div>
-                      <dt className="text-xs uppercase tracking-wide text-gray-500">Evidence type</dt>
-                      <dd className="mt-1 break-words text-sm text-gray-800">{row.evidenceType}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs uppercase tracking-wide text-gray-500">Linked gate</dt>
-                      <dd className="mt-1 break-words text-sm text-gray-800">{row.linkedGate}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs uppercase tracking-wide text-gray-500">Relevant timestamp</dt>
-                      <dd className="mt-1 break-words text-sm text-gray-800">{row.relevantTimestamp}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs uppercase tracking-wide text-gray-500">Reference label</dt>
-                      <dd className="mt-1 break-words text-sm text-gray-800">{row.referenceLabel ?? "Not available"}</dd>
-                    </div>
-                  </dl>
-                  {row.clarificationNote ? (
-                    <p className="mt-4 break-words rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
-                      {row.clarificationNote}
-                    </p>
-                  ) : null}
-                  {row.note ? <p className="mt-4 break-words text-sm text-gray-700">{row.note}</p> : null}
-                  {row.reviewerNote ? (
-                    <p className="mt-2 break-words text-sm text-gray-700">
-                      Reviewer note: {row.reviewerNote}
-                    </p>
-                  ) : null}
-                </li>
+                <EvidenceRowCard key={row.evidenceId} row={row} />
               ))}
             </ul>
           )}

@@ -171,9 +171,30 @@ describe("mapPdfEvidencePackToInvestorReview", () => {
     )
   })
 
-  it("maps Evidence Lite items as informational only and omits reviewer notes when unavailable", () => {
+  it("maps Evidence Command fields as informational only and omits reviewer notes when unavailable", () => {
+    const pack = {
+      ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
+      evidenceIndex: [
+        {
+          ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.evidenceIndex[0],
+          evidenceCommandType: "PHOTO_EVIDENCE",
+          linkedInvestorShieldGate: "DAMP_STRUCTURAL",
+          linkedProfessionalGate: "SURVEYOR_REPORT",
+          evidenceSummary: "Captured site photo set",
+          evidenceStatus: "RECEIVED",
+          evidenceStrength: "STRONG",
+          reviewState: "PROFESSIONAL_CONFIRMED",
+          blockerImpact: "CAUTION_ONLY",
+          recommendedNextAction: "Review survey photos",
+          expiryOrUpdateDate: "2026-06-30T09:00:00.000Z",
+          source: "mobile_capture",
+          mobileCaptureNote: "Captured on site",
+        },
+      ],
+    }
+
     const viewModel = mapPdfEvidencePackToInvestorReview({
-      pack: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
+      pack,
       savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId }),
     })
 
@@ -181,12 +202,28 @@ describe("mapPdfEvidencePackToInvestorReview", () => {
     expect(viewModel.evidenceLiteRows).toHaveLength(1)
     expect(viewModel.evidenceLiteRows[0]).toEqual(
       expect.objectContaining({
-        status: "MISSING",
-        statusTone: "caution",
-        reviewedLabel: "Not reviewed",
-        reviewedTone: "caution",
-        reviewerNote: null,
+        evidenceType: "Photo evidence",
         linkedGate: "Title Review",
+        linkedInvestorShieldGate: "Damp and Structural Review",
+        linkedProfessionalGate: "Surveyor report",
+        status: "RECEIVED",
+        statusTone: "informational",
+        reviewedLabel: "Professional confirmed",
+        reviewedTone: "success",
+        evidenceStatus: "RECEIVED",
+        evidenceStatusTone: "informational",
+        reviewState: "PROFESSIONAL_CONFIRMED",
+        reviewStateTone: "success",
+        evidenceStrength: "Strong",
+        evidenceStrengthTone: "success",
+        blockerImpact: "Caution only",
+        blockerImpactTone: "caution",
+        evidenceSummary: "Captured site photo set",
+        reviewerNote: null,
+        recommendedNextAction: "Review survey photos",
+        expiryOrUpdateDate: "2026-06-30 09:00 UTC",
+        source: "mobile_capture",
+        mobileCaptureNote: "Captured on site",
       })
     )
   })

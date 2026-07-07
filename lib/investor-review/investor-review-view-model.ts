@@ -10,7 +10,7 @@ export const INVESTOR_REVIEW_EMPTY_OFFERS_LABEL =
 export const INVESTOR_REVIEW_EMPTY_ADVISORY_LABEL =
   "No advisory or caution items are currently recorded." as const
 export const INVESTOR_REVIEW_EVIDENCE_LITE_NOTICE =
-  "Evidence Lite is read-only evidence notes. It is informational only and does not satisfy, waive, approve, or override Investor Shield requirements." as const
+  "Evidence supports review but does not automatically satisfy Investor Shield hard gates, waive requirements, approve progression, or replace professional confirmation." as const
 export const INVESTOR_REVIEW_EVIDENCE_NOT_SUFFICIENT_NOTICE =
   "Evidence record present, but not reviewed and not sufficient to satisfy gate." as const
 
@@ -91,12 +91,27 @@ export type InvestorReviewEvidenceLiteRow = {
   title: string
   evidenceType: string
   linkedGate: string
+  linkedInvestorShieldGate: string
+  linkedProfessionalGate: string
   status: string
   statusTone: InvestorReviewSemanticTone
   reviewedLabel: string
   reviewedTone: InvestorReviewSemanticTone
+  evidenceStatus: string
+  evidenceStatusTone: InvestorReviewSemanticTone
+  reviewState: string
+  reviewStateTone: InvestorReviewSemanticTone
+  evidenceStrength: string
+  evidenceStrengthTone: InvestorReviewSemanticTone
+  blockerImpact: string
+  blockerImpactTone: InvestorReviewSemanticTone
+  evidenceSummary: string | null
   note: string | null
   reviewerNote: string | null
+  recommendedNextAction: string | null
+  expiryOrUpdateDate: string | null
+  source: string | null
+  mobileCaptureNote: string | null
   referenceLabel: string | null
   relevantTimestamp: string
   clarificationNote: string | null

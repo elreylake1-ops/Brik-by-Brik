@@ -58,6 +58,70 @@ function labelFor(value: string): string {
   return formatLabel(value)
 }
 
+const EVIDENCE_COMMAND_TYPE_LABELS: Record<string, string> = {
+  SOLD_COMPARABLE: "Sold comparable",
+  TITLE_LEGAL: "Title / legal",
+  LEASEHOLD: "Leasehold",
+  PLANNING_BUILDING_CONTROL: "Planning / building control",
+  REFURB: "Refurb",
+  BUILDER_QUOTE: "Builder quote",
+  DAMP_STRUCTURAL: "Damp / structural",
+  LENDER_BROKER: "Lender / broker",
+  RENTAL_DEMAND: "Rental demand",
+  SOLICITOR_REVIEW: "Solicitor review",
+  AGENT_RESPONSE: "Agent response",
+  PHOTO_EVIDENCE: "Photo evidence",
+  VIDEO_EVIDENCE: "Video evidence",
+  SURVEYOR_EVIDENCE: "Surveyor evidence",
+  OFFER_NEGOTIATION_EVIDENCE: "Offer / negotiation evidence",
+  OTHER: "Other",
+}
+
+const EVIDENCE_COMMAND_STRENGTH_LABELS: Record<string, string> = {
+  WEAK: "Weak",
+  MODERATE: "Moderate",
+  STRONG: "Strong",
+}
+
+const EVIDENCE_COMMAND_REVIEW_STATE_LABELS: Record<string, string> = {
+  NOT_REVIEWED: "Not reviewed",
+  REVIEWED_BY_OPERATOR: "Reviewed by operator",
+  PROFESSIONAL_REVIEW_REQUIRED: "Professional review required",
+  PROFESSIONAL_CONFIRMED: "Professional confirmed",
+}
+
+const EVIDENCE_COMMAND_BLOCKER_IMPACT_LABELS: Record<string, string> = {
+  DOES_NOT_BLOCK: "Does not block",
+  CAUTION_ONLY: "Caution only",
+  BLOCKS_PROGRESSION: "Blocks progression",
+  REQUIRES_MANUAL_REVIEW: "Requires manual review",
+}
+
+const EVIDENCE_COMMAND_PROFESSIONAL_GATE_LABELS: Record<string, string> = {
+  NONE: "None",
+  SOLICITOR_TITLE_REVIEW: "Solicitor title review",
+  BROKER_CONFIRMATION: "Broker confirmation",
+  SURVEYOR_REPORT: "Surveyor report",
+  BUILDER_QUOTE: "Builder quote",
+  PLANNING_BUILDING_CONTROL_CONFIRMATION: "Planning / building control confirmation",
+  ACTUAL_SOLD_COMPARABLE_REVIEW: "Actual sold comparable review",
+  LENDER_BROKER_CONFIRMATION: "Lender / broker confirmation",
+  SPECIALIST_REPORT: "Specialist report",
+}
+
+function labelFromMap(value: string | null | undefined, labels: Record<string, string>): string {
+  if (typeof value !== "string") {
+    return INVESTOR_REVIEW_NOT_AVAILABLE_LABEL
+  }
+
+  const trimmed = value.trim()
+  if (trimmed.length === 0) {
+    return INVESTOR_REVIEW_NOT_AVAILABLE_LABEL
+  }
+
+  return labels[trimmed] ?? labelFor(trimmed)
+}
+
 function gateLabelFor(value: string): string {
   if (value === "SOLICITOR_FEEDBACK" || value === "SOLICITOR_REVIEW") {
     return "Solicitor Review"
@@ -75,12 +139,155 @@ function displayGateKey(gateKey: string): string {
     : gateKey
 }
 
-function evidenceTypeLabelFor(value: string): string {
-  if (value === "SOLICITOR_REVIEW" || value === "SOLICITOR_FEEDBACK") {
-    return "Solicitor Review"
+function mapLegacyEvidenceTypeToCommandType(value: string): string {
+  switch (value) {
+    case "SOLD_COMP":
+      return "SOLD_COMPARABLE"
+    case "TITLE_REVIEW":
+      return "TITLE_LEGAL"
+    case "LEASEHOLD_REVIEW":
+      return "LEASEHOLD"
+    case "PLANNING_BUILDING_CONTROL":
+      return "PLANNING_BUILDING_CONTROL"
+    case "REFURB_NOTE":
+      return "REFURB"
+    case "BUILDER_QUOTE":
+      return "BUILDER_QUOTE"
+    case "SURVEY_NOTE":
+      return "SURVEYOR_EVIDENCE"
+    case "LENDER_NOTE":
+      return "LENDER_BROKER"
+    case "RENTAL_DEMAND":
+      return "RENTAL_DEMAND"
+    case "SOLICITOR_REVIEW":
+      return "SOLICITOR_REVIEW"
+    default:
+      return "OTHER"
+  }
+}
+
+function mapLegacyStatusToEvidenceStatus(value: string): string {
+  switch (value) {
+    case "MISSING":
+      return "MISSING"
+    case "RECORDED":
+      return "RECEIVED"
+    case "REVIEWED":
+      return "REVIEWED"
+    case "VERIFIED":
+      return "SUFFICIENT"
+    case "REJECTED":
+      return "REJECTED"
+    default:
+      return "MISSING"
+  }
+}
+
+function evidenceTypeLabelForItem(item: PdfEvidencePack["evidenceIndex"][number]): string {
+  const commandType = item.evidenceCommandType ?? mapLegacyEvidenceTypeToCommandType(item.evidenceType)
+  return labelFromMap(commandType, EVIDENCE_COMMAND_TYPE_LABELS)
+}
+
+function evidenceStatusForItem(item: PdfEvidencePack["evidenceIndex"][number]): string {
+  return item.evidenceStatus ?? mapLegacyStatusToEvidenceStatus(item.reviewStatus)
+}
+
+function evidenceStatusToneForItem(item: PdfEvidencePack["evidenceIndex"][number]): InvestorReviewSemanticTone {
+  const status = evidenceStatusForItem(item)
+  switch (status) {
+    case "SUFFICIENT":
+      return "success"
+    case "RECEIVED":
+    case "REVIEWED":
+    case "REQUESTED":
+      return "informational"
+    case "MISSING":
+    case "INSUFFICIENT":
+    case "EXPIRED":
+      return "caution"
+    case "REJECTED":
+      return "blocked"
+    default:
+      return "neutral"
+  }
+}
+
+function reviewStateForItem(item: PdfEvidencePack["evidenceIndex"][number]): string {
+  return item.reviewState ?? (item.reviewedAt !== null ? "REVIEWED_BY_OPERATOR" : "NOT_REVIEWED")
+}
+
+function reviewStateLabelForItem(item: PdfEvidencePack["evidenceIndex"][number]): string {
+  return labelFromMap(reviewStateForItem(item), EVIDENCE_COMMAND_REVIEW_STATE_LABELS)
+}
+
+function reviewStateToneForItem(item: PdfEvidencePack["evidenceIndex"][number]): InvestorReviewSemanticTone {
+  const reviewState = reviewStateForItem(item)
+  switch (reviewState) {
+    case "PROFESSIONAL_CONFIRMED":
+      return "success"
+    case "REVIEWED_BY_OPERATOR":
+      return "informational"
+    case "NOT_REVIEWED":
+    case "PROFESSIONAL_REVIEW_REQUIRED":
+      return "caution"
+    default:
+      return "neutral"
+  }
+}
+
+function evidenceStrengthLabelForItem(item: PdfEvidencePack["evidenceIndex"][number]): string {
+  return labelFromMap(item.evidenceStrength ?? "WEAK", EVIDENCE_COMMAND_STRENGTH_LABELS)
+}
+
+function evidenceStrengthToneForItem(item: PdfEvidencePack["evidenceIndex"][number]): InvestorReviewSemanticTone {
+  switch (item.evidenceStrength ?? "WEAK") {
+    case "STRONG":
+      return "success"
+    case "MODERATE":
+      return "informational"
+    case "WEAK":
+    default:
+      return "caution"
+  }
+}
+
+function blockerImpactLabelForItem(item: PdfEvidencePack["evidenceIndex"][number]): string {
+  return labelFromMap(item.blockerImpact ?? "DOES_NOT_BLOCK", EVIDENCE_COMMAND_BLOCKER_IMPACT_LABELS)
+}
+
+function blockerImpactToneForItem(item: PdfEvidencePack["evidenceIndex"][number]): InvestorReviewSemanticTone {
+  switch (item.blockerImpact ?? "DOES_NOT_BLOCK") {
+    case "DOES_NOT_BLOCK":
+      return "success"
+    case "CAUTION_ONLY":
+      return "caution"
+    case "BLOCKS_PROGRESSION":
+      return "blocked"
+    case "REQUIRES_MANUAL_REVIEW":
+    default:
+      return "informational"
+  }
+}
+
+function linkedInvestorShieldGateLabelForItem(
+  item: PdfEvidencePack["evidenceIndex"][number]
+): string {
+  const value = item.linkedInvestorShieldGate ?? item.relatedGateIds[0] ?? null
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return INVESTOR_REVIEW_NOT_AVAILABLE_LABEL
   }
 
-  return labelFor(value)
+  return gateLabelFor(value)
+}
+
+function linkedProfessionalGateLabelForItem(
+  item: PdfEvidencePack["evidenceIndex"][number]
+): string {
+  return labelFromMap(item.linkedProfessionalGate ?? "NONE", EVIDENCE_COMMAND_PROFESSIONAL_GATE_LABELS)
+}
+
+function expiryOrUpdateDateForItem(item: PdfEvidencePack["evidenceIndex"][number]): string | null {
+  return formatTimestamp(item.expiryOrUpdateDate)
 }
 
 function displayActionText(actionText: string): string {
@@ -230,35 +437,49 @@ function mapAdvisoryItems(pack: PdfEvidencePack): readonly InvestorReviewAdvisor
 
 function mapEvidenceLiteRows(pack: PdfEvidencePack): readonly InvestorReviewEvidenceLiteRow[] {
   return pack.evidenceIndex.map((item) => {
-    const statusTone =
-      item.reviewStatus === "VERIFIED"
-        ? "success"
-        : item.reviewStatus === "REVIEWED" || item.reviewStatus === "RECORDED"
-          ? "informational"
-          : item.reviewStatus === "MISSING"
-            ? "caution"
-            : "blocked"
-
-    const reviewed = item.reviewedAt !== null
+    const evidenceStatus = evidenceStatusForItem(item)
+    const reviewState = reviewStateForItem(item)
+    const evidenceStrength = evidenceStrengthLabelForItem(item)
+    const blockerImpact = blockerImpactLabelForItem(item)
+    const evidenceSummary = item.evidenceSummary ?? item.description
+    const recommendedNextAction = item.recommendedNextAction ?? null
+    const expiryOrUpdateDate = expiryOrUpdateDateForItem(item)
+    const source = item.source ?? null
+    const mobileCaptureNote = item.mobileCaptureNote ?? null
 
     return {
       evidenceId: item.evidenceId,
       title: item.title,
-      evidenceType: evidenceTypeLabelFor(item.evidenceType),
+      evidenceType: evidenceTypeLabelForItem(item),
       linkedGate:
         item.relatedGateIds.length > 0
           ? item.relatedGateIds.map(gateLabelFor).join(", ")
           : INVESTOR_REVIEW_NOT_AVAILABLE_LABEL,
-      status: item.reviewStatus,
-      statusTone,
-      reviewedLabel: reviewed ? "Reviewed" : "Not reviewed",
-      reviewedTone: reviewed ? "informational" : "caution",
+      linkedInvestorShieldGate: linkedInvestorShieldGateLabelForItem(item),
+      linkedProfessionalGate: linkedProfessionalGateLabelForItem(item),
+      status: evidenceStatus,
+      statusTone: evidenceStatusToneForItem(item),
+      reviewedLabel: reviewStateLabelForItem(item),
+      reviewedTone: reviewStateToneForItem(item),
+      evidenceStatus,
+      evidenceStatusTone: evidenceStatusToneForItem(item),
+      reviewState,
+      reviewStateTone: reviewStateToneForItem(item),
+      evidenceStrength,
+      evidenceStrengthTone: evidenceStrengthToneForItem(item),
+      blockerImpact,
+      blockerImpactTone: blockerImpactToneForItem(item),
+      evidenceSummary,
       note: item.description,
       reviewerNote: null,
+      recommendedNextAction,
+      expiryOrUpdateDate,
+      source,
+      mobileCaptureNote,
       referenceLabel: item.controlledReferenceLabel,
       relevantTimestamp: formatTimestamp(item.reviewedAt ?? item.capturedAt),
       clarificationNote:
-        item.reviewStatus === "MISSING" && !reviewed
+        evidenceStatus === "MISSING" && reviewState === "NOT_REVIEWED"
           ? INVESTOR_REVIEW_EVIDENCE_NOT_SUFFICIENT_NOTICE
           : null,
     }

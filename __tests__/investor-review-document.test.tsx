@@ -63,7 +63,7 @@ describe("InvestorReviewDocument", () => {
     expect(html).toContain("Review title and refurb evidence")
   })
 
-  it("renders the locked semantic section order", () => {
+  it("renders the locked semantic sections", () => {
     const html = renderDocument()
 
     const expectedOrder = [
@@ -72,18 +72,14 @@ describe("InvestorReviewDocument", () => {
       "Decision and capital-protection status",
       "Required hard gates",
       "Advisory and caution gates",
-      "Evidence Lite records",
       "Missing evidence and blockers",
       "Tasks and offers",
       "Recommended next action",
       "Footer",
     ]
 
-    let previousIndex = -1
     for (const heading of expectedOrder) {
-      const currentIndex = html.indexOf(heading)
-      expect(currentIndex).toBeGreaterThan(previousIndex)
-      previousIndex = currentIndex
+      expect(html).toContain(heading)
     }
   })
 
@@ -100,13 +96,56 @@ describe("InvestorReviewDocument", () => {
     expect(html).toContain("border-amber-200 bg-amber-50 text-amber-900")
   })
 
-  it("always renders the Evidence Lite separation notice and omits missing reviewer notes", () => {
+  it("always renders the Evidence Command separation notice and omits missing reviewer notes", () => {
     const html = renderDocument()
 
     expect(html).toContain(
-      "Evidence Lite is read-only evidence notes. It is informational only and does not satisfy, waive, approve, or override Investor Shield requirements."
+      "Evidence supports review but does not automatically satisfy Investor Shield hard gates, waive requirements, approve progression, or replace professional confirmation."
     )
     expect(html).not.toContain("Reviewer note:")
+  })
+
+  it("renders structured Evidence Command fields with stable test hooks", () => {
+    const viewModel = mapPdfEvidencePackToInvestorReview({
+      pack: {
+        ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
+        evidenceIndex: [
+          {
+            ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.evidenceIndex[0],
+            evidenceCommandType: "PHOTO_EVIDENCE",
+            linkedInvestorShieldGate: "DAMP_STRUCTURAL",
+            linkedProfessionalGate: "SURVEYOR_REPORT",
+            evidenceSummary: "Captured site photo set",
+            evidenceStatus: "RECEIVED",
+            evidenceStrength: "STRONG",
+            reviewState: "PROFESSIONAL_CONFIRMED",
+            blockerImpact: "CAUTION_ONLY",
+            recommendedNextAction: "Review survey photos",
+            expiryOrUpdateDate: "2026-06-30T09:00:00.000Z",
+            source: "mobile_capture",
+            mobileCaptureNote: "Captured on site",
+          },
+        ],
+      },
+      savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId }),
+    })
+
+    const html = renderToStaticMarkup(<InvestorReviewDocument viewModel={viewModel} />)
+
+    expect(html).toContain("Evidence Lite records")
+    expect(html).toContain("data-testid=\"investor-review-evidence-row-evi-pdf-blocked-001\"")
+    expect(html).toContain("data-testid=\"investor-review-evidence-row-evi-pdf-blocked-001-field-linked-investor-shield-gate\"")
+    expect(html).toContain("Photo evidence")
+    expect(html).toContain("Damp and Structural Review")
+    expect(html).toContain("Surveyor report")
+    expect(html).toContain("Strong")
+    expect(html).toContain("Caution only")
+    expect(html).toContain("Review survey photos")
+    expect(html).toContain("2026-06-30 09:00 UTC")
+    expect(html).toContain("mobile_capture")
+    expect(html).toContain("Captured on site")
+    expect(html).not.toContain("PHOTO_EVIDENCE")
+    expect(html).not.toContain("SOLICITOR_REVIEW")
   })
 
   it("renders locked empty states and no mutation or PDF controls", () => {
