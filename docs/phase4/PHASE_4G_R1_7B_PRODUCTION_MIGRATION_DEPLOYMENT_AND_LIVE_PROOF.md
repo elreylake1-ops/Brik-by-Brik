@@ -60,18 +60,18 @@ Execute the approved additive Evidence Command migration in production, deploy c
 - A fresh browser context on the Investor Review page showed the same structured evidence row after reload.
 
 ### Mobile Proof
-- Evidence Command mobile screenshot: `C:\Users\user\Documents\Lake Views Property\review-screenshots-4G-R1\evidence-command-mobile.png`
-- Investor Review structured evidence mobile screenshot: `C:\Users\user\Documents\Lake Views Property\review-screenshots-4G-R1\investor-review-structured-evidence-mobile.png`
+- Evidence Command mobile screenshot: `C:\Users\user\Documents\review-screenshots-4G-R1\evidence-command-mobile.png`
+- Investor Review structured evidence mobile screenshot: `C:\Users\user\Documents\review-screenshots-4G-R1\investor-review-structured-evidence-mobile.png`
 
 ### Desktop Proof
-- Evidence Command desktop screenshot: `C:\Users\user\Documents\Lake Views Property\review-screenshots-4G-R1\evidence-command-desktop.png`
-- Investor Review structured evidence desktop screenshot: `C:\Users\user\Documents\Lake Views Property\review-screenshots-4G-R1\investor-review-structured-evidence-desktop.png`
+- Evidence Command desktop screenshot: `C:\Users\user\Documents\review-screenshots-4G-R1\evidence-command-desktop.png`
+- Investor Review structured evidence desktop screenshot: `C:\Users\user\Documents\review-screenshots-4G-R1\investor-review-structured-evidence-desktop.png`
 
 ### Hard-Gate and Blocked-Movement Proof
 - The Evidence Command record displayed non-satisfying values: `WEAK`, `NOT_REVIEWED`, `CAUTION_ONLY`.
 - The Investor Review page displayed the structured evidence row with the linked gate and professional gate values.
 - The protected movement panel displayed `Movement allowed: No`, `Pipeline mutation prevented: Yes`, and `Protected movement blocked.`
-- Blocked movement screenshot: `C:\Users\user\Documents\Lake Views Property\review-screenshots-4G-R1\blocked-movement-proof.png`
+- Blocked movement screenshot: `C:\Users\user\Documents\review-screenshots-4G-R1\blocked-movement-proof.png`
 
 ### Duplicate-Task Safety Proof
 - No task creation endpoint was called as part of the evidence POST.
@@ -92,11 +92,11 @@ Execute the approved additive Evidence Command migration in production, deploy c
 - The release tag remains blocked.
 
 ## Screenshot Paths
-- `C:\Users\user\Documents\Lake Views Property\review-screenshots-4G-R1\evidence-command-desktop.png`
-- `C:\Users\user\Documents\Lake Views Property\review-screenshots-4G-R1\evidence-command-mobile.png`
-- `C:\Users\user\Documents\Lake Views Property\review-screenshots-4G-R1\investor-review-structured-evidence-desktop.png`
-- `C:\Users\user\Documents\Lake Views Property\review-screenshots-4G-R1\investor-review-structured-evidence-mobile.png`
-- `C:\Users\user\Documents\Lake Views Property\review-screenshots-4G-R1\blocked-movement-proof.png`
+- `C:\Users\user\Documents\review-screenshots-4G-R1\evidence-command-desktop.png`
+- `C:\Users\user\Documents\review-screenshots-4G-R1\evidence-command-mobile.png`
+- `C:\Users\user\Documents\review-screenshots-4G-R1\investor-review-structured-evidence-desktop.png`
+- `C:\Users\user\Documents\review-screenshots-4G-R1\investor-review-structured-evidence-mobile.png`
+- `C:\Users\user\Documents\review-screenshots-4G-R1\blocked-movement-proof.png`
 
 ## Result
 PHASE 4G-R1-7B PRODUCTION MIGRATION DEPLOYMENT AND LIVE PROOF COMPLETE — READY FOR PHASE 4G-R1-8 FINAL R1 ACCEPTANCE PACK
