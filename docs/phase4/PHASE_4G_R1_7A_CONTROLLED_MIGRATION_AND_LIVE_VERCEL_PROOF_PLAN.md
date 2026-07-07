@@ -9,13 +9,16 @@ This is the pre-execution plan for controlled migration, deployment, and live Ve
 - the migration draft exists
 - the migration has not been applied
 - production has not been touched
+- no production access occurred during 7A
+- no production migration approval has been executed through this step
+- no production deployment approval has been executed through this step
 - live Vercel proof is still pending
 - the release tag remains blocked
 
 ## Baseline
 - branch: `main`
 - `HEAD` equals `origin/main`
-- latest commit: `b7bfc4a14137ddb553b150ca098bcac0a7613b36`
+- latest commit: `28f1305af9600d72f790598b0cb811e9e9056f11`
 - only `.gitignore` is dirty
 
 ## Migration Readiness
@@ -40,14 +43,16 @@ This is the pre-execution plan for controlled migration, deployment, and live Ve
 - migration must be reviewed before execution: yes
 
 ## Required Pre-Migration Checks
-- confirm the correct Supabase project
-- confirm the database backup/restore path
-- confirm restore authority
-- confirm owner approval
-- confirm the production URL
-- confirm current `HEAD` / `origin/main`
-- confirm build, lint, and test are green
-- confirm `.gitignore` remains unstaged
+- must be confirmed before 4G-R1-7B: the correct Supabase project
+- must be confirmed before 4G-R1-7B: the database backup/restore path
+- restore authority remains subject to confirmation before migration execution, unless separately documented in writing
+- must be confirmed before 4G-R1-7B: owner approval
+- must be confirmed before 4G-R1-7B: the production URL
+- must be confirmed before 4G-R1-7B: current `HEAD` / `origin/main`
+- must be confirmed before 4G-R1-7B: build, lint, and test are green
+- must be confirmed before 4G-R1-7B: `.gitignore` remains unstaged
+
+These checks are required before 4G-R1-7B and were not performed during 7A.
 
 ## Controlled Execution Plan
 Do not execute these steps in this phase.
