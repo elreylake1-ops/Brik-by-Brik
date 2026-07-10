@@ -90,7 +90,7 @@ const sampleRiskFlags: readonly RiskFlag[] = [
 const sampleManualOverrides: readonly ManualOverride[] = [
   {
     dealId: "deal-read-1",
-    gateKey: "SOLICITOR_FEEDBACK",
+    gateKey: "SOLICITOR_REVIEW",
     reason: "Override reason present.",
   },
 ]

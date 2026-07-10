@@ -13,7 +13,7 @@ export const INVESTOR_SHIELD_GATE_KEYS = [
   "DAMP_STRUCTURAL",
   "LENDER_CRITERIA",
   "RENTAL_DEMAND",
-  "SOLICITOR_FEEDBACK",
+  "SOLICITOR_REVIEW",
 ] as const
 
 export type InvestorShieldGateKey = typeof INVESTOR_SHIELD_GATE_KEYS[number]

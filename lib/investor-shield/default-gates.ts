@@ -107,7 +107,7 @@ export const INVESTOR_SHIELD_DEFAULT_GATES: readonly InvestorShieldGateDefinitio
     evidenceTypes: ["RENTAL_EVIDENCE"],
   },
   {
-    key: "SOLICITOR_FEEDBACK",
+    key: "SOLICITOR_REVIEW",
     label: "Solicitor Review",
     description:
       "Requires solicitor review before progression where legal issues may affect title certainty, timing, or transaction safety.",

@@ -228,22 +228,22 @@ describe("mapPdfEvidencePackToInvestorReview", () => {
     )
   })
 
-  it("normalizes the solicitor gate display key while keeping canonical SOLICITOR_FEEDBACK keying intact", () => {
+  it("normalizes the solicitor gate display key while keeping canonical SOLICITOR_REVIEW keying intact", () => {
     const pack = {
       ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
       investorShield: {
         ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorShield,
-        blockingGateKeys: ["SOLICITOR_FEEDBACK"],
-        missingEvidenceGateKeys: ["SOLICITOR_FEEDBACK"],
+        blockingGateKeys: ["SOLICITOR_REVIEW"],
+        missingEvidenceGateKeys: ["SOLICITOR_REVIEW"],
         taskRecommendations: [
           {
-            gateKey: "SOLICITOR_FEEDBACK",
+            gateKey: "SOLICITOR_REVIEW",
             type: "REQUEST_EVIDENCE",
             title: "Review solicitor feedback",
             reason: "Solicitor feedback is still missing.",
             severity: "BLOCKER",
             source: "system_default",
-            idempotencyKey: "investor-shield:test-solicitor:SOLICITOR_FEEDBACK:REQUEST_EVIDENCE",
+            idempotencyKey: "investor-shield:test-solicitor:SOLICITOR_REVIEW:REQUEST_EVIDENCE",
           },
         ],
       },
@@ -253,7 +253,7 @@ describe("mapPdfEvidencePackToInvestorReview", () => {
           ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorSummary.investorShield,
           blockedGates: [
             {
-              gateKey: "SOLICITOR_FEEDBACK",
+              gateKey: "SOLICITOR_REVIEW",
               label: "Solicitor Review",
               gateType: "required" as const,
               blockerReason: "Solicitor review evidence remains outstanding.",
@@ -282,7 +282,7 @@ describe("mapPdfEvidencePackToInvestorReview", () => {
     expect(viewModel.followUpRequirements).not.toContain("Review solicitor feedback")
 
     const html = JSON.stringify(viewModel)
-    expect(html).not.toContain("SOLICITOR_FEEDBACK")
+    expect(html).not.toContain("SOLICITOR_REVIEW")
     expect(html).not.toContain("SOLICITOR_REVIEW")
     expect(html).not.toContain("Solicitor Feedback")
   })
@@ -306,7 +306,7 @@ describe("mapPdfEvidencePackToInvestorReview", () => {
       ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
       investorShield: {
         ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorShield,
-        blockingGateKeys: ["SOLD_COMPS", "TITLE", "REFURB_CERTAINTY", "BUILDER_PROPOSAL_CONTRACT", "DAMP_STRUCTURAL", "LENDER_CRITERIA", "SOLICITOR_FEEDBACK"],
+        blockingGateKeys: ["SOLD_COMPS", "TITLE", "REFURB_CERTAINTY", "BUILDER_PROPOSAL_CONTRACT", "DAMP_STRUCTURAL", "LENDER_CRITERIA", "SOLICITOR_REVIEW"],
       },
     }
 

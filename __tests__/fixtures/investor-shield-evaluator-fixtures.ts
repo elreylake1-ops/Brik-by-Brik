@@ -273,7 +273,7 @@ export const INVESTOR_SHIELD_EVALUATOR_FIXTURES: readonly InvestorShieldEvaluato
     name: "manual waiver without reason",
     input: makeInput({
       checks: makeChecks([
-        { gateKey: "SOLICITOR_FEEDBACK", status: "WAIVED", severity: "BLOCKER" },
+        { gateKey: "SOLICITOR_REVIEW", status: "WAIVED", severity: "BLOCKER" },
       ]),
     }),
     expected: {
@@ -281,20 +281,20 @@ export const INVESTOR_SHIELD_EVALUATOR_FIXTURES: readonly InvestorShieldEvaluato
       progressionDecision: "BLOCKED",
       canProgress: false,
       blockingReasons: ["MANUAL_OVERRIDE_REQUIRED"],
-      blockingGateKeys: ["SOLICITOR_FEEDBACK"],
-      cautionGateKeys: ["SOLICITOR_FEEDBACK"],
+      blockingGateKeys: ["SOLICITOR_REVIEW"],
+      cautionGateKeys: ["SOLICITOR_REVIEW"],
       missingEvidenceGateKeys: [],
       advisoryOnlyEvidenceWarnings: [],
       taskRecommendations: [
         {
-          gateKey: "SOLICITOR_FEEDBACK",
+          gateKey: "SOLICITOR_REVIEW",
           type: "REVIEW_GATE",
           title: "Review gate",
           reason: "Solicitor Review was waived and requires manual justification review.",
           severity: "BLOCKER",
           source: "system_default",
           idempotencyKey:
-            "investor-shield:saved-deal-text-id-4c3:SOLICITOR_FEEDBACK:REVIEW_GATE",
+            "investor-shield:saved-deal-text-id-4c3:SOLICITOR_REVIEW:REVIEW_GATE",
         },
       ],
     },
@@ -304,12 +304,12 @@ export const INVESTOR_SHIELD_EVALUATOR_FIXTURES: readonly InvestorShieldEvaluato
     name: "manual waiver with reason",
     input: makeInput({
       checks: makeChecks([
-        { gateKey: "SOLICITOR_FEEDBACK", status: "WAIVED", severity: "BLOCKER" },
+        { gateKey: "SOLICITOR_REVIEW", status: "WAIVED", severity: "BLOCKER" },
       ]),
       manualOverrides: [
         {
           dealId: INVESTOR_SHIELD_EVALUATOR_FIXTURE_DEAL_ID,
-          gateKey: "SOLICITOR_FEEDBACK",
+          gateKey: "SOLICITOR_REVIEW",
           reason: "Solicitor issue logged and explicitly reviewed before progression.",
         },
       ],
@@ -320,19 +320,19 @@ export const INVESTOR_SHIELD_EVALUATOR_FIXTURES: readonly InvestorShieldEvaluato
       canProgress: false,
       blockingReasons: [],
       blockingGateKeys: [],
-      cautionGateKeys: ["SOLICITOR_FEEDBACK"],
+      cautionGateKeys: ["SOLICITOR_REVIEW"],
       missingEvidenceGateKeys: [],
       advisoryOnlyEvidenceWarnings: [],
       taskRecommendations: [
         {
-          gateKey: "SOLICITOR_FEEDBACK",
+          gateKey: "SOLICITOR_REVIEW",
           type: "REVIEW_GATE",
           title: "Review gate",
           reason: "Solicitor Review was waived and requires manual justification review.",
           severity: "BLOCKER",
           source: "system_default",
           idempotencyKey:
-            "investor-shield:saved-deal-text-id-4c3:SOLICITOR_FEEDBACK:REVIEW_GATE",
+            "investor-shield:saved-deal-text-id-4c3:SOLICITOR_REVIEW:REVIEW_GATE",
         },
       ],
     },

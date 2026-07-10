@@ -135,7 +135,7 @@ function getRecommendationType(
     return "OBTAIN_BUILDER_CONTRACT"
   }
 
-  if (gate.key === "SOLICITOR_FEEDBACK") {
+  if (gate.key === "SOLICITOR_REVIEW") {
     return "REVIEW_SOLICITOR_FEEDBACK"
   }
 

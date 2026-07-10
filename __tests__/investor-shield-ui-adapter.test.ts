@@ -14,19 +14,19 @@ function makeChecks(): readonly InvestorShieldCheck[] {
     status:
       gate.key === "TITLE"
         ? "FAILED"
-        : gate.key === "SOLICITOR_FEEDBACK"
+        : gate.key === "SOLICITOR_REVIEW"
           ? "WAIVED"
           : "SATISFIED",
     severity:
       gate.key === "TITLE"
         ? "BLOCKER"
-        : gate.key === "SOLICITOR_FEEDBACK"
+        : gate.key === "SOLICITOR_REVIEW"
           ? "BLOCKER"
           : gate.defaultSeverity,
     confidence: gate.key === "REFURB_CERTAINTY" ? "MEDIUM" : "HIGH",
     requiredEvidence: gate.evidenceTypes,
     summary:
-      gate.key === "SOLICITOR_FEEDBACK"
+      gate.key === "SOLICITOR_REVIEW"
     ? "Solicitor Review was waived for this preview."
         : `${gate.label} summary`,
     updatedAt: "2026-06-06T00:00:00.000Z",
@@ -143,7 +143,7 @@ describe("investor shield ui adapter", () => {
       manualOverrides: [
         {
           dealId: "deal-ui-1",
-          gateKey: "SOLICITOR_FEEDBACK",
+          gateKey: "SOLICITOR_REVIEW",
           reason: "Solicitor issue logged and reviewed before progression.",
         },
       ],
@@ -164,7 +164,7 @@ describe("investor shield ui adapter", () => {
       manualOverrides: [
         {
           dealId: "deal-ui-1",
-          gateKey: "SOLICITOR_FEEDBACK",
+          gateKey: "SOLICITOR_REVIEW",
           reason: "Solicitor issue logged and reviewed before progression.",
         },
       ],
@@ -190,7 +190,7 @@ describe("investor shield ui adapter", () => {
       manualOverrides: [
         {
           dealId: "deal-ui-1",
-          gateKey: "SOLICITOR_FEEDBACK",
+          gateKey: "SOLICITOR_REVIEW",
           reason: "Solicitor issue logged and reviewed before progression.",
         },
       ],
@@ -225,7 +225,7 @@ describe("investor shield ui adapter", () => {
       manualOverrides: [
         {
           dealId: "deal-ui-1",
-          gateKey: "SOLICITOR_FEEDBACK",
+          gateKey: "SOLICITOR_REVIEW",
           reason: "Solicitor issue logged and reviewed before progression.",
         },
       ],
@@ -259,7 +259,7 @@ describe("investor shield ui adapter", () => {
     ])
     expect(model.manualOverrideRequired).toBe(true)
     expect(
-      model.gateSummaries.find((gate) => gate.key === "SOLICITOR_FEEDBACK")?.waiverReason
+      model.gateSummaries.find((gate) => gate.key === "SOLICITOR_REVIEW")?.waiverReason
     ).toBe("Solicitor issue logged and reviewed before progression.")
     expect(model.protectedMovementExplanation).toBe(
       "Investor Shield may add caution or blocking, but it cannot soften deterministic rejection."
@@ -306,7 +306,7 @@ describe("investor shield ui adapter", () => {
       manualOverrides: [
         {
           dealId: "deal-ui-1",
-          gateKey: "SOLICITOR_FEEDBACK",
+          gateKey: "SOLICITOR_REVIEW",
           reason: "Solicitor issue logged and reviewed before progression.",
         },
       ],

@@ -32,7 +32,7 @@ function makeEvidenceRecord(overrides: Partial<Record<string, unknown>> = {}) {
     dealId: "deal-1",
     evidenceType: "TITLE_REVIEW",
     linkedGate: "SOLICITOR_REVIEW",
-    linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+    linkedInvestorShieldGate: "SOLICITOR_REVIEW",
     evidenceCommandType: "TITLE_LEGAL",
     title: "Canonical title",
     note: "Canonical note",

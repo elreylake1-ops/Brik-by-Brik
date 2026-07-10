@@ -150,7 +150,9 @@ function assertCanonicalEvidenceCommandValue(
     | "linked_professional_gate",
   value: string
 ): void {
-  if (field === "linked_investor_shield_gate" && !INVESTOR_SHIELD_GATE_SET.has(value)) {
+  const normalizedValue = value === "SOLICITOR_FEEDBACK" ? "SOLICITOR_REVIEW" : value
+
+  if (field === "linked_investor_shield_gate" && !INVESTOR_SHIELD_GATE_SET.has(normalizedValue)) {
     throw new Error(`Invalid stored Evidence Command linked_investor_shield_gate: ${value}`)
   }
 
@@ -239,12 +241,16 @@ function mapCommandEvidenceTypeToLegacyType(value: EvidenceCommandType): Evidenc
   }
 }
 
-function mapLegacyGateToInvestorShieldGate(value: EvidenceLiteGateKey): InvestorShieldGateKey {
-  return value === "SOLICITOR_REVIEW" ? "SOLICITOR_FEEDBACK" : value
+function mapLegacyGateToInvestorShieldGate(value: string): InvestorShieldGateKey {
+  if (value === "SOLICITOR_FEEDBACK") {
+    return "SOLICITOR_REVIEW"
+  }
+
+  return value as InvestorShieldGateKey
 }
 
 function mapInvestorShieldGateToLegacyGate(value: InvestorShieldGateKey): EvidenceLiteGateKey {
-  return value === "SOLICITOR_FEEDBACK" ? "SOLICITOR_REVIEW" : value
+  return value as EvidenceLiteGateKey
 }
 
 function mapLegacyStatusToEvidenceStatus(value: EvidenceLiteStatus): EvidenceCommandStatus {
@@ -436,7 +442,11 @@ function readCommandCreatePayload(input: Record<string, unknown>): {
   }
 
   const linkedInvestorShieldGate = readRequiredText(input, "linkedInvestorShieldGate")
-  if (!INVESTOR_SHIELD_GATE_SET.has(linkedInvestorShieldGate)) {
+  const normalizedLinkedInvestorShieldGate =
+    linkedInvestorShieldGate === "SOLICITOR_FEEDBACK"
+      ? "SOLICITOR_REVIEW"
+      : linkedInvestorShieldGate
+  if (!INVESTOR_SHIELD_GATE_SET.has(normalizedLinkedInvestorShieldGate)) {
     throw new Error(
       `linkedInvestorShieldGate must be one of: ${INVESTOR_SHIELD_GATE_KEYS.join(", ")}`
     )
@@ -614,13 +624,20 @@ function collectUpdatePairs(input: EvidenceLiteUpdateInput): Array<[string, unkn
 
   if (Object.prototype.hasOwnProperty.call(payload, "linkedInvestorShieldGate")) {
     const linkedInvestorShieldGate = readRequiredText(payload, "linkedInvestorShieldGate")
-    if (!INVESTOR_SHIELD_GATE_SET.has(linkedInvestorShieldGate)) {
+    const normalizedLinkedInvestorShieldGate =
+      linkedInvestorShieldGate === "SOLICITOR_FEEDBACK"
+        ? "SOLICITOR_REVIEW"
+        : linkedInvestorShieldGate
+    if (!INVESTOR_SHIELD_GATE_SET.has(normalizedLinkedInvestorShieldGate)) {
       throw new Error(
         `linkedInvestorShieldGate must be one of: ${INVESTOR_SHIELD_GATE_KEYS.join(", ")}`
       )
     }
-    add("linked_investor_shield_gate", linkedInvestorShieldGate)
-    add("linked_gate", mapInvestorShieldGateToLegacyGate(linkedInvestorShieldGate as InvestorShieldGateKey))
+    add("linked_investor_shield_gate", normalizedLinkedInvestorShieldGate)
+    add(
+      "linked_gate",
+      mapInvestorShieldGateToLegacyGate(normalizedLinkedInvestorShieldGate as InvestorShieldGateKey)
+    )
   }
 
   if (Object.prototype.hasOwnProperty.call(payload, "title")) {

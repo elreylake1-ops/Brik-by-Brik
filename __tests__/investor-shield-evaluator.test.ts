@@ -144,7 +144,7 @@ describe("evaluateInvestorShield", () => {
 
   it("requires a manual override reason for waived blocker gates", () => {
     const checks = makeChecks([
-      { gateKey: "SOLICITOR_FEEDBACK", status: "WAIVED", severity: "BLOCKER" },
+      { gateKey: "SOLICITOR_REVIEW", status: "WAIVED", severity: "BLOCKER" },
     ])
 
     const result = evaluateInvestorShield(makeInput({ checks }))
@@ -156,12 +156,12 @@ describe("evaluateInvestorShield", () => {
 
   it("keeps waived gates under caution even when a manual override reason exists", () => {
     const checks = makeChecks([
-      { gateKey: "SOLICITOR_FEEDBACK", status: "WAIVED", severity: "BLOCKER" },
+      { gateKey: "SOLICITOR_REVIEW", status: "WAIVED", severity: "BLOCKER" },
     ])
     const manualOverrides: readonly ManualOverride[] = [
       {
         dealId: DEAL_ID,
-        gateKey: "SOLICITOR_FEEDBACK",
+        gateKey: "SOLICITOR_REVIEW",
         reason: "Solicitor note captured and accepted for controlled progression.",
       },
     ]
@@ -170,7 +170,7 @@ describe("evaluateInvestorShield", () => {
 
     expect(result.overallStatus).toBe("CAUTION")
     expect(result.progressionDecision).toBe("NEEDS_REVIEW")
-    expect(result.cautionGateKeys).toContain("SOLICITOR_FEEDBACK")
+    expect(result.cautionGateKeys).toContain("SOLICITOR_REVIEW")
     expect(result.blockingReasons).not.toContain("MANUAL_OVERRIDE_REQUIRED")
   })
 

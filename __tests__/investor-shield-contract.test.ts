@@ -21,7 +21,7 @@ describe("investor shield type contracts", () => {
       "DAMP_STRUCTURAL",
       "LENDER_CRITERIA",
       "RENTAL_DEMAND",
-      "SOLICITOR_FEEDBACK",
+      "SOLICITOR_REVIEW",
     ])
   })
 

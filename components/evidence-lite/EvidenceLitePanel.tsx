@@ -106,7 +106,7 @@ const INVESTOR_SHIELD_GATE_LABELS: Record<InvestorShieldGateKey, string> = {
   DAMP_STRUCTURAL: "Damp / structural",
   LENDER_CRITERIA: "Lender criteria",
   RENTAL_DEMAND: "Rental demand",
-  SOLICITOR_FEEDBACK: "Solicitor feedback",
+  SOLICITOR_REVIEW: "Solicitor review",
 }
 
 const FORM_FIELD_ORDER = [

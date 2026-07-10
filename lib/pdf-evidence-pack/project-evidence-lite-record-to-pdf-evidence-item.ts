@@ -56,7 +56,7 @@ function mapLegacyEvidenceTypeToCommandType(
 function mapLegacyGateToInvestorShieldGate(
   value: EvidenceLiteRecord["linkedGate"]
 ): PdfEvidencePackEvidenceItem["linkedInvestorShieldGate"] {
-  return value === "SOLICITOR_REVIEW" ? "SOLICITOR_FEEDBACK" : value
+  return value === "SOLICITOR_REVIEW" ? "SOLICITOR_REVIEW" : value
 }
 
 function mapLegacyStatusToEvidenceStatus(

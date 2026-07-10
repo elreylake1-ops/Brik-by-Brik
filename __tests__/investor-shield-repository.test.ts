@@ -62,7 +62,7 @@ const sampleRiskFlag: RiskFlag = {
 
 const sampleManualOverride: ManualOverride = {
   dealId: "deal-1",
-  gateKey: "SOLICITOR_FEEDBACK",
+  gateKey: "SOLICITOR_REVIEW",
   reason: "Partner approved temporary waiver.",
 }
 
@@ -201,7 +201,7 @@ describe("phase 4b investor shield repository", () => {
         {
           id: "override-1",
           deal_id: "deal-1",
-          gate_key: "SOLICITOR_FEEDBACK",
+          gate_key: "SOLICITOR_REVIEW",
           reason: "Partner approved temporary waiver.",
           approved_by: null,
           created_at: "2026-06-05",

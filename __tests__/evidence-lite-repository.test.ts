@@ -97,7 +97,7 @@ describe("evidence lite repository", () => {
       dealId: "deal-1",
       evidenceType: "TITLE_REVIEW",
       linkedGate: "SOLICITOR_REVIEW",
-      linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+      linkedInvestorShieldGate: "SOLICITOR_REVIEW",
       evidenceCommandType: "TITLE_LEGAL",
       evidenceSummary: "Legal review complete",
       evidenceStatus: "RECEIVED",
@@ -136,7 +136,7 @@ describe("evidence lite repository", () => {
       dealId: "deal-1",
       evidenceType: "TITLE_REVIEW",
       linkedGate: "SOLICITOR_REVIEW",
-      linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+      linkedInvestorShieldGate: "SOLICITOR_REVIEW",
       evidenceCommandType: "TITLE_LEGAL",
       evidenceSummary: "Legal review complete",
       evidenceStatus: "RECEIVED",
@@ -190,7 +190,7 @@ describe("evidence lite repository", () => {
         id: "evidence-video",
         evidence_type: "OTHER",
         linked_gate: "SOLICITOR_REVIEW",
-        linked_investor_shield_gate: "SOLICITOR_FEEDBACK",
+        linked_investor_shield_gate: "SOLICITOR_REVIEW",
         evidence_command_type: "VIDEO_EVIDENCE",
         evidence_summary: "Video walkthrough",
         status: "REJECTED",
@@ -212,7 +212,7 @@ describe("evidence lite repository", () => {
       id: "evidence-video",
       evidenceType: "OTHER",
       linkedGate: "SOLICITOR_REVIEW",
-      linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+      linkedInvestorShieldGate: "SOLICITOR_REVIEW",
       evidenceCommandType: "VIDEO_EVIDENCE",
       evidenceSummary: "Video walkthrough",
       status: "REJECTED",
@@ -236,7 +236,7 @@ describe("evidence lite repository", () => {
       rows: [
         makeRow({
           id: "evidence_mock-uuid-1",
-          linked_investor_shield_gate: "SOLICITOR_FEEDBACK",
+          linked_investor_shield_gate: "SOLICITOR_REVIEW",
           evidence_command_type: "TITLE_LEGAL",
           evidence_summary: "Legal review complete",
           evidence_status: "RECEIVED",
@@ -273,7 +273,7 @@ describe("evidence lite repository", () => {
       "deal-1",
       "TITLE_REVIEW",
       "SOLICITOR_REVIEW",
-      "SOLICITOR_FEEDBACK",
+      "SOLICITOR_REVIEW",
       "TITLE_LEGAL",
       "Title pack",
       "Legal review complete",
@@ -293,7 +293,7 @@ describe("evidence lite repository", () => {
     expect(result).toMatchObject({
       id: "evidence_mock-uuid-1",
       linkedGate: "SOLICITOR_REVIEW",
-      linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+      linkedInvestorShieldGate: "SOLICITOR_REVIEW",
       evidenceCommandType: "TITLE_LEGAL",
       evidenceSummary: "Legal review complete",
       evidenceStatus: "RECEIVED",
@@ -314,7 +314,7 @@ describe("evidence lite repository", () => {
           id: "evidence_mock-uuid-2",
           evidence_type: "OTHER",
           linked_gate: "SOLICITOR_REVIEW",
-          linked_investor_shield_gate: "SOLICITOR_FEEDBACK",
+          linked_investor_shield_gate: "SOLICITOR_REVIEW",
           evidence_command_type: "PHOTO_EVIDENCE",
           evidence_summary: "Photo of roof defect",
           status: "MISSING",
@@ -335,7 +335,7 @@ describe("evidence lite repository", () => {
     const result = await createEvidenceLite({
       dealId: "deal-1",
       evidenceType: "PHOTO_EVIDENCE",
-      linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+      linkedInvestorShieldGate: "SOLICITOR_REVIEW",
       linkedProfessionalGate: "SURVEYOR_REPORT",
       title: "Roof photo",
       evidenceSummary: "Photo of roof defect",
@@ -359,7 +359,7 @@ describe("evidence lite repository", () => {
       "deal-1",
       "OTHER",
       "SOLICITOR_REVIEW",
-      "SOLICITOR_FEEDBACK",
+      "SOLICITOR_REVIEW",
       "PHOTO_EVIDENCE",
       "Roof photo",
       "Photo of roof defect",
@@ -380,7 +380,7 @@ describe("evidence lite repository", () => {
       id: "evidence_mock-uuid-2",
       evidenceType: "OTHER",
       linkedGate: "SOLICITOR_REVIEW",
-      linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+      linkedInvestorShieldGate: "SOLICITOR_REVIEW",
       evidenceCommandType: "PHOTO_EVIDENCE",
       evidenceSummary: "Photo of roof defect",
       status: "MISSING",
@@ -438,7 +438,7 @@ describe("evidence lite repository", () => {
       rows: [
         makeRow({
           linked_gate: "SOLICITOR_REVIEW",
-          linked_investor_shield_gate: "SOLICITOR_FEEDBACK",
+          linked_investor_shield_gate: "SOLICITOR_REVIEW",
           evidence_status: "SUFFICIENT",
           status: "VERIFIED",
           blocker_impact: "REQUIRES_MANUAL_REVIEW",
@@ -449,7 +449,7 @@ describe("evidence lite repository", () => {
     })
 
     const result = await updateEvidenceLite("deal-1", "evidence-1", {
-      linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+      linkedInvestorShieldGate: "SOLICITOR_REVIEW",
       evidenceStatus: "SUFFICIENT",
       blockerImpact: "REQUIRES_MANUAL_REVIEW",
       linkedProfessionalGate: "BROKER_CONFIRMATION",
@@ -468,7 +468,7 @@ describe("evidence lite repository", () => {
     expect(sql).toContain("WHERE deal_id = $8")
     expect(sql).toContain("AND id = $9")
     expect(params).toEqual([
-      "SOLICITOR_FEEDBACK",
+      "SOLICITOR_REVIEW",
       "SOLICITOR_REVIEW",
       "SUFFICIENT",
       "VERIFIED",
@@ -480,7 +480,7 @@ describe("evidence lite repository", () => {
     ])
     expect(result).toMatchObject({
       linkedGate: "SOLICITOR_REVIEW",
-      linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+      linkedInvestorShieldGate: "SOLICITOR_REVIEW",
       evidenceStatus: "SUFFICIENT",
       status: "VERIFIED",
       blockerImpact: "REQUIRES_MANUAL_REVIEW",
@@ -522,9 +522,9 @@ describe("evidence lite repository", () => {
     expect(() => mapEvidenceLiteRow(makeRow({ linked_gate: "UNKNOWN" }))).toThrow(
       "Invalid stored Evidence Lite linked_gate: UNKNOWN"
     )
-    expect(() => mapEvidenceLiteRow(makeRow({ linked_gate: "SOLICITOR_FEEDBACK" }))).toThrow(
-      "Legacy solicitor feedback value must not be stored: linked_gate"
-    )
+    expect(mapEvidenceLiteRow(makeRow({ linked_gate: "SOLICITOR_REVIEW" }))).toMatchObject({
+      linkedGate: "SOLICITOR_REVIEW",
+    })
     expect(() => mapEvidenceLiteRow(makeRow({ linked_gate: "GENERAL" }))).toThrow(
       "Invalid Evidence Lite value must not be stored: linked_gate"
     )

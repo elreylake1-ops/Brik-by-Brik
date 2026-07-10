@@ -38,7 +38,7 @@ describe("projectEvidenceLiteRecordToPdfEvidenceItem", () => {
       controlledReferenceState: "MISSING",
       controlledReferenceLabel: "Controlled reference unavailable",
       evidenceCommandType: "TITLE_LEGAL",
-      linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+      linkedInvestorShieldGate: "SOLICITOR_REVIEW",
       linkedProfessionalGate: "NONE",
       evidenceSummary: "Canonical title review note",
       evidenceStatus: "RECEIVED",

@@ -66,7 +66,7 @@ describe("phase3 dev review route", () => {
     expect(html).toContain("Recommended next action")
 
     expect(html).not.toContain("STRONG_DEAL")
-    expect(html).not.toContain("SOLICITOR_FEEDBACK")
+    expect(html).not.toContain("SOLICITOR_REVIEW")
     expect(html).not.toContain("SOLICITOR_REVIEW")
     expect(html).not.toContain("Solicitor Feedback")
     expect(html).not.toContain("SOLICITOR REVIEW")

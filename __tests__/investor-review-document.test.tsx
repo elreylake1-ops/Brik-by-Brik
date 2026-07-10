@@ -172,17 +172,17 @@ describe("InvestorReviewDocument", () => {
         ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
         investorShield: {
           ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorShield,
-          blockingGateKeys: ["SOLICITOR_FEEDBACK"],
-          missingEvidenceGateKeys: ["SOLICITOR_FEEDBACK"],
+          blockingGateKeys: ["SOLICITOR_REVIEW"],
+          missingEvidenceGateKeys: ["SOLICITOR_REVIEW"],
           taskRecommendations: [
             {
-              gateKey: "SOLICITOR_FEEDBACK",
+              gateKey: "SOLICITOR_REVIEW",
               type: "REQUEST_EVIDENCE",
               title: "Review solicitor feedback",
               reason: "Solicitor feedback is still missing.",
               severity: "BLOCKER",
               source: "system_default",
-              idempotencyKey: "investor-shield:test-solicitor:SOLICITOR_FEEDBACK:REQUEST_EVIDENCE",
+              idempotencyKey: "investor-shield:test-solicitor:SOLICITOR_REVIEW:REQUEST_EVIDENCE",
             },
           ],
         },
@@ -192,7 +192,7 @@ describe("InvestorReviewDocument", () => {
             ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.investorSummary.investorShield,
             blockedGates: [
               {
-                gateKey: "SOLICITOR_FEEDBACK",
+                gateKey: "SOLICITOR_REVIEW",
                 label: "Solicitor Review",
                 gateType: "required",
                 blockerReason: "Solicitor review evidence remains outstanding.",
@@ -226,7 +226,7 @@ describe("InvestorReviewDocument", () => {
     const html = renderToStaticMarkup(<InvestorReviewDocument viewModel={viewModel} />)
 
     expect(html).toContain("Solicitor Review")
-    expect(html).not.toContain("SOLICITOR_FEEDBACK")
+    expect(html).not.toContain("SOLICITOR_REVIEW")
     expect(html).not.toContain("SOLICITOR_REVIEW")
     expect(html).not.toContain("Solicitor Feedback")
     expect(html).not.toContain("SOLICITOR REVIEW")

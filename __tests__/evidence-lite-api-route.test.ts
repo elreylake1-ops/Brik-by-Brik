@@ -49,7 +49,7 @@ function makeEvidenceRecord(overrides: Partial<Record<string, unknown>> = {}) {
     dealId: "deal-1",
     evidenceType: "TITLE_REVIEW",
     linkedGate: "SOLICITOR_REVIEW",
-    linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+    linkedInvestorShieldGate: "SOLICITOR_REVIEW",
     evidenceCommandType: "TITLE_LEGAL",
     title: "Title pack",
     note: "Checked",
@@ -218,7 +218,7 @@ describe("evidence lite api route", () => {
       id: "evidence-command-defaults",
       evidenceType: "OTHER",
       linkedGate: "SOLICITOR_REVIEW",
-      linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+      linkedInvestorShieldGate: "SOLICITOR_REVIEW",
       evidenceCommandType: "PHOTO_EVIDENCE",
       title: "Roof photo",
       note: "Roof defect photo",
@@ -236,7 +236,7 @@ describe("evidence lite api route", () => {
     const response = await POST(
       makePostRequest({
         evidenceType: "PHOTO_EVIDENCE",
-        linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+        linkedInvestorShieldGate: "SOLICITOR_REVIEW",
         title: " Roof photo ",
         evidenceSummary: " Roof defect photo ",
       }),
@@ -247,7 +247,7 @@ describe("evidence lite api route", () => {
     expect(createEvidenceLiteMock).toHaveBeenCalledWith({
       dealId: "deal-1",
       evidenceType: "PHOTO_EVIDENCE",
-      linkedInvestorShieldGate: "SOLICITOR_FEEDBACK",
+      linkedInvestorShieldGate: "SOLICITOR_REVIEW",
       linkedProfessionalGate: "NONE",
       title: "Roof photo",
       evidenceSummary: "Roof defect photo",

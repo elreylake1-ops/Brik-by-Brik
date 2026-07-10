@@ -63,7 +63,7 @@ function buildChecks(): readonly InvestorShieldCheck[] {
       }
     }
 
-    if (gate.key === "SOLICITOR_FEEDBACK") {
+    if (gate.key === "SOLICITOR_REVIEW") {
       return {
         dealId: DEAL_ID,
         gateKey: gate.key,
@@ -162,8 +162,8 @@ function buildEvidenceItems(): readonly EvidenceItem[] {
     },
     {
       dealId: DEAL_ID,
-      gateKey: "SOLICITOR_FEEDBACK",
-      evidenceType: "SOLICITOR_FEEDBACK",
+      gateKey: "SOLICITOR_REVIEW",
+      evidenceType: "SOLICITOR_REVIEW",
       source: "document",
       confidence: "HIGH",
     label: "Solicitor Review note",
@@ -189,7 +189,7 @@ describe("investor shield adapter panel preview", () => {
     const manualOverrides = [
       {
         dealId: DEAL_ID,
-        gateKey: "SOLICITOR_FEEDBACK" as const,
+        gateKey: "SOLICITOR_REVIEW" as const,
         reason: "Solicitor issue logged and reviewed before progression.",
       },
     ]
@@ -217,7 +217,7 @@ describe("investor shield adapter panel preview", () => {
     )
     const titleGate = model.gateSummaries.find((gate) => gate.key === "TITLE")
     const rentalGate = model.gateSummaries.find((gate) => gate.key === "RENTAL_DEMAND")
-    const solicitorGate = model.gateSummaries.find((gate) => gate.key === "SOLICITOR_FEEDBACK")
+    const solicitorGate = model.gateSummaries.find((gate) => gate.key === "SOLICITOR_REVIEW")
 
     expect(aiSubGate?.requiredLabel).toBe("Advisory")
     expect(aiSubGate?.advisoryOnly).toBe(true)
