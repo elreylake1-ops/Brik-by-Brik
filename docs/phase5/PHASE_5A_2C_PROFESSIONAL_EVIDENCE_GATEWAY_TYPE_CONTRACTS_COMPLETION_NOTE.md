@@ -29,7 +29,7 @@ The focused test files are:
 - tag target remains `5d13f0cfdf4484f9bfe5be4626ac554d0c74680e`
 - Phase 5A-2A commit exists
 - Phase 5A-2B commit exists
-- no production deployment occurred
+- no intentional production deployment occurred
 
 ## Files Delivered
 
@@ -39,6 +39,7 @@ The focused test files are:
 - `__tests__/professional-evidence-gateway-validation.test.ts`
 - `docs/phase5/PHASE_5A_2A_PROFESSIONAL_EVIDENCE_GATEWAY_TYPE_CONTRACTS_AND_ENUMS.md`
 - `docs/phase5/PHASE_5A_2B_PROFESSIONAL_EVIDENCE_GATEWAY_VALIDATION_HELPERS.md`
+- `docs/phase5/PHASE_5A_2D_PROFESSIONAL_EVIDENCE_GATEWAY_REVIEW_SOURCE_CORRECTION.md`
 
 ## Contracts Created
 
@@ -92,7 +93,7 @@ These are never defaulted:
 - no migrations changed
 - no database access
 - no production access
-- no deployment
+- no intentional production deployment
 - no PDF generation
 - no Phase 5B work
 - no Investor Shield authority changes
@@ -124,7 +125,7 @@ The required validation set was run and passed:
 Final full test totals:
 
 - `116` test files passed
-- `1141` tests passed
+- `1149` tests passed
 
 ## James Review Summary
 
@@ -136,13 +137,14 @@ Files changed:
 - `docs/phase5/PHASE_5A_2A_PROFESSIONAL_EVIDENCE_GATEWAY_TYPE_CONTRACTS_AND_ENUMS.md`
 - `docs/phase5/PHASE_5A_2B_PROFESSIONAL_EVIDENCE_GATEWAY_VALIDATION_HELPERS.md`
 - `docs/phase5/PHASE_5A_2C_PROFESSIONAL_EVIDENCE_GATEWAY_TYPE_CONTRACTS_COMPLETION_NOTE.md`
+- `docs/phase5/PHASE_5A_2D_PROFESSIONAL_EVIDENCE_GATEWAY_REVIEW_SOURCE_CORRECTION.md`
 
 Validation proof:
 - focused contract test passed
 - focused validation test passed
 - lint passed
 - build passed
-- full test suite passed
+- full test suite passed: `116` files / `1149` tests
 
 No runtime mutation occurred.
 No production deployment occurred.

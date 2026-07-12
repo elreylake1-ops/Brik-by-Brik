@@ -53,7 +53,7 @@ This note records the narrow Phase 5A-2D correction requested by James.
 - no repository mapping changed
 - no migrations changed
 - no production access
-- no deployment
+- no intentional production deployment
 - no PDF creation
 - no Phase 5B work
 
