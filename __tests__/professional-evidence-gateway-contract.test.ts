@@ -9,6 +9,9 @@ import {
   PROFESSIONAL_GATE_STATUSES,
   PROFESSIONAL_READINESS_STATUSES,
 } from "@/types/professional-evidence-gateway"
+import type {
+  ProfessionalEvidenceGatewayGate,
+} from "@/types/professional-evidence-gateway"
 
 describe("professional evidence gateway contract", () => {
   it("exports the approved professional gate areas", () => {
@@ -79,6 +82,36 @@ describe("professional evidence gateway contract", () => {
     expect(Object.values(PROFESSIONAL_EVIDENCE_GATEWAY_DEFAULTS)).not.toContain(
       "UNLOCKED_FOR_REVIEW"
     )
+  })
+
+  it("carries reviewSource on the record and gate contracts", () => {
+    const typeSource = readFileSync(
+      path.resolve(process.cwd(), "types/professional-evidence-gateway.ts"),
+      "utf8"
+    )
+
+    expect(typeSource).toMatch(
+      /export type ProfessionalEvidenceGatewayRecord = \{[\s\S]*?readonly reviewSource: ProfessionalEvidenceReviewSource/
+    )
+    expect(typeSource).toMatch(
+      /export type ProfessionalEvidenceGatewayGate = \{[\s\S]*?readonly reviewSource: ProfessionalEvidenceReviewSource/
+    )
+  })
+
+  it("lets each gate preserve its own review source independently", () => {
+    const solicitorGate = { reviewSource: "SOLICITOR" } as const satisfies Pick<
+      ProfessionalEvidenceGatewayGate,
+      "reviewSource"
+    >
+    const brokerGate = { reviewSource: "BROKER" } as const satisfies Pick<
+      ProfessionalEvidenceGatewayGate,
+      "reviewSource"
+    >
+
+    expect([solicitorGate.reviewSource, brokerGate.reviewSource]).toEqual([
+      "SOLICITOR",
+      "BROKER",
+    ])
   })
 
   it("keeps solicitor review canonical and excludes solicitor feedback from the professional area namespace", () => {

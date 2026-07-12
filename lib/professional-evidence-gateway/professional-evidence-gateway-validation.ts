@@ -69,6 +69,18 @@ const PROFESSIONAL_GATE_STATUS_SET = new Set<string>(PROFESSIONAL_GATE_STATUSES)
 const PROFESSIONAL_READINESS_SET = new Set<string>(PROFESSIONAL_READINESS_STATUSES)
 const FINAL_DECISION_LOCK_STATUS_SET = new Set<string>(FINAL_DECISION_LOCK_STATUSES)
 const PROFESSIONAL_EVIDENCE_REVIEW_SOURCE_SET = new Set<string>(PROFESSIONAL_EVIDENCE_REVIEW_SOURCES)
+const PROFESSIONAL_CONFIRMATION_REVIEW_SOURCES = [
+  "SOLICITOR",
+  "BROKER",
+  "LENDER",
+  "BUILDER",
+  "SURVEYOR",
+  "LAND_REGISTRY",
+  "RIGHTMOVE_SOLD_DATA",
+] as const
+const PROFESSIONAL_CONFIRMATION_REVIEW_SOURCE_SET = new Set<string>(
+  PROFESSIONAL_CONFIRMATION_REVIEW_SOURCES
+)
 
 const DRAFT_ALLOWED_FIELDS = new Set([
   "savedDealId",
@@ -377,8 +389,9 @@ export function validateProfessionalEvidenceGatewayDraft(
   }
 
   const lockReason = validateRequiredText(input, "lockReason", errors)
+  const reviewSourceProvided = input.reviewSource !== undefined
   const reviewSource = validateProfessionalEvidenceReviewSource(input.reviewSource)
-  if (!reviewSource && input.reviewSource !== undefined) {
+  if (reviewSourceProvided && !reviewSource) {
     pushError(
       errors,
       "reviewSource",
@@ -401,6 +414,29 @@ export function validateProfessionalEvidenceGatewayDraft(
     professionalReadiness ?? PROFESSIONAL_EVIDENCE_GATEWAY_DEFAULTS.professionalReadiness
   const normalizedFinalDecisionLockStatus =
     finalDecisionLockStatus ?? PROFESSIONAL_EVIDENCE_GATEWAY_DEFAULTS.finalDecisionLockStatus
+  const requiresQualifyingReviewSource =
+    normalizedProfessionalGateStatus === "CONFIRMED" ||
+    normalizedProfessionalReadiness === "PROFESSIONALLY_CONFIRMED"
+
+  if (requiresQualifyingReviewSource) {
+    if (!reviewSourceProvided) {
+      pushError(
+        errors,
+        "reviewSource",
+        "reviewSource must be explicitly provided when professionalGateStatus is CONFIRMED or professionalReadiness is PROFESSIONALLY_CONFIRMED"
+      )
+    } else if (
+      reviewSource &&
+      !PROFESSIONAL_CONFIRMATION_REVIEW_SOURCE_SET.has(reviewSource)
+    ) {
+      pushError(
+        errors,
+        "reviewSource",
+        `reviewSource must be one of: ${PROFESSIONAL_CONFIRMATION_REVIEW_SOURCES.join(", ")}`
+      )
+    }
+  }
+
   const normalizedReviewSource = reviewSource ?? "OPERATOR_NOTE"
 
   if (
@@ -417,8 +453,7 @@ export function validateProfessionalEvidenceGatewayDraft(
     !recommendedNextAction ||
     expiryOrReviewDate === undefined ||
     !lockReason ||
-    !linkedEvidenceIds ||
-    !normalizedReviewSource
+    !linkedEvidenceIds
   ) {
     return { valid: false, errors, warnings: [] }
   }

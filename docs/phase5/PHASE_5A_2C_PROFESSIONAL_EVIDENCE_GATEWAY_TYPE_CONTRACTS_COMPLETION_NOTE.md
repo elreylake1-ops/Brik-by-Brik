@@ -4,6 +4,24 @@
 
 This is the Phase 5A-2 completion note for type contracts, controlled enums, validation helpers, and enum validation tests.
 
+## Narrow Phase 5A-2D Correction
+
+James conditionally accepted the Phase 5A-2 surface and requested a narrow correction only.
+
+- `reviewSource` was added to `ProfessionalEvidenceGatewayRecord`
+- `reviewSource` was added to `ProfessionalEvidenceGatewayGate`
+- pure cross-field validation was added to block operator-only evidence from reading as professional confirmation
+- professional confirmation now requires an explicit qualifying review source
+- operator notes remain valid for non-confirmed evidence, but they cannot stand in for professional confirmation
+- conservative defaults remain unchanged
+- no Phase 5A-3 work started
+- no runtime mutation occurred
+
+The focused test files are:
+
+- `__tests__/professional-evidence-gateway-contract.test.ts`
+- `__tests__/professional-evidence-gateway-validation.test.ts`
+
 ## Baseline
 
 - Phase 4 remains closed and tagged

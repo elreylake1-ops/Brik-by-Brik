@@ -75,6 +75,7 @@ export type ProfessionalEvidenceGatewayRecord = {
   readonly professionalGateArea: ProfessionalGateArea
   readonly professionalGateStatus: ProfessionalGateStatus
   readonly professionalReadiness: ProfessionalReadiness
+  readonly reviewSource: ProfessionalEvidenceReviewSource
   readonly reviewState: string
   readonly blockerImpact: string
   readonly evidenceStrength: string
@@ -93,6 +94,7 @@ export type ProfessionalEvidenceGatewayGate = {
   readonly linkedInvestorShieldGate: string
   readonly professionalGateStatus: ProfessionalGateStatus
   readonly professionalReadiness: ProfessionalReadiness
+  readonly reviewSource: ProfessionalEvidenceReviewSource
   readonly reviewState: string
   readonly blockerImpact: string
   readonly evidenceStrength: string

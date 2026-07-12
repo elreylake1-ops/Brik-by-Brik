@@ -152,6 +152,104 @@ describe("professional evidence gateway validation", () => {
     expect(result.warnings).toEqual([])
   })
 
+  it("rejects CONFIRMED without an explicit qualifying review source", () => {
+    const missingReviewSource = validateProfessionalEvidenceGatewayDraft(
+      makeDraft({
+        professionalGateStatus: "CONFIRMED",
+        reviewSource: undefined,
+      })
+    )
+    const operatorNoteReviewSource = validateProfessionalEvidenceGatewayDraft(
+      makeDraft({
+        professionalGateStatus: "CONFIRMED",
+        reviewSource: "OPERATOR_NOTE",
+      })
+    )
+
+    expect(missingReviewSource.valid).toBe(false)
+    expect(operatorNoteReviewSource.valid).toBe(false)
+    expect(missingReviewSource.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: "reviewSource",
+        }),
+      ])
+    )
+    expect(operatorNoteReviewSource.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: "reviewSource",
+        }),
+      ])
+    )
+  })
+
+  it("accepts CONFIRMED with a qualifying review source", () => {
+    const result = validateProfessionalEvidenceGatewayDraft(
+      makeDraft({
+        professionalGateStatus: "CONFIRMED",
+        reviewSource: "SOLICITOR",
+      })
+    )
+
+    expect(result.valid).toBe(true)
+    expect(result.value?.reviewSource).toBe("SOLICITOR")
+  })
+
+  it.each([
+    ["missing review source", undefined],
+    ["operator note", "OPERATOR_NOTE"],
+  ] as const)("rejects PROFESSIONALLY_CONFIRMED with %s", (_, reviewSource) => {
+    const result = validateProfessionalEvidenceGatewayDraft(
+      makeDraft({
+        professionalReadiness: "PROFESSIONALLY_CONFIRMED",
+        reviewSource,
+      })
+    )
+
+    expect(result.valid).toBe(false)
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: "reviewSource",
+        }),
+      ])
+    )
+  })
+
+  it("accepts PROFESSIONALLY_CONFIRMED with a qualifying review source", () => {
+    const result = validateProfessionalEvidenceGatewayDraft(
+      makeDraft({
+        professionalGateStatus: "RECEIVED",
+        professionalReadiness: "PROFESSIONALLY_CONFIRMED",
+        reviewSource: "BROKER",
+      })
+    )
+
+    expect(result.valid).toBe(true)
+    expect(result.value?.professionalReadiness).toBe("PROFESSIONALLY_CONFIRMED")
+    expect(result.value?.reviewSource).toBe("BROKER")
+  })
+
+  it("rejects unlocked-for-review professional confirmation backed only by operator notes", () => {
+    const result = validateProfessionalEvidenceGatewayDraft(
+      makeDraft({
+        professionalGateStatus: "CONFIRMED",
+        finalDecisionLockStatus: "UNLOCKED_FOR_REVIEW",
+        reviewSource: "OPERATOR_NOTE",
+      })
+    )
+
+    expect(result.valid).toBe(false)
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: "reviewSource",
+        }),
+      ])
+    )
+  })
+
   it("defaults conservatively and never implies approval", () => {
     const result = validateProfessionalEvidenceGatewayDraft(
       makeDraft({
