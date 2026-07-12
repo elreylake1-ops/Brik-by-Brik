@@ -455,4 +455,3 @@ export function normalizeProfessionalEvidenceGatewayDraft(
   const result = validateProfessionalEvidenceGatewayDraft(input)
   return result.valid ? result.value : undefined
 }
-
