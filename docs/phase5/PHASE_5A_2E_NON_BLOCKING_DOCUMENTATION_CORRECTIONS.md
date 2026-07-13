@@ -35,7 +35,7 @@ Phase 5A-2 remains approved and closed.
 - no tests changed
 - no API changes
 - no UI changes
-- no repository changes
+- no runtime/source-code changes
 - no migration changes
 - no intentional production deployment
 - no production access
