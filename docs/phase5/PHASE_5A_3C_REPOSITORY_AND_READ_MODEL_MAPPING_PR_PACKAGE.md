@@ -125,7 +125,7 @@ phase4-final-approved remains untouched and peels to:
 ## 10. PR Link
 
 ```text
-PR link: pending creation
+PR link: https://github.com/elreylake1-ops/Brik-by-Brik/pull/1
 ```
 
 ## 11. Result
