@@ -1,22 +1,29 @@
-# Phase 5A-4 - Read-Only Integration
+# Phase 5A-4A - Read-Only Loader Helper / Adapter
 
 ## Purpose
 
-Phase 5A-4 adds a controlled, read-only integration helper for the accepted Phase 5A-3 Professional Evidence Gateway read model.
+This is Phase 5A-4A only.
 
-The helper accepts already-loaded Evidence Command / `deal_evidence` shaped records and maps them into the existing Professional Evidence Gateway view model.
+This PR adds a read-only loader/helper adapter that accepts already-loaded Evidence Command / `deal_evidence`-shaped records and maps those records into the accepted Phase 5A-3 Professional Evidence Gateway read-model.
+
+Full Phase 5A-4 integration is not being claimed.
+
+This PR does not yet attach the Professional Evidence Gateway view model to an existing server-side saved-deal loader, and it does not yet show visible proof on a deal page.
+
+Phase 5A-4B must be separately scoped and approved before connecting this helper to an agreed server-side loading path or visible proof route.
 
 ## James Approval Boundary
 
-James approved Phase 5A-4 for controlled implementation only, on a feature branch / PR first.
+James approved this as a controlled Phase 5A-4A helper/adapter on a feature branch / PR first.
 
-Approved scope:
+Approved Phase 5A-4A scope:
 
-- Read-only integration of the Phase 5A-3 Professional Evidence Gateway read model.
-- Use existing loaded Evidence Command / `deal_evidence` evidence as the source surface.
+- Add a read-only loader/helper adapter for the accepted Phase 5A-3 Professional Evidence Gateway read-model.
+- Accept already-loaded Evidence Command / `deal_evidence`-shaped evidence as the source surface.
+- Map those records into Professional Evidence Gateway evidence inputs.
 - Add focused tests proving read-only and non-authoritative behavior.
-- Add Phase 5A-4 documentation.
-- Open PR for review.
+- Add Phase 5A-4A documentation.
+- Open PR #2 for review.
 
 Explicitly excluded:
 
@@ -32,26 +39,25 @@ Explicitly excluded:
 - No pipeline mutation.
 - No True MAO changes.
 - No scoring changes.
+- No Phase 5A-4B implementation.
 - No Phase 5B work.
 - No Market History work.
 - No AI, OCR, scraping, CRM, upload, or PDF work.
 
 ## Files Changed
 
-```text
-lib/professional-evidence-gateway/load-professional-evidence-gateway-view-model.ts
-__tests__/professional-evidence-gateway-readonly-integration.test.ts
-docs/phase5/PHASE_5A_4_READ_ONLY_INTEGRATION.md
-```
+- `lib/professional-evidence-gateway/load-professional-evidence-gateway-view-model.ts`
+- `__tests__/professional-evidence-gateway-readonly-integration.test.ts`
+- `docs/phase5/PHASE_5A_4A_READ_ONLY_LOADER_HELPER_ADAPTER.md`
 
-No existing server-side loader was changed. Attaching the new model to existing Investor Review, Investor Summary, API, UI, or PDF contracts would change downstream behavior and is outside this controlled Phase 5A-4 implementation.
+No existing server-side loader was changed. Attaching the new model to existing Investor Review, Investor Summary, API, UI, or PDF contracts would change downstream behavior and is outside this controlled Phase 5A-4A helper/adapter.
 
-## Integration Summary
+## Adapter Summary
 
 The new helper:
 
 - accepts already-loaded evidence/deal data
-- maps Evidence Command / `deal_evidence` shaped records into Phase 5A-3 evidence inputs
+- maps Evidence Command / `deal_evidence`-shaped records into Phase 5A-3 evidence inputs
 - calls `buildProfessionalEvidenceGatewayViewModel`
 - returns a `ProfessionalEvidenceGatewayViewModel`
 - filters unmappable evidence rather than forcing a gate
@@ -61,7 +67,7 @@ The new helper:
 ## Data Flow Summary
 
 ```text
-already-loaded Evidence Command / deal_evidence shaped records
+already-loaded Evidence Command / deal_evidence-shaped records
 -> mapLoadedEvidenceToProfessionalGatewayEvidenceInput
 -> buildProfessionalEvidenceGatewayViewModel
 -> ProfessionalEvidenceGatewayViewModel
@@ -89,7 +95,7 @@ LAND_REGISTRY
 
 ## Read-Only Proof
 
-The integration helper:
+The helper:
 
 - exports no create, update, delete, insert, save, or persist function
 - imports no database adapter
@@ -102,7 +108,7 @@ The integration helper:
 
 ## Non-Authoritative Proof
 
-The integration helper:
+The helper:
 
 - does not import Investor Shield authority modules
 - does not clear Investor Shield gates
@@ -110,6 +116,17 @@ The integration helper:
 - does not change True MAO
 - does not change scoring
 - keeps decision lock data display-only through the existing Phase 5A-3 mapper
+
+## Phase 5A-4B Deferred Scope Note
+
+James requested a separate scope proposal for connecting this helper to one agreed server-side loading path and producing visible proof.
+
+Future Phase 5A-4B options only:
+
+- read-only dev/demo page showing Professional Evidence Gateway output from real or seeded saved-deal evidence
+- controlled section on the existing Investor Review page showing mapped professional evidence gates
+
+Neither option is implemented by this PR.
 
 ## Boundary Confirmations
 
@@ -126,6 +143,7 @@ Confirmed:
 - No pipeline mutation.
 - No True MAO changes.
 - No scoring changes.
+- No Phase 5A-4B implementation started.
 - No Phase 5B work.
 - No Market History work.
 - No AI, OCR, scraping, CRM, upload, or PDF work.
@@ -137,13 +155,11 @@ Confirmed:
 
 Focused tests:
 
-```text
-__tests__/professional-evidence-gateway-source-compatibility.test.ts
-__tests__/professional-evidence-gateway-read-model.test.ts
-__tests__/professional-evidence-gateway-readonly-integration.test.ts
-```
+- `__tests__/professional-evidence-gateway-source-compatibility.test.ts`
+- `__tests__/professional-evidence-gateway-read-model.test.ts`
+- `__tests__/professional-evidence-gateway-readonly-integration.test.ts`
 
-The new integration test proves:
+The read-only helper test proves:
 
 - existing loaded evidence can be mapped into a Professional Evidence Gateway view model
 - `RIGHTMOVE_SOLD_DATA` remains visible but non-confirming by itself
@@ -152,20 +168,20 @@ The new integration test proves:
 - no Investor Shield gate is cleared
 - no pipeline state is mutated
 - no input objects are mutated
-- integration has no write function or persistence mutation surface
-- integration does not require migrations or new tables
-- integration does not change True MAO or scoring
+- the helper has no write function or persistence mutation surface
+- the helper does not require migrations or new tables
+- the helper does not change True MAO or scoring
 
 ## Validation Proof
 
 ```text
+npx vitest run __tests__/professional-evidence-gateway-readonly-integration.test.ts
+PASS
+
 npx vitest run __tests__/professional-evidence-gateway-source-compatibility.test.ts
 PASS
 
 npx vitest run __tests__/professional-evidence-gateway-read-model.test.ts
-PASS
-
-npx vitest run __tests__/professional-evidence-gateway-readonly-integration.test.ts
 PASS
 
 npm run lint
@@ -181,9 +197,9 @@ PASS
 ## PR Link
 
 ```text
-PR link: pending
+PR link: https://github.com/elreylake1-ops/Brik-by-Brik/pull/2
 ```
 
 ## Result
 
-PHASE 5A-4 READ-ONLY INTEGRATION IMPLEMENTED ON FEATURE BRANCH — PR READY FOR REVIEW ONLY
+PHASE 5A-4A READ-ONLY LOADER HELPER / ADAPTER READY FOR REVIEW ONLY
