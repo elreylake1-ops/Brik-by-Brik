@@ -2,7 +2,9 @@
 
 ## 1. Purpose
 
-This is the Phase 5A-3 completion documentation and PR package for the Professional Evidence Gateway repository/read-model mapping work.
+This is the Phase 5A-3 completion documentation and PR package for the Professional Evidence Gateway read-model/helper mapping work.
+
+The historical phase label used "repository/read-model mapping." For this PR, that means read-model/helper mapping only. It does not add repository persistence, repository writes, database access, or API routes.
 
 ## 2. Branch / PR Boundary
 
@@ -40,6 +42,8 @@ Confirmed:
 - Missing sources do not confirm professional gates.
 - Operator-only sources do not confirm professional gates.
 - Incompatible sources do not confirm professional gates.
+- `SOLD_COMPARABLE_REVIEW` is confirmed only by `SURVEYOR`, `SOLICITOR`, or `LAND_REGISTRY`.
+- `RIGHTMOVE_SOLD_DATA` remains visible portal evidence but is non-confirming by itself.
 
 ## 5. Read-Model Summary
 
@@ -55,10 +59,12 @@ deriveProfessionalDecisionLock
 Confirmed:
 
 - Read-focused only.
+- Read-model/helper mapping only.
 - Side-effect free.
 - No database calls.
 - No API calls.
 - No UI imports.
+- No repository persistence.
 - No repository writes.
 - No production config.
 - No input mutation.
@@ -70,7 +76,10 @@ Confirmed:
 - `CONFIRMED` requires explicit compatible qualifying source.
 - `PROFESSIONALLY_CONFIRMED` requires explicit compatible qualifying source.
 - `OPERATOR_NOTE`, `AGENT`, and `OTHER` cannot create professional confirmation.
+- `RIGHTMOVE_SOLD_DATA` cannot create professional confirmation.
 - Incompatible valid sources cannot create professional confirmation.
+- Portal evidence remains visible but non-confirming.
+- Agent evidence remains visible but non-confirming.
 - Operator-only evidence remains visible but non-confirming.
 - Each gate preserves its own review source.
 - Linked evidence ids are preserved.
@@ -87,6 +96,8 @@ Confirmed:
 - No migration changes.
 - No config changes.
 - No repository persistence changes.
+- No repository write changes.
+- No database access changes.
 - No Investor Shield authority changes.
 - No gate-clearing.
 - No pipeline mutation.
@@ -100,10 +111,10 @@ Confirmed:
 
 ```text
 npx vitest run __tests__/professional-evidence-gateway-source-compatibility.test.ts
-PASS - Test Files 1 passed (1), Tests 23 passed (23)
+PASS - Test Files 1 passed (1), Tests 25 passed (25)
 
 npx vitest run __tests__/professional-evidence-gateway-read-model.test.ts
-PASS - Test Files 1 passed (1), Tests 14 passed (14)
+PASS - Test Files 1 passed (1), Tests 20 passed (20)
 
 npm run lint
 PASS - eslint completed without errors
@@ -112,7 +123,7 @@ npm run build
 PASS - next build completed successfully
 
 npm test -- --testTimeout 60000
-PASS - Test Files 118 passed (118), Tests 1186 passed (1186)
+PASS - Test Files 118 passed (118), Tests 1194 passed (1194)
 ```
 
 ## 9. Phase 4 Tag Confirmation

@@ -52,6 +52,20 @@ function makeEvidence(
   }
 }
 
+function expectVisibleButNonConfirming(
+  record: ReturnType<typeof mapEvidenceToProfessionalGatewayRecord>,
+  reviewSource: string,
+  reviewState: string
+): void {
+  expect(record.reviewSource).toBe(reviewSource)
+  expect(record.reviewState).toBe(reviewState)
+  expect(record.professionalGateStatus).toBe("UNDER_REVIEW")
+  expect(record.professionalReadiness).toBe("READY_FOR_REVIEW")
+  expect(record.professionalConfirmationSummary).toBe(
+    "Professional confirmation requires explicit compatible qualifying source"
+  )
+}
+
 describe("professional evidence gateway read model mapping", () => {
   it("valid qualifying evidence can surface confirmed professional status", () => {
     const record = mapEvidenceToProfessionalGatewayRecord(makeEvidence())
@@ -69,13 +83,40 @@ describe("professional evidence gateway read model mapping", () => {
       makeEvidence({ reviewSource: "OPERATOR_NOTE" })
     )
 
-    expect(record.reviewSource).toBe("OPERATOR_NOTE")
-    expect(record.reviewState).toBe("PROFESSIONAL_REVIEW_COMPLETE")
-    expect(record.professionalGateStatus).toBe("UNDER_REVIEW")
-    expect(record.professionalReadiness).toBe("READY_FOR_REVIEW")
-    expect(record.professionalConfirmationSummary).toBe(
-      "Professional confirmation requires explicit compatible qualifying source"
+    expectVisibleButNonConfirming(
+      record,
+      "OPERATOR_NOTE",
+      "PROFESSIONAL_REVIEW_COMPLETE"
     )
+  })
+
+  it("portal evidence remains visible but non-confirming", () => {
+    const record = mapEvidenceToProfessionalGatewayRecord(
+      makeEvidence({
+        professionalGateArea: "SOLD_COMPARABLE_REVIEW",
+        linkedInvestorShieldGate: "SOLD_COMPARABLE_REVIEW",
+        reviewSource: "RIGHTMOVE_SOLD_DATA",
+        reviewState: "PORTAL_SOLD_DATA_VISIBLE",
+      })
+    )
+
+    expect(record.professionalGateArea).toBe("SOLD_COMPARABLE_REVIEW")
+    expectVisibleButNonConfirming(
+      record,
+      "RIGHTMOVE_SOLD_DATA",
+      "PORTAL_SOLD_DATA_VISIBLE"
+    )
+  })
+
+  it("agent evidence remains visible but non-confirming", () => {
+    const record = mapEvidenceToProfessionalGatewayRecord(
+      makeEvidence({
+        reviewSource: "AGENT",
+        reviewState: "AGENT_FEEDBACK_VISIBLE",
+      })
+    )
+
+    expectVisibleButNonConfirming(record, "AGENT", "AGENT_FEEDBACK_VISIBLE")
   })
 
   it("missing review source cannot confirm", () => {
@@ -102,6 +143,47 @@ describe("professional evidence gateway read model mapping", () => {
     expect(record.professionalGateStatus).toBe("UNDER_REVIEW")
     expect(record.professionalReadiness).toBe("READY_FOR_REVIEW")
   })
+
+  it("RIGHTMOVE_SOLD_DATA does not create confirmed or professionally confirmed sold comparable review", () => {
+    const readiness = mapProfessionalGateReadiness({
+      professionalGateArea: "SOLD_COMPARABLE_REVIEW",
+      professionalGateStatus: "CONFIRMED",
+      professionalReadiness: "PROFESSIONALLY_CONFIRMED",
+      reviewSource: "RIGHTMOVE_SOLD_DATA",
+    })
+
+    expect(readiness).toEqual({
+      professionalGateArea: "SOLD_COMPARABLE_REVIEW",
+      professionalGateStatus: "UNDER_REVIEW",
+      professionalReadiness: "READY_FOR_REVIEW",
+      reviewSource: "RIGHTMOVE_SOLD_DATA",
+      professionallyConfirming: false,
+    })
+  })
+
+  it.each([
+    ["SURVEYOR"],
+    ["SOLICITOR"],
+    ["LAND_REGISTRY"],
+  ] as const)(
+    "only qualifying professional or approved source %s can confirm sold comparable review",
+    (reviewSource) => {
+      expect(
+        mapProfessionalGateReadiness({
+          professionalGateArea: "SOLD_COMPARABLE_REVIEW",
+          professionalGateStatus: "CONFIRMED",
+          professionalReadiness: "PROFESSIONALLY_CONFIRMED",
+          reviewSource,
+        })
+      ).toEqual({
+        professionalGateArea: "SOLD_COMPARABLE_REVIEW",
+        professionalGateStatus: "CONFIRMED",
+        professionalReadiness: "PROFESSIONALLY_CONFIRMED",
+        reviewSource,
+        professionallyConfirming: true,
+      })
+    }
+  )
 
   it("each gate preserves its own review source", () => {
     const viewModel = buildProfessionalEvidenceGatewayViewModel({

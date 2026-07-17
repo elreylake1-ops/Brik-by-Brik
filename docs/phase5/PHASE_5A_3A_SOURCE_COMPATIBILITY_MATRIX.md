@@ -4,7 +4,7 @@
 
 Phase 5A-3A adds the Professional Evidence Gateway source compatibility matrix only. It defines which review sources can qualify each professional gate area before later read-model mapping work.
 
-This step does not add read-model mapping, repository aggregation, API routes, UI, migrations, config changes, persistence writes, production access, Investor Shield authority changes, gate-clearing, pipeline mutation, True MAO changes, scoring changes, Phase 5B work, or Market History work.
+This step does not add read-model mapping, repository aggregation, repository persistence, repository writes, database access, API routes, UI, migrations, config changes, production access, Investor Shield authority changes, gate-clearing, pipeline mutation, True MAO changes, scoring changes, Phase 5B work, or Market History work.
 
 ## Feature Branch
 
@@ -29,9 +29,10 @@ docs/phase5/PHASE_5A_3A_SOURCE_COMPATIBILITY_MATRIX.md
 | `BROKER_LENDER_CONFIRMATION` | `BROKER`, `LENDER` | `OPERATOR_NOTE`, `AGENT`, `OTHER` |
 | `BUILDER_QUOTE_CONFIRMATION` | `BUILDER`, `SURVEYOR` | `OPERATOR_NOTE`, `AGENT`, `OTHER` |
 | `SURVEYOR_REPORT` | `SURVEYOR` | `OPERATOR_NOTE`, `AGENT`, `OTHER` |
-| `SOLD_COMPARABLE_REVIEW` | `RIGHTMOVE_SOLD_DATA`, `SURVEYOR`, `SOLICITOR` | `OPERATOR_NOTE`, `AGENT`, `OTHER` |
+| `SOLD_COMPARABLE_REVIEW` | `SURVEYOR`, `SOLICITOR`, `LAND_REGISTRY` | `RIGHTMOVE_SOLD_DATA`, `OPERATOR_NOTE`, `AGENT`, `OTHER` |
 
 `OPERATOR_NOTE`, `AGENT`, and `OTHER` never confirm professional evidence.
+`RIGHTMOVE_SOLD_DATA` remains known visible portal evidence, but it does not confirm `SOLD_COMPARABLE_REVIEW` unless reviewed or validated by a qualifying professional or approved source.
 
 ## Helper Functions Added
 
@@ -66,7 +67,7 @@ Coverage includes:
 
 ```text
 npx vitest run __tests__/professional-evidence-gateway-source-compatibility.test.ts
-PASS - Test Files 1 passed (1), Tests 23 passed (23)
+PASS - Test Files 1 passed (1), Tests 25 passed (25)
 
 npm run lint
 PASS - eslint completed without errors
@@ -75,7 +76,7 @@ npm run build
 PASS - next build completed successfully
 
 npm test -- --testTimeout 60000
-PASS - Test Files 117 passed (117), Tests 1172 passed (1172)
+PASS - Test Files 118 passed (118), Tests 1194 passed (1194)
 ```
 
 ## Confirmations
@@ -87,6 +88,7 @@ No API changes occurred.
 No UI changes occurred.
 No migration changes occurred.
 No config changes occurred.
+No repository persistence, repository write, or database access changes occurred.
 No Investor Shield authority change occurred.
 No gate-clearing occurred.
 No pipeline mutation occurred.

@@ -4,7 +4,7 @@
 
 Phase 5A-3B adds read-only Professional Evidence Gateway mapping helpers on the existing feature branch. The helpers turn visible evidence inputs into Professional Evidence Gateway records, gates, sections, and decision-lock display state while enforcing the Phase 5A-3A source compatibility matrix.
 
-This step does not add repository writes, API routes, UI, migrations, config changes, production access, Investor Shield authority changes, gate-clearing, pipeline mutation, True MAO changes, scoring changes, Phase 5B work, or Market History work.
+This step is read-model/helper mapping only. It does not add repository persistence, repository writes, database access, API routes, UI, migrations, config changes, production access, Investor Shield authority changes, gate-clearing, pipeline mutation, True MAO changes, scoring changes, Phase 5B work, or Market History work.
 
 ## Feature Branch
 
@@ -41,6 +41,8 @@ The read model maps evidence inputs into:
 
 The mapping is read-focused only. It preserves gate area, review source, linked Investor Shield gate label, linked Evidence Command record id, linked evidence ids, blocker/caution values, recommended action, expiry/review date, and final decision lock display state.
 
+This is read-model/helper mapping only. It does not add repository persistence, repository writes, database access, or API routes.
+
 ## Qualification Rules
 
 - `CONFIRMED` requires an explicit compatible qualifying source.
@@ -48,7 +50,10 @@ The mapping is read-focused only. It preserves gate area, review source, linked 
 - Missing source cannot produce professional confirmation.
 - Incompatible source cannot produce professional confirmation.
 - `OPERATOR_NOTE`, `AGENT`, and `OTHER` cannot produce professional confirmation.
+- `RIGHTMOVE_SOLD_DATA` remains visible portal evidence but cannot produce `SOLD_COMPARABLE_REVIEW` professional confirmation by itself.
+- `SOLD_COMPARABLE_REVIEW` can be confirmed only by `SURVEYOR`, `SOLICITOR`, or `LAND_REGISTRY`.
 - Operator-only evidence remains visible as evidence but is mapped as non-confirming.
+- Agent evidence remains visible as evidence but is mapped as non-confirming.
 - Each professional gate preserves its own review source.
 - `SOLICITOR_REVIEW` remains canonical.
 - `SOLICITOR_FEEDBACK` remains rejected as canonical.
@@ -62,7 +67,11 @@ __tests__/professional-evidence-gateway-read-model.test.ts
 Coverage includes:
 
 - qualifying evidence confirmation
+- portal evidence non-confirming visibility
+- agent evidence non-confirming visibility
 - operator-only non-confirming visibility
+- `RIGHTMOVE_SOLD_DATA` non-confirming sold comparable review behavior
+- `SURVEYOR`, `SOLICITOR`, and `LAND_REGISTRY` sold comparable review confirmation
 - missing source rejection for confirmation
 - incompatible source rejection for confirmation
 - per-gate review source preservation
@@ -79,7 +88,7 @@ Coverage includes:
 
 ```text
 npx vitest run __tests__/professional-evidence-gateway-read-model.test.ts
-PASS - Test Files 1 passed (1), Tests 14 passed (14)
+PASS - Test Files 1 passed (1), Tests 20 passed (20)
 
 npx vitest run __tests__/professional-evidence-gateway-source-compatibility.test.ts
 PASS - Test Files 1 passed (1), Tests 23 passed (23)
@@ -91,7 +100,7 @@ npm run build
 PASS - next build completed successfully
 
 npm test -- --testTimeout 60000
-PASS - Test Files 118 passed (118), Tests 1186 passed (1186)
+PASS - Test Files 118 passed (118), Tests 1194 passed (1194)
 ```
 
 ## Confirmations
@@ -103,6 +112,7 @@ No API changes occurred.
 No UI changes occurred.
 No migration changes occurred.
 No config changes occurred.
+No repository persistence, repository write, or database access changes occurred.
 No Investor Shield authority change occurred.
 No gate-clearing occurred.
 No pipeline mutation occurred.

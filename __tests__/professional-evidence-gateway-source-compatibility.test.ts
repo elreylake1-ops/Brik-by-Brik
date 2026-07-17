@@ -20,7 +20,7 @@ const compatibilityMatrix = {
   BROKER_LENDER_CONFIRMATION: ["BROKER", "LENDER"],
   BUILDER_QUOTE_CONFIRMATION: ["BUILDER", "SURVEYOR"],
   SURVEYOR_REPORT: ["SURVEYOR"],
-  SOLD_COMPARABLE_REVIEW: ["RIGHTMOVE_SOLD_DATA", "SURVEYOR", "SOLICITOR"],
+  SOLD_COMPARABLE_REVIEW: ["SURVEYOR", "SOLICITOR", "LAND_REGISTRY"],
 } as const satisfies Record<
   ProfessionalGateArea,
   readonly ProfessionalEvidenceReviewSource[]
@@ -37,9 +37,9 @@ describe("professional evidence gateway source compatibility", () => {
     ["BUILDER_QUOTE_CONFIRMATION", "BUILDER"],
     ["BUILDER_QUOTE_CONFIRMATION", "SURVEYOR"],
     ["SURVEYOR_REPORT", "SURVEYOR"],
-    ["SOLD_COMPARABLE_REVIEW", "RIGHTMOVE_SOLD_DATA"],
     ["SOLD_COMPARABLE_REVIEW", "SURVEYOR"],
     ["SOLD_COMPARABLE_REVIEW", "SOLICITOR"],
+    ["SOLD_COMPARABLE_REVIEW", "LAND_REGISTRY"],
   ] as const)("%s accepts %s", (area, source) => {
     expect(
       isProfessionalEvidenceReviewSourceQualifyingForGate(area, source)
@@ -69,6 +69,30 @@ describe("professional evidence gateway source compatibility", () => {
           field: "reviewSource",
           message:
             "reviewSource is not qualifying for professionalGateArea SOLICITOR_REVIEW",
+        },
+      ],
+    })
+  })
+
+  it("SOLD_COMPARABLE_REVIEW rejects RIGHTMOVE_SOLD_DATA as qualifying confirmation", () => {
+    expect(
+      isProfessionalEvidenceReviewSourceQualifyingForGate(
+        "SOLD_COMPARABLE_REVIEW",
+        "RIGHTMOVE_SOLD_DATA"
+      )
+    ).toBe(false)
+    expect(
+      assertProfessionalGateSourceCompatibility(
+        "SOLD_COMPARABLE_REVIEW",
+        "RIGHTMOVE_SOLD_DATA"
+      )
+    ).toEqual({
+      compatible: false,
+      errors: [
+        {
+          field: "reviewSource",
+          message:
+            "reviewSource is not qualifying for professionalGateArea SOLD_COMPARABLE_REVIEW",
         },
       ],
     })
@@ -181,6 +205,15 @@ describe("professional evidence gateway source compatibility", () => {
         expect.arrayContaining(["OPERATOR_NOTE", "AGENT", "OTHER"])
       )
     }
+  })
+
+  it("keeps RIGHTMOVE_SOLD_DATA as known visible evidence but non-confirming for SOLD_COMPARABLE_REVIEW", () => {
+    expect(PROFESSIONAL_EVIDENCE_REVIEW_SOURCES).toContain(
+      "RIGHTMOVE_SOLD_DATA"
+    )
+    expect(
+      getNonQualifyingReviewSourcesForGate("SOLD_COMPARABLE_REVIEW")
+    ).toContain("RIGHTMOVE_SOLD_DATA")
   })
 
   it("does not import API, UI, database, production, migration, repository, or persistence modules", () => {
