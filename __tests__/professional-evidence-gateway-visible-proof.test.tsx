@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs"
 import path from "node:path"
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
+import Phase5AProfessionalGatewayProofPage from "@/app/phase-5a-professional-gateway-proof/page"
 import ProfessionalEvidenceGatewayProofPanel from "@/components/professional-evidence-gateway/ProfessionalEvidenceGatewayProofPanel"
 import {
   getProfessionalEvidenceGatewayProofFixture,
@@ -42,6 +43,20 @@ describe("professional evidence gateway visible proof", () => {
     expect(html).toContain("Professional Evidence Gateway Proof")
     expect(html).toContain("Read-only dev/demo proof")
     expect(html).toContain("seeded-phase-5a-4b-proof-deal")
+  })
+
+  it("renders the isolated proof route without Investor Review dependencies", () => {
+    const html = renderToStaticMarkup(<Phase5AProfessionalGatewayProofPage />)
+
+    expect(html).toContain("Professional Evidence Gateway Proof")
+    expect(html).toContain("Read-only dev/demo proof")
+    expect(html).toContain("seeded-phase-5a-4b-proof-deal")
+    expect(html).toContain("RIGHTMOVE_SOLD_DATA")
+    expect(html).toContain(
+      "Investor Shield remains unchanged. This proof does not clear gates or mutate pipeline state."
+    )
+    expect(html).not.toContain("Investor Review")
+    expect(html).not.toContain("Move Pipeline")
   })
 
   it("renders solicitor title evidence and sold comparable evidence", () => {
