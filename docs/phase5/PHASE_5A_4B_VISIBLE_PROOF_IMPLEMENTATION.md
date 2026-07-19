@@ -8,8 +8,8 @@ This implementation is limited to Phase 5A-4B-2:
 
 - Phase 5A-4B-1 added deterministic seeded proof data and a reusable read-only proof panel.
 - Phase 5A-4B-2 adds only the isolated dev/demo route and implementation documentation.
-- No PR is opened by this substep.
-- No Vercel preview or screenshots are claimed by this substep.
+- PR #3 was opened for Phase 5A-4B visible proof review.
+- Vercel preview and local screenshot proof are recorded below.
 
 ## Proof Route
 
@@ -139,23 +139,29 @@ npm run build
 PASS
 ```
 
-## PR Link Placeholder
+## PR Link
 
 ```text
-PR link: pending Phase 5A-4B-3
+PR link:
+https://github.com/elreylake1-ops/Brik-by-Brik/pull/3
 ```
 
-## Vercel Preview URL Placeholder
+## Vercel Preview URL
 
 ```text
-Vercel preview URL: pending Phase 5A-4B-3
+Vercel preview URL:
+https://brik-by-brik-engine-6n0gs1v33-brikbybrik-engine.vercel.app/phase-5a-professional-gateway-proof
 ```
 
-## Screenshot Evidence Placeholder
+## Screenshot Evidence
 
 ```text
-Screenshot evidence: pending Phase 5A-4B-3
+Screenshot evidence:
+- Desktop: qa-artifacts/phase5a-4b/professional-gateway-proof-desktop.png
+- Mobile: qa-artifacts/phase5a-4b/professional-gateway-proof-mobile.png
 ```
+
+Screenshots were captured locally, left local/gitignored, and not committed.
 
 ## Result
 
