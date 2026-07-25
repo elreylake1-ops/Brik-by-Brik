@@ -1,3 +1,5 @@
+import type { ProfessionalEvidenceGatewayViewModel } from "@/types/professional-evidence-gateway"
+
 export const INVESTOR_REVIEW_NOT_AVAILABLE_LABEL = "Not available" as const
 export const INVESTOR_REVIEW_CONFIDENTIALITY_LABEL =
   "INTERNAL INVESTOR DECISION SUPPORT" as const
@@ -173,4 +175,8 @@ export type InvestorReviewViewModel = {
   emptyOffersText: string
   recommendedNextAction: string
   footer: InvestorReviewFooter
+}
+
+export type InvestorReviewReadyViewModel = InvestorReviewViewModel & {
+  professionalEvidenceGateway: ProfessionalEvidenceGatewayViewModel
 }

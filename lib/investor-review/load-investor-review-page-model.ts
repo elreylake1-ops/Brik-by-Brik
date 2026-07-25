@@ -1,7 +1,10 @@
+import { adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidence } from "@/lib/investor-review/adapt-pdf-evidence-pack-evidence-to-professional-gateway"
 import { loadPdfEvidencePackForDeal } from "@/lib/pdf-evidence-pack/load-pdf-evidence-pack"
 import { mapPdfEvidencePackToInvestorReview } from "@/lib/investor-review/map-pdf-evidence-pack-to-investor-review"
+import { loadProfessionalEvidenceGatewayViewModel } from "@/lib/professional-evidence-gateway/load-professional-evidence-gateway-view-model"
 import {
   INVESTOR_REVIEW_CONFIDENTIALITY_LABEL,
+  type InvestorReviewReadyViewModel,
   type InvestorReviewViewModel,
 } from "@/lib/investor-review/investor-review-view-model"
 import { getSavedDealById } from "@/lib/operator-command/saved-deals-repository"
@@ -60,8 +63,24 @@ export async function loadInvestorReviewPageModel(
   }
 
   try {
-    const viewModel = mapPdfEvidencePackToInvestorReview({ pack, savedDeal })
-    return { status: "ready", viewModel }
+    const standardViewModel = mapPdfEvidencePackToInvestorReview({ pack, savedDeal })
+    const professionalEvidence = adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidence(
+      pack.evidenceIndex
+    )
+    const professionalEvidenceGateway = loadProfessionalEvidenceGatewayViewModel({
+      savedDealId: normalizedDealId,
+      evidence: professionalEvidence,
+    })
+
+    const readyViewModel = {
+      ...standardViewModel,
+      professionalEvidenceGateway,
+    } satisfies InvestorReviewReadyViewModel
+
+    return {
+      status: "ready",
+      viewModel: readyViewModel as InvestorReviewViewModel,
+    }
   } catch {
     return { status: "unavailable" }
   }
