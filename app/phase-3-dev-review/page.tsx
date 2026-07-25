@@ -1,7 +1,10 @@
 import type { Metadata } from "next"
 import InvestorReviewDocument from "@/components/investor-review/InvestorReviewDocument"
 import type { Phase3MergedOrchestrationOutput, Phase3OrchestrationOutput } from "@/types/phase3-orchestration"
-import { INVESTOR_REVIEW_CONFIDENTIALITY_LABEL } from "@/lib/investor-review/investor-review-view-model"
+import {
+  INVESTOR_REVIEW_CONFIDENTIALITY_LABEL,
+  type InvestorReviewReadyViewModel,
+} from "@/lib/investor-review/investor-review-view-model"
 import { mapPdfEvidencePackToInvestorReview } from "@/lib/investor-review/map-pdf-evidence-pack-to-investor-review"
 import {
   PHASE3_REVIEW_SURFACE_DISPLAY_CONTRACT,
@@ -65,16 +68,38 @@ const ADDITIONAL_DEMO_SAVED_DEAL: SavedDealRecord = {
   next_action: "Review lender criteria and solicitor evidence",
 }
 
-const ADDITIONAL_DEMO_REVIEW_VIEW_MODEL = mapPdfEvidencePackToInvestorReview({
-  pack: {
-    ...PDF_EVIDENCE_PACK_COMPLETE_FIXTURE,
-    meta: {
-      ...PDF_EVIDENCE_PACK_COMPLETE_FIXTURE.meta,
-      confidentialityLabel: INVESTOR_REVIEW_CONFIDENTIALITY_LABEL,
+const ADDITIONAL_DEMO_REVIEW_VIEW_MODEL = {
+  ...mapPdfEvidencePackToInvestorReview({
+    pack: {
+      ...PDF_EVIDENCE_PACK_COMPLETE_FIXTURE,
+      meta: {
+        ...PDF_EVIDENCE_PACK_COMPLETE_FIXTURE.meta,
+        confidentialityLabel: INVESTOR_REVIEW_CONFIDENTIALITY_LABEL,
+      },
     },
+    savedDeal: ADDITIONAL_DEMO_SAVED_DEAL,
+  }),
+  professionalEvidenceGateway: {
+    savedDealId: PDF_EVIDENCE_PACK_COMPLETE_FIXTURE.meta.savedDealId,
+    gates: [],
+    sections: [],
+    decisionLock: {
+      savedDealId: PDF_EVIDENCE_PACK_COMPLETE_FIXTURE.meta.savedDealId,
+      finalDecisionLockStatus: "LOCKED",
+      lockReason: "Professional evidence remains display-only.",
+      linkedGateAreas: [],
+      linkedEvidenceIds: [],
+    },
+    professionalGateStatus: "NOT_STARTED",
+    professionalReadiness: "NOT_READY",
+    reviewSource: "OPERATOR_NOTE",
+    requiredEvidenceSummary: "Professional evidence review required",
+    professionalConfirmationSummary:
+      "Professional confirmation requires explicit compatible qualifying source",
+    recommendedNextAction: "Request compatible professional source confirmation",
+    linkedEvidenceCommandEvidenceId: null,
   },
-  savedDeal: ADDITIONAL_DEMO_SAVED_DEAL,
-})
+} satisfies InvestorReviewReadyViewModel
 
 function buildScenarioEntries(): ScenarioEntry[] {
   return PHASE3_REVIEW_SURFACE_FIXTURE_PAIRS.map((pair) => ({

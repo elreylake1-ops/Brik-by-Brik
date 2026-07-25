@@ -1,15 +1,16 @@
+import ProfessionalEvidenceGatewaySection from "@/components/investor-review/ProfessionalEvidenceGatewaySection"
 import {
   INVESTOR_REVIEW_EMPTY_ADVISORY_LABEL,
   INVESTOR_REVIEW_NOT_AVAILABLE_LABEL,
+  type InvestorReviewReadyViewModel,
   type InvestorReviewEvidenceLiteRow,
   type InvestorReviewField,
   type InvestorReviewGateRow,
   type InvestorReviewSemanticTone,
-  type InvestorReviewViewModel,
 } from "@/lib/investor-review/investor-review-view-model"
 
 type Props = {
-  viewModel: InvestorReviewViewModel
+  viewModel: InvestorReviewReadyViewModel
 }
 
 function toneClasses(tone: InvestorReviewSemanticTone | undefined): string {
@@ -324,6 +325,10 @@ export default function InvestorReviewDocument({ viewModel }: Props) {
             </ul>
           )}
         </section>
+
+        <ProfessionalEvidenceGatewaySection
+          viewModel={viewModel.professionalEvidenceGateway}
+        />
 
         <section aria-labelledby="evidence-lite-notes" className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
           <SectionHeading id="evidence-lite-notes">Evidence Lite records</SectionHeading>

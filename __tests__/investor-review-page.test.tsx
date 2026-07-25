@@ -3,9 +3,10 @@ import path from "node:path"
 import { describe, expect, it, vi, beforeEach } from "vitest"
 import { renderToStaticMarkup } from "react-dom/server"
 import type { LoadInvestorReviewPageModelResult } from "@/lib/investor-review/load-investor-review-page-model"
-import type { InvestorReviewViewModel } from "@/lib/investor-review/investor-review-view-model"
+import type { InvestorReviewReadyViewModel } from "@/lib/investor-review/investor-review-view-model"
 import { mapPdfEvidencePackToInvestorReview } from "@/lib/investor-review/map-pdf-evidence-pack-to-investor-review"
 import type { SavedDealRecord } from "@/lib/operator-command/saved-deals-repository"
+import type { ProfessionalEvidenceGatewayViewModel } from "@/types/professional-evidence-gateway"
 import { PDF_EVIDENCE_PACK_BLOCKED_FIXTURE } from "./fixtures/pdf-evidence-pack-fixtures"
 
 const { loadInvestorReviewPageModelMock, notFoundMock } = vi.hoisted(() => ({
@@ -49,11 +50,39 @@ function makeSavedDealRecord(overrides: Partial<SavedDealRecord> = {}): SavedDea
   }
 }
 
-function makeSampleViewModel(): InvestorReviewViewModel {
-  return mapPdfEvidencePackToInvestorReview({
+function makeSampleGatewayViewModel(): ProfessionalEvidenceGatewayViewModel {
+  return {
+    savedDealId: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId,
+    gates: [],
+    sections: [],
+    decisionLock: {
+      savedDealId: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId,
+      finalDecisionLockStatus: "LOCKED",
+      lockReason: "Professional evidence remains display-only.",
+      linkedGateAreas: [],
+      linkedEvidenceIds: [],
+    },
+    professionalGateStatus: "NOT_STARTED",
+    professionalReadiness: "NOT_READY",
+    reviewSource: "OPERATOR_NOTE",
+    requiredEvidenceSummary: "Professional evidence review required",
+    professionalConfirmationSummary:
+      "Professional confirmation requires explicit compatible qualifying source",
+    recommendedNextAction: "Request compatible professional source confirmation",
+    linkedEvidenceCommandEvidenceId: null,
+  }
+}
+
+function makeSampleViewModel(): InvestorReviewReadyViewModel {
+  const viewModel = mapPdfEvidencePackToInvestorReview({
     pack: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
     savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId }),
   })
+
+  return {
+    ...viewModel,
+    professionalEvidenceGateway: makeSampleGatewayViewModel(),
+  }
 }
 
 describe("InvestorReviewPage", () => {
@@ -81,9 +110,14 @@ describe("InvestorReviewPage", () => {
       expect(html).toContain("£113,800.00")
       expect(html).toContain("Required hard gates")
       expect(html).toContain("Advisory and caution gates")
+      expect(html).toContain("Professional Evidence Gateway")
+      expect(html).toContain(
+        "Read-only professional decision support. This section does not satisfy, waive, approve, or override Investor Shield requirements."
+      )
       expect(html).toContain(
         "Evidence Lite is read-only evidence notes. It is informational only and does not satisfy, waive, approve, or override Investor Shield requirements."
       )
+      expect(html).not.toContain("Professional Evidence Gateway Proof")
       expect(notFoundMock).not.toHaveBeenCalled()
     })
 

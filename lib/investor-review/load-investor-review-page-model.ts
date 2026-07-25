@@ -5,14 +5,13 @@ import { loadProfessionalEvidenceGatewayViewModel } from "@/lib/professional-evi
 import {
   INVESTOR_REVIEW_CONFIDENTIALITY_LABEL,
   type InvestorReviewReadyViewModel,
-  type InvestorReviewViewModel,
 } from "@/lib/investor-review/investor-review-view-model"
 import { getSavedDealById } from "@/lib/operator-command/saved-deals-repository"
 
 export type LoadInvestorReviewPageModelResult =
   | {
       status: "ready"
-      viewModel: InvestorReviewViewModel
+      viewModel: InvestorReviewReadyViewModel
     }
   | {
       status: "not_found"
@@ -79,7 +78,7 @@ export async function loadInvestorReviewPageModel(
 
     return {
       status: "ready",
-      viewModel: readyViewModel as InvestorReviewViewModel,
+      viewModel: readyViewModel,
     }
   } catch {
     return { status: "unavailable" }

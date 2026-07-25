@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest"
 import { renderToStaticMarkup } from "react-dom/server"
 import InvestorReviewDocument from "@/components/investor-review/InvestorReviewDocument"
+import type { InvestorReviewReadyViewModel } from "@/lib/investor-review/investor-review-view-model"
 import { mapPdfEvidencePackToInvestorReview } from "@/lib/investor-review/map-pdf-evidence-pack-to-investor-review"
 import type { SavedDealRecord } from "@/lib/operator-command/saved-deals-repository"
+import type { ProfessionalEvidenceGatewayViewModel } from "@/types/professional-evidence-gateway"
 import {
   PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
   PDF_EVIDENCE_PACK_EMPTY_FIXTURE,
@@ -30,8 +32,63 @@ function makeSavedDealRecord(overrides: Partial<SavedDealRecord> = {}): SavedDea
   }
 }
 
+function makeProfessionalEvidenceGatewayViewModel(
+  overrides: Partial<ProfessionalEvidenceGatewayViewModel> = {}
+): ProfessionalEvidenceGatewayViewModel {
+  const defaultGate = {
+    savedDealId: "saved-deal-review-001",
+    professionalGateArea: "SOLICITOR_REVIEW",
+    linkedInvestorShieldGate: "TITLE",
+    professionalGateStatus: "CONFIRMED",
+    professionalReadiness: "PROFESSIONALLY_CONFIRMED",
+    reviewSource: "SOLICITOR",
+    reviewState: "PROFESSIONAL_CONFIRMED",
+    blockerImpact: "DOES_NOT_BLOCK",
+    evidenceStrength: "STRONG",
+    requiredEvidenceSummary: "Solicitor title evidence is visible for review.",
+    professionalConfirmationSummary: "Solicitor has confirmed title review evidence.",
+    recommendedNextAction: "Keep solicitor title evidence visible for review.",
+    expiryOrReviewDate: "2026-08-01",
+    linkedEvidenceCommandEvidenceId: "gateway-evi-001",
+    linkedEvidenceIds: ["gateway-evi-001"],
+  } satisfies ProfessionalEvidenceGatewayViewModel["gates"][number]
+
+  const gates = overrides.gates ?? [defaultGate]
+
+  return {
+    savedDealId: "saved-deal-review-001",
+    gates,
+    sections: [],
+    decisionLock: {
+      savedDealId: "saved-deal-review-001",
+      finalDecisionLockStatus: "MANUAL_REVIEW_REQUIRED",
+      lockReason: "Professional evidence remains display-only for manual review.",
+      linkedGateAreas: gates.map((gate) => gate.professionalGateArea),
+      linkedEvidenceIds: gates.flatMap((gate) => gate.linkedEvidenceIds),
+    },
+    professionalGateStatus: "CONFIRMED",
+    professionalReadiness: "PROFESSIONALLY_CONFIRMED",
+    reviewSource: "SOLICITOR",
+    requiredEvidenceSummary: defaultGate.requiredEvidenceSummary,
+    professionalConfirmationSummary: defaultGate.professionalConfirmationSummary,
+    recommendedNextAction: defaultGate.recommendedNextAction,
+    linkedEvidenceCommandEvidenceId: defaultGate.linkedEvidenceCommandEvidenceId,
+    ...overrides,
+  }
+}
+
+function attachProfessionalGateway(
+  viewModel: ReturnType<typeof mapPdfEvidencePackToInvestorReview>,
+  overrides: Partial<ProfessionalEvidenceGatewayViewModel> = {}
+): InvestorReviewReadyViewModel {
+  return {
+    ...viewModel,
+    professionalEvidenceGateway: makeProfessionalEvidenceGatewayViewModel(overrides),
+  }
+}
+
 function renderDocument() {
-  const viewModel = mapPdfEvidencePackToInvestorReview({
+  const baseViewModel = mapPdfEvidencePackToInvestorReview({
     pack: {
       ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
       investorShield: {
@@ -42,6 +99,7 @@ function renderDocument() {
     },
     savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId }),
   })
+  const viewModel = attachProfessionalGateway(baseViewModel)
 
   return renderToStaticMarkup(<InvestorReviewDocument viewModel={viewModel} />)
 }
@@ -72,6 +130,8 @@ describe("InvestorReviewDocument", () => {
       "Decision and capital-protection status",
       "Required hard gates",
       "Advisory and caution gates",
+      "Professional Evidence Gateway",
+      "Evidence Lite records",
       "Missing evidence and blockers",
       "Tasks and offers",
       "Recommended next action",
@@ -81,6 +141,16 @@ describe("InvestorReviewDocument", () => {
     for (const heading of expectedOrder) {
       expect(html).toContain(heading)
     }
+
+    expect(html.indexOf("Advisory and caution gates")).toBeLessThan(
+      html.indexOf("Professional Evidence Gateway")
+    )
+    expect(html.indexOf("Professional Evidence Gateway")).toBeLessThan(
+      html.indexOf("Evidence Lite records")
+    )
+    expect(html.indexOf("Evidence Lite records")).toBeLessThan(
+      html.indexOf("Missing evidence and blockers")
+    )
   })
 
   it("keeps required and advisory sections separate and preserves non-success blocked and missing semantics", () => {
@@ -102,11 +172,17 @@ describe("InvestorReviewDocument", () => {
     expect(html).toContain(
       "Evidence supports review but does not automatically satisfy Investor Shield hard gates, waive requirements, approve progression, or replace professional confirmation."
     )
+    expect(html).toContain(
+      "Read-only professional decision support. This section does not satisfy, waive, approve, or override Investor Shield requirements."
+    )
     expect(html).not.toContain("Reviewer note:")
+    expect(html).not.toContain("Professional Evidence Gateway Proof")
+    expect(html).not.toContain("Read-only dev/demo proof")
+    expect(html).not.toContain("Seeded saved deal identifier")
   })
 
   it("renders structured Evidence Command fields with stable test hooks", () => {
-    const viewModel = mapPdfEvidencePackToInvestorReview({
+    const baseViewModel = mapPdfEvidencePackToInvestorReview({
       pack: {
         ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
         evidenceIndex: [
@@ -129,9 +205,12 @@ describe("InvestorReviewDocument", () => {
       },
       savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId }),
     })
+    const viewModel = attachProfessionalGateway(baseViewModel)
 
     const html = renderToStaticMarkup(<InvestorReviewDocument viewModel={viewModel} />)
 
+    expect(html).toContain("Professional Evidence Gateway")
+    expect(html).toContain("gateway-evi-001")
     expect(html).toContain("Evidence Lite records")
     expect(html).toContain("data-testid=\"investor-review-evidence-row-evi-pdf-blocked-001\"")
     expect(html).toContain("data-testid=\"investor-review-evidence-row-evi-pdf-blocked-001-field-linked-investor-shield-gate\"")
@@ -145,17 +224,36 @@ describe("InvestorReviewDocument", () => {
     expect(html).toContain("mobile_capture")
     expect(html).toContain("Captured on site")
     expect(html).not.toContain("PHOTO_EVIDENCE")
-    expect(html).not.toContain("SOLICITOR_REVIEW")
+    expect(html).not.toContain(">SOLICITOR_REVIEW<")
   })
 
   it("renders locked empty states and no mutation or PDF controls", () => {
-    const viewModel = mapPdfEvidencePackToInvestorReview({
+    const baseViewModel = mapPdfEvidencePackToInvestorReview({
       pack: PDF_EVIDENCE_PACK_EMPTY_FIXTURE,
       savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_EMPTY_FIXTURE.meta.savedDealId }),
+    })
+    const viewModel = attachProfessionalGateway(baseViewModel, {
+      gates: [],
+      decisionLock: {
+        savedDealId: PDF_EVIDENCE_PACK_EMPTY_FIXTURE.meta.savedDealId,
+        finalDecisionLockStatus: "LOCKED",
+        lockReason: "Professional evidence remains display-only.",
+        linkedGateAreas: [],
+        linkedEvidenceIds: [],
+      },
+      professionalGateStatus: "NOT_STARTED",
+      professionalReadiness: "NOT_READY",
+      reviewSource: "OPERATOR_NOTE",
+      requiredEvidenceSummary: "Professional evidence review required",
+      professionalConfirmationSummary:
+        "Professional confirmation requires explicit compatible qualifying source",
+      recommendedNextAction: "Request compatible professional source confirmation",
+      linkedEvidenceCommandEvidenceId: null,
     })
 
     const html = renderToStaticMarkup(<InvestorReviewDocument viewModel={viewModel} />)
 
+    expect(html).toContain("No compatible professional evidence is currently available for review.")
     expect(html).toContain("No Evidence Lite records are currently attached to this deal.")
     expect(html).toContain("No active tasks are currently recorded for this deal.")
     expect(html).toContain("No offers are currently recorded for this deal.")
@@ -167,7 +265,7 @@ describe("InvestorReviewDocument", () => {
   })
 
   it("normalizes solicitor gate naming and shows the missing-and-unreviewed Evidence Lite clarification", () => {
-    const viewModel = mapPdfEvidencePackToInvestorReview({
+    const baseViewModel = mapPdfEvidencePackToInvestorReview({
       pack: {
         ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
         investorShield: {
@@ -221,6 +319,24 @@ describe("InvestorReviewDocument", () => {
         ],
       },
       savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId }),
+    })
+    const viewModel = attachProfessionalGateway(baseViewModel, {
+      gates: [],
+      decisionLock: {
+        savedDealId: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId,
+        finalDecisionLockStatus: "LOCKED",
+        lockReason: "Professional evidence remains display-only.",
+        linkedGateAreas: [],
+        linkedEvidenceIds: [],
+      },
+      professionalGateStatus: "NOT_STARTED",
+      professionalReadiness: "NOT_READY",
+      reviewSource: "OPERATOR_NOTE",
+      requiredEvidenceSummary: "Professional evidence review required",
+      professionalConfirmationSummary:
+        "Professional confirmation requires explicit compatible qualifying source",
+      recommendedNextAction: "Request compatible professional source confirmation",
+      linkedEvidenceCommandEvidenceId: null,
     })
 
     const html = renderToStaticMarkup(<InvestorReviewDocument viewModel={viewModel} />)
