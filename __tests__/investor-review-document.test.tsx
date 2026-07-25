@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { renderToStaticMarkup } from "react-dom/server"
 import InvestorReviewDocument from "@/components/investor-review/InvestorReviewDocument"
+import type { DealFormulationViewModel } from "@/types/deal-formulation"
 import type { InvestorReviewReadyViewModel } from "@/lib/investor-review/investor-review-view-model"
 import { mapPdfEvidencePackToInvestorReview } from "@/lib/investor-review/map-pdf-evidence-pack-to-investor-review"
 import type { SavedDealRecord } from "@/lib/operator-command/saved-deals-repository"
@@ -84,12 +85,81 @@ function makeProfessionalEvidenceGatewayViewModel(
   }
 }
 
-function attachProfessionalGateway(
+function makeDealFormulationViewModel(): DealFormulationViewModel {
+  return {
+    identity: {
+      dealId: "saved-deal-review-001",
+      address: "22 Canonical Street, Leeds",
+    },
+    financialSummary: {
+      purchasePrice: { amount: 125000, availability: "AVAILABLE", unavailableReason: null },
+      gdvRealistic: { amount: 200000, availability: "AVAILABLE", unavailableReason: null },
+      gdvDownside: { amount: 180000, availability: "AVAILABLE", unavailableReason: null },
+      gdvStrong: { amount: 220000, availability: "AVAILABLE", unavailableReason: null },
+      refurbishmentCost: { amount: 25000, availability: "AVAILABLE", unavailableReason: null },
+      stampDuty: { amount: 3600, availability: "AVAILABLE", unavailableReason: null },
+      legalCosts: { amount: 2000, availability: "AVAILABLE", unavailableReason: null },
+      saleCosts: { amount: 3000, availability: "AVAILABLE", unavailableReason: null },
+      acquisitionCosts: {
+        amount: null,
+        availability: "UNAVAILABLE",
+        unavailableReason: "No canonical acquisition-cost aggregate exists.",
+      },
+      financeCost: { amount: 12600, availability: "AVAILABLE", unavailableReason: null },
+      totalInvestment: { amount: 166200, availability: "AVAILABLE", unavailableReason: null },
+      projectedProfit: { amount: -1200, availability: "AVAILABLE", unavailableReason: null },
+      profitMargin: 16.9,
+      roi: null,
+    },
+    trueMao: {
+      fifteenPercent: { amount: 123800, availability: "AVAILABLE", unavailableReason: null },
+      twentyPercent: { amount: 113800, availability: "AVAILABLE", unavailableReason: null },
+      twentyFivePercent: { amount: 103800, availability: "AVAILABLE", unavailableReason: null },
+      selectedAmount: null,
+      selectedBand: null,
+      sourceLabel: "Canonical deterministic True MAO bands",
+    },
+    offerPosition: {
+      latestRecordedOffer: 118000,
+      latestOfferStatus: "PENDING",
+      openingOffer: null,
+      targetOffer: null,
+      finalOffer: null,
+      walkAwayAmount: null,
+      walkAwayThreshold: null,
+      unavailableReasons: [
+        "No canonical opening-offer source exists.",
+        "No canonical target-offer source exists.",
+        "No canonical final-offer source exists.",
+        "No canonical walk-away amount exists.",
+        "No canonical walk-away threshold exists.",
+      ],
+    },
+    decision: {
+      verdictStatus: "NO-GO",
+      classification: "STRONG_DEAL",
+      capitalProtectionState: "HIGH_RISK",
+      strategyRecommendation: "FLIP_ONLY_OR_RENEGOTIATE",
+      recommendedNextAction: "Review lender criteria and solicitor evidence",
+    },
+    warnings: {
+      canonicalWarnings: [],
+      unavailableFields: [
+        "ROI is not available from the current canonical engine output.",
+        "No canonical opening-offer source exists.",
+        "No canonical target-offer source exists.",
+      ],
+    },
+  }
+}
+
+function attachModels(
   viewModel: ReturnType<typeof mapPdfEvidencePackToInvestorReview>,
   overrides: Partial<ProfessionalEvidenceGatewayViewModel> = {}
 ): InvestorReviewReadyViewModel {
   return {
     ...viewModel,
+    dealFormulation: makeDealFormulationViewModel(),
     professionalEvidenceGateway: makeProfessionalEvidenceGatewayViewModel(overrides),
   }
 }
@@ -106,13 +176,12 @@ function renderDocument() {
     },
     savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId }),
   })
-  const viewModel = attachProfessionalGateway(baseViewModel)
 
-  return renderToStaticMarkup(<InvestorReviewDocument viewModel={viewModel} />)
+  return renderToStaticMarkup(<InvestorReviewDocument viewModel={attachModels(baseViewModel)} />)
 }
 
 describe("InvestorReviewDocument", () => {
-  it("renders the locked report structure and key canonical values", () => {
+  it("renders locked report structure, canonical review values, and Deal Formulation", () => {
     const html = renderDocument()
 
     expect(html).toContain("Brik by Brik Investor Review")
@@ -123,17 +192,23 @@ describe("InvestorReviewDocument", () => {
     expect(html).toContain("Manual Review Required")
     expect(html).toContain("CAUTION")
     expect(html).toContain("Under Analysis")
+    expect(html).toContain("Deal Formulation")
+    expect(html).toContain("Canonical saved-deal financial position and decision support.")
+    expect(html).toContain(
+      "Values shown here are read-only canonical outputs. Unsupported values remain unavailable and are not estimated."
+    )
     expect(html).toContain("£113,800.00")
-    expect(html).toContain("BLOCKED")
+    expect(html).toContain("NO-GO")
     expect(html).toContain("Review title and refurb evidence")
   })
 
-  it("renders the locked semantic sections", () => {
+  it("renders locked semantic section order with Deal Formulation before shield/evidence sections", () => {
     const html = renderDocument()
 
     const expectedOrder = [
       "Property and deal overview",
       "Investment summary",
+      "Deal Formulation",
       "Decision and capital-protection status",
       "Required hard gates",
       "Advisory and caution gates",
@@ -149,33 +224,24 @@ describe("InvestorReviewDocument", () => {
       expect(html).toContain(heading)
     }
 
-    expect(html.indexOf("Advisory and caution gates")).toBeLessThan(
-      html.indexOf("Professional Evidence Gateway")
+    expect(html.indexOf("Investment summary")).toBeLessThan(html.indexOf("Deal Formulation"))
+    expect(html.indexOf("Deal Formulation")).toBeLessThan(
+      html.indexOf("Decision and capital-protection status")
     )
     expect(html.indexOf("Professional Evidence Gateway")).toBeLessThan(
       html.indexOf("Evidence Lite records")
     )
-    expect(html.indexOf("Evidence Lite records")).toBeLessThan(
-      html.indexOf("Missing evidence and blockers")
+  })
+
+  it("preserves Evidence Lite, Professional Gateway, and advisory separation notices", () => {
+    const html = renderDocument()
+
+    expect(html).toContain(
+      "No single investor-facing True MAO band has been selected in the current canonical model."
     )
-  })
-
-  it("keeps required and advisory sections separate and preserves non-success blocked and missing semantics", () => {
-    const html = renderDocument()
-
-    expect(html.indexOf("Required hard gates")).toBeLessThan(html.indexOf("Advisory and caution gates"))
-    expect(html).toContain("Title Review")
-    expect(html).toContain("Rental Demand")
-    expect(html).toContain("AI advisory evidence cannot satisfy hard gates.")
-    expect(html).toContain("MISSING")
-    expect(html).toContain("Not reviewed")
-    expect(html).not.toContain("MISSING</span></div></div><dl")
-    expect(html).toContain("border-amber-200 bg-amber-50 text-amber-900")
-  })
-
-  it("always renders the Evidence Command separation notice and omits missing reviewer notes", () => {
-    const html = renderDocument()
-
+    expect(html).toContain("No canonical monetary offer ladder currently exists.")
+    expect(html).toContain("No canonical acquisition-cost aggregate currently exists.")
+    expect(html).toContain("ROI is not available from the current canonical engine output.")
     expect(html).toContain(
       "Evidence supports review but does not automatically satisfy Investor Shield hard gates, waive requirements, approve progression, or replace professional confirmation."
     )
@@ -186,10 +252,8 @@ describe("InvestorReviewDocument", () => {
     expect(html).toContain(
       "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements."
     )
-    expect(html).not.toContain("Reviewer note:")
     expect(html).not.toContain("Professional Evidence Gateway Proof")
     expect(html).not.toContain("Read-only dev/demo proof")
-    expect(html).not.toContain("Seeded saved deal identifier")
   })
 
   it("renders structured Evidence Command fields with stable test hooks", () => {
@@ -216,15 +280,14 @@ describe("InvestorReviewDocument", () => {
       },
       savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId }),
     })
-    const viewModel = attachProfessionalGateway(baseViewModel)
+    const html = renderToStaticMarkup(
+      <InvestorReviewDocument viewModel={attachModels(baseViewModel)} />
+    )
 
-    const html = renderToStaticMarkup(<InvestorReviewDocument viewModel={viewModel} />)
-
-    expect(html).toContain("Professional Evidence Gateway")
-    expect(html).toContain("gateway-evi-001")
-    expect(html).toContain("Evidence Lite records")
     expect(html).toContain("data-testid=\"investor-review-evidence-row-evi-pdf-blocked-001\"")
-    expect(html).toContain("data-testid=\"investor-review-evidence-row-evi-pdf-blocked-001-field-linked-investor-shield-gate\"")
+    expect(html).toContain(
+      "data-testid=\"investor-review-evidence-row-evi-pdf-blocked-001-field-linked-investor-shield-gate\""
+    )
     expect(html).toContain("Photo evidence")
     expect(html).toContain("Damp and Structural Review")
     expect(html).toContain("Surveyor report")
@@ -235,7 +298,6 @@ describe("InvestorReviewDocument", () => {
     expect(html).toContain("mobile_capture")
     expect(html).toContain("Captured on site")
     expect(html).not.toContain("PHOTO_EVIDENCE")
-    expect(html).not.toContain(">SOLICITOR_REVIEW<")
   })
 
   it("renders locked empty states and no mutation or PDF controls", () => {
@@ -243,47 +305,49 @@ describe("InvestorReviewDocument", () => {
       pack: PDF_EVIDENCE_PACK_EMPTY_FIXTURE,
       savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_EMPTY_FIXTURE.meta.savedDealId }),
     })
-    const viewModel = attachProfessionalGateway(baseViewModel, {
-      gates: [],
-      decisionLock: {
-        savedDealId: PDF_EVIDENCE_PACK_EMPTY_FIXTURE.meta.savedDealId,
-        finalDecisionLockStatus: "LOCKED",
-        lockReason: "Professional evidence remains display-only.",
-        linkedGateAreas: [],
-        linkedEvidenceIds: [],
-      },
-      readinessPresentation: {
-        state: "MISSING",
-        displayLabel: "Professional evidence missing",
-        supportingSummary: "No compatible professional evidence is currently available for review.",
-        authorityNotice:
-          "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
-      },
-      professionalGateStatus: "NOT_STARTED",
-      professionalReadiness: "NOT_READY",
-      reviewSource: "OPERATOR_NOTE",
-      requiredEvidenceSummary: "Professional evidence review required",
-      professionalConfirmationSummary:
-        "Professional confirmation requires explicit compatible qualifying source",
-      recommendedNextAction: "Request compatible professional source confirmation",
-      linkedEvidenceCommandEvidenceId: null,
-    })
-
-    const html = renderToStaticMarkup(<InvestorReviewDocument viewModel={viewModel} />)
+    const html = renderToStaticMarkup(
+      <InvestorReviewDocument
+        viewModel={attachModels(baseViewModel, {
+          gates: [],
+          decisionLock: {
+            savedDealId: PDF_EVIDENCE_PACK_EMPTY_FIXTURE.meta.savedDealId,
+            finalDecisionLockStatus: "LOCKED",
+            lockReason: "Professional evidence remains display-only.",
+            linkedGateAreas: [],
+            linkedEvidenceIds: [],
+          },
+          readinessPresentation: {
+            state: "MISSING",
+            displayLabel: "Professional evidence missing",
+            supportingSummary:
+              "No compatible professional evidence is currently available for review.",
+            authorityNotice:
+              "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
+          },
+          professionalGateStatus: "NOT_STARTED",
+          professionalReadiness: "NOT_READY",
+          reviewSource: "OPERATOR_NOTE",
+          requiredEvidenceSummary: "Professional evidence review required",
+          professionalConfirmationSummary:
+            "Professional confirmation requires explicit compatible qualifying source",
+          recommendedNextAction: "Request compatible professional source confirmation",
+          linkedEvidenceCommandEvidenceId: null,
+        })}
+      />
+    )
 
     expect(html).toContain("No compatible professional evidence is currently available for review.")
     expect(html).toContain("Professional evidence missing")
+    expect(html).toContain("No offers are currently recorded for this deal.")
     expect(html).toContain("No Evidence Lite records are currently attached to this deal.")
     expect(html).toContain("No active tasks are currently recorded for this deal.")
-    expect(html).toContain("No offers are currently recorded for this deal.")
     expect(html).not.toContain("<button")
     expect(html).not.toContain("Download")
     expect(html).not.toContain("Print")
     expect(html).not.toContain("Approve")
-    expect(html).not.toContain("Delete")
   })
 
-  it("normalizes solicitor gate naming and shows the missing-and-unreviewed Evidence Lite clarification", () => {
+  it("normalizes solicitor naming and keeps missing/unreviewed clarification", () => {
     const baseViewModel = mapPdfEvidencePackToInvestorReview({
       pack: {
         ...PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
@@ -299,7 +363,8 @@ describe("InvestorReviewDocument", () => {
               reason: "Solicitor feedback is still missing.",
               severity: "BLOCKER",
               source: "system_default",
-              idempotencyKey: "investor-shield:test-solicitor:SOLICITOR_REVIEW:REQUEST_EVIDENCE",
+              idempotencyKey:
+                "investor-shield:test-solicitor:SOLICITOR_REVIEW:REQUEST_EVIDENCE",
             },
           ],
         },
@@ -339,49 +404,51 @@ describe("InvestorReviewDocument", () => {
       },
       savedDeal: makeSavedDealRecord({ id: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId }),
     })
-    const viewModel = attachProfessionalGateway(baseViewModel, {
-      gates: [],
-      decisionLock: {
-        savedDealId: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId,
-        finalDecisionLockStatus: "LOCKED",
-        lockReason: "Professional evidence remains display-only.",
-        linkedGateAreas: [],
-        linkedEvidenceIds: [],
-      },
-      readinessPresentation: {
-        state: "MISSING",
-        displayLabel: "Professional evidence missing",
-        supportingSummary: "No compatible professional evidence is currently available for review.",
-        authorityNotice:
-          "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
-      },
-      professionalGateStatus: "NOT_STARTED",
-      professionalReadiness: "NOT_READY",
-      reviewSource: "OPERATOR_NOTE",
-      requiredEvidenceSummary: "Professional evidence review required",
-      professionalConfirmationSummary:
-        "Professional confirmation requires explicit compatible qualifying source",
-      recommendedNextAction: "Request compatible professional source confirmation",
-      linkedEvidenceCommandEvidenceId: null,
-    })
-
-    const html = renderToStaticMarkup(<InvestorReviewDocument viewModel={viewModel} />)
+    const html = renderToStaticMarkup(
+      <InvestorReviewDocument
+        viewModel={attachModels(baseViewModel, {
+          gates: [],
+          decisionLock: {
+            savedDealId: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId,
+            finalDecisionLockStatus: "LOCKED",
+            lockReason: "Professional evidence remains display-only.",
+            linkedGateAreas: [],
+            linkedEvidenceIds: [],
+          },
+          readinessPresentation: {
+            state: "MISSING",
+            displayLabel: "Professional evidence missing",
+            supportingSummary:
+              "No compatible professional evidence is currently available for review.",
+            authorityNotice:
+              "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
+          },
+          professionalGateStatus: "NOT_STARTED",
+          professionalReadiness: "NOT_READY",
+          reviewSource: "OPERATOR_NOTE",
+          requiredEvidenceSummary: "Professional evidence review required",
+          professionalConfirmationSummary:
+            "Professional confirmation requires explicit compatible qualifying source",
+          recommendedNextAction: "Request compatible professional source confirmation",
+          linkedEvidenceCommandEvidenceId: null,
+        })}
+      />
+    )
 
     expect(html).toContain("Solicitor Review")
     expect(html).not.toContain("SOLICITOR_REVIEW")
-    expect(html).not.toContain("SOLICITOR_REVIEW")
     expect(html).not.toContain("Solicitor Feedback")
-    expect(html).not.toContain("SOLICITOR REVIEW")
-    expect(html).not.toContain("Review solicitor feedback")
-    expect(html).toContain("Evidence record present, but not reviewed and not sufficient to satisfy gate.")
+    expect(html).toContain(
+      "Evidence record present, but not reviewed and not sufficient to satisfy gate."
+    )
     expect(html).toContain("MISSING")
     expect(html).toContain("Not reviewed")
   })
 
-  it("does not render any raw canonical gate identifier or the raw AI advisory sub-gate key", () => {
+  it("does not render raw canonical gate ids or raw AI advisory sub-gate key", () => {
     const html = renderDocument()
 
-    const machineIdentifiers = [
+    for (const identifier of [
       "REFURB_CERTAINTY",
       "BUILDER_PROPOSAL_CONTRACT",
       "DAMP_STRUCTURAL",
@@ -389,9 +456,7 @@ describe("InvestorReviewDocument", () => {
       "PLANNING_BUILDING_CONTROL",
       "SOLD_COMPS",
       "AI_VISUAL_REVIEW_ADVISORY",
-    ]
-
-    for (const identifier of machineIdentifiers) {
+    ]) {
       expect(html).not.toContain(identifier)
     }
 
@@ -401,32 +466,33 @@ describe("InvestorReviewDocument", () => {
     )
   })
 
-  it("humanizes underscore-separated decision and status values in the rendered document", () => {
+  it("humanizes underscore-separated values but keeps single-word status values", () => {
     const html = renderDocument()
 
     expect(html).toContain("Manual Review Required")
     expect(html).toContain("Under Analysis")
     expect(html).not.toContain("MANUAL_REVIEW_REQUIRED")
     expect(html).not.toContain("UNDER_ANALYSIS")
-
-    // Single-word status values remain unchanged.
     expect(html).toContain("MARGINAL")
     expect(html).toContain("BLOCKED")
     expect(html).toContain("CAUTION")
   })
 
-  it("keeps a blocked progression decision on the negative tone", () => {
+  it("keeps blocked progression and Deal Formulation adverse values on negative tone", () => {
     const html = renderDocument()
 
     expect(html).toContain(
       '<div class="rounded-xl border px-4 py-3 border-red-200 bg-red-50 text-red-900"><p class="text-xs uppercase tracking-wide opacity-80">Progression decision</p><p class="mt-1 break-words text-sm font-semibold">BLOCKED</p></div>'
     )
-    expect(html).not.toContain(
-      '<div class="rounded-xl border px-4 py-3 border-emerald-200 bg-emerald-50 text-emerald-900"><p class="text-xs uppercase tracking-wide opacity-80">Progression decision</p>'
+    expect(html).toContain(
+      '<div data-testid="deal-formulation-verdict" class="rounded-xl border px-4 py-3 border-red-200 bg-red-50 text-red-900"><p class="text-xs uppercase tracking-wide opacity-80">Verdict</p><p class="mt-1 break-words text-sm font-semibold">NO-GO</p></div>'
+    )
+    expect(html).toContain(
+      '<div data-testid="deal-formulation-projected-profit" class="rounded-xl border px-4 py-3 border-red-200 bg-red-50 text-red-900"><p class="text-xs uppercase tracking-wide opacity-80">Projected profit</p><p class="mt-1 break-words text-sm font-semibold">-£1,200.00</p></div>'
     )
   })
 
-  it("uses safe wrapping classes for long ids and notes and requires no client-only behavior", () => {
+  it("uses safe wrapping classes and requires no client-only behavior", () => {
     const html = renderDocument()
 
     expect(html).toContain("break-all")

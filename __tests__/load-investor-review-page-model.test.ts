@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import type { DealFormulationViewModel } from "@/types/deal-formulation"
 import type { SavedDealRecord } from "@/lib/operator-command/saved-deals-repository"
 import type { PdfEvidencePack } from "@/lib/pdf-evidence-pack/pdf-evidence-pack-types"
 import type { InvestorReviewViewModel } from "@/lib/investor-review/investor-review-view-model"
@@ -10,12 +11,14 @@ const {
   mapPdfEvidencePackToInvestorReviewMock,
   adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock,
   loadProfessionalEvidenceGatewayViewModelMock,
+  loadDealFormulationViewModelMock,
 } = vi.hoisted(() => ({
   getSavedDealByIdMock: vi.fn(),
   loadPdfEvidencePackForDealMock: vi.fn(),
   mapPdfEvidencePackToInvestorReviewMock: vi.fn(),
   adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock: vi.fn(),
   loadProfessionalEvidenceGatewayViewModelMock: vi.fn(),
+  loadDealFormulationViewModelMock: vi.fn(),
 }))
 
 vi.mock("@/lib/operator-command/saved-deals-repository", () => ({
@@ -37,6 +40,10 @@ vi.mock("@/lib/investor-review/adapt-pdf-evidence-pack-evidence-to-professional-
 
 vi.mock("@/lib/professional-evidence-gateway/load-professional-evidence-gateway-view-model", () => ({
   loadProfessionalEvidenceGatewayViewModel: loadProfessionalEvidenceGatewayViewModelMock,
+}))
+
+vi.mock("@/lib/deal-formulation/load-deal-formulation-view-model", () => ({
+  loadDealFormulationViewModel: loadDealFormulationViewModelMock,
 }))
 
 import { loadInvestorReviewPageModel } from "@/lib/investor-review/load-investor-review-page-model"
@@ -69,6 +76,70 @@ const samplePack = {
 } as unknown as PdfEvidencePack
 const sampleViewModel = { header: { dealId: "deal-123" } } as unknown as InvestorReviewViewModel
 const sampleAdaptedEvidence = [{ id: "evi-1", linkedProfessionalGate: "SOLICITOR_TITLE_REVIEW" }]
+const sampleDealFormulation = {
+  identity: {
+    dealId: "deal-123",
+    address: "1 Lake View Road",
+  },
+  financialSummary: {
+    purchasePrice: { amount: 120000, availability: "AVAILABLE", unavailableReason: null },
+    gdvRealistic: { amount: 200000, availability: "AVAILABLE", unavailableReason: null },
+    gdvDownside: { amount: 180000, availability: "AVAILABLE", unavailableReason: null },
+    gdvStrong: { amount: 220000, availability: "AVAILABLE", unavailableReason: null },
+    refurbishmentCost: { amount: 18000, availability: "AVAILABLE", unavailableReason: null },
+    stampDuty: { amount: 3600, availability: "AVAILABLE", unavailableReason: null },
+    legalCosts: { amount: 2000, availability: "AVAILABLE", unavailableReason: null },
+    saleCosts: { amount: 3000, availability: "AVAILABLE", unavailableReason: null },
+    acquisitionCosts: {
+      amount: null,
+      availability: "UNAVAILABLE",
+      unavailableReason: "No canonical acquisition-cost aggregate exists.",
+    },
+    financeCost: { amount: 12600, availability: "AVAILABLE", unavailableReason: null },
+    totalInvestment: { amount: 166200, availability: "AVAILABLE", unavailableReason: null },
+    projectedProfit: { amount: 33800, availability: "AVAILABLE", unavailableReason: null },
+    profitMargin: 16.9,
+    roi: null,
+  },
+  trueMao: {
+    fifteenPercent: { amount: 123800, availability: "AVAILABLE", unavailableReason: null },
+    twentyPercent: { amount: 113800, availability: "AVAILABLE", unavailableReason: null },
+    twentyFivePercent: { amount: 103800, availability: "AVAILABLE", unavailableReason: null },
+    selectedAmount: null,
+    selectedBand: null,
+    sourceLabel: "Canonical deterministic True MAO bands",
+  },
+  offerPosition: {
+    latestRecordedOffer: 118000,
+    latestOfferStatus: "PENDING",
+    openingOffer: null,
+    targetOffer: null,
+    finalOffer: null,
+    walkAwayAmount: null,
+    walkAwayThreshold: null,
+    unavailableReasons: [
+      "No canonical opening-offer source exists.",
+      "No canonical target-offer source exists.",
+      "No canonical final-offer source exists.",
+      "No canonical walk-away amount exists.",
+      "No canonical walk-away threshold exists.",
+    ],
+  },
+  decision: {
+    verdictStatus: "GO",
+    classification: "CONDITIONAL",
+    capitalProtectionState: "PROTECTED",
+    strategyRecommendation: "FLIP_ONLY_OR_RENEGOTIATE",
+    recommendedNextAction: "Review lender criteria and solicitor evidence",
+  },
+  warnings: {
+    canonicalWarnings: [],
+    unavailableFields: [
+      "ROI is not available from the current canonical engine output.",
+      "No canonical opening-offer source exists.",
+    ],
+  },
+} satisfies DealFormulationViewModel
 const sampleProfessionalEvidenceGateway = {
   savedDealId: "deal-123",
   gates: [],
@@ -107,6 +178,7 @@ describe("loadInvestorReviewPageModel", () => {
     mapPdfEvidencePackToInvestorReviewMock.mockReset()
     adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock.mockReset()
     loadProfessionalEvidenceGatewayViewModelMock.mockReset()
+    loadDealFormulationViewModelMock.mockReset()
 
     getSavedDealByIdMock.mockResolvedValue(makeSavedDealRecord())
     loadPdfEvidencePackForDealMock.mockResolvedValue(samplePack)
@@ -117,6 +189,7 @@ describe("loadInvestorReviewPageModel", () => {
     loadProfessionalEvidenceGatewayViewModelMock.mockReturnValue(
       sampleProfessionalEvidenceGateway
     )
+    loadDealFormulationViewModelMock.mockResolvedValue(sampleDealFormulation)
   })
 
   afterEach(() => {
@@ -138,6 +211,7 @@ describe("loadInvestorReviewPageModel", () => {
     expect(mapPdfEvidencePackToInvestorReviewMock).not.toHaveBeenCalled()
     expect(adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock).not.toHaveBeenCalled()
     expect(loadProfessionalEvidenceGatewayViewModelMock).not.toHaveBeenCalled()
+    expect(loadDealFormulationViewModelMock).not.toHaveBeenCalled()
   })
 
   it("returns not_found when the saved deal is missing and stops before pack loading", async () => {
@@ -151,6 +225,7 @@ describe("loadInvestorReviewPageModel", () => {
     expect(mapPdfEvidencePackToInvestorReviewMock).not.toHaveBeenCalled()
     expect(adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock).not.toHaveBeenCalled()
     expect(loadProfessionalEvidenceGatewayViewModelMock).not.toHaveBeenCalled()
+    expect(loadDealFormulationViewModelMock).not.toHaveBeenCalled()
   })
 
   it("returns unavailable when the saved-deal lookup throws and stops downstream calls", async () => {
@@ -163,6 +238,7 @@ describe("loadInvestorReviewPageModel", () => {
     expect(mapPdfEvidencePackToInvestorReviewMock).not.toHaveBeenCalled()
     expect(adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock).not.toHaveBeenCalled()
     expect(loadProfessionalEvidenceGatewayViewModelMock).not.toHaveBeenCalled()
+    expect(loadDealFormulationViewModelMock).not.toHaveBeenCalled()
   })
 
   it("loads the pack with the normalized id, one ISO timestamp, and the fixed confidentiality label", async () => {
@@ -185,6 +261,7 @@ describe("loadInvestorReviewPageModel", () => {
     expect(mapPdfEvidencePackToInvestorReviewMock).not.toHaveBeenCalled()
     expect(adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock).not.toHaveBeenCalled()
     expect(loadProfessionalEvidenceGatewayViewModelMock).not.toHaveBeenCalled()
+    expect(loadDealFormulationViewModelMock).not.toHaveBeenCalled()
   })
 
   it("returns unavailable when the pack loader rejects and prevents mapper execution", async () => {
@@ -215,6 +292,8 @@ describe("loadInvestorReviewPageModel", () => {
   it("adapts canonical pack evidence and passes the normalized id to the Gateway loader", async () => {
     await loadInvestorReviewPageModel("  deal-123  ")
 
+    expect(loadDealFormulationViewModelMock).toHaveBeenCalledTimes(1)
+    expect(loadDealFormulationViewModelMock).toHaveBeenCalledWith("deal-123")
     expect(adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock).toHaveBeenCalledTimes(1)
     expect(adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock).toHaveBeenCalledWith(
       samplePack.evidenceIndex
@@ -234,6 +313,7 @@ describe("loadInvestorReviewPageModel", () => {
       status: "ready",
       viewModel: {
         ...sampleViewModel,
+        dealFormulation: sampleDealFormulation,
         professionalEvidenceGateway: sampleProfessionalEvidenceGateway,
       },
     })
@@ -249,6 +329,7 @@ describe("loadInvestorReviewPageModel", () => {
     expect(result).toEqual({ status: "unavailable" })
     expect(JSON.stringify(result)).not.toContain("stack trace")
     expect(JSON.stringify(result)).not.toContain("internal/module.js")
+    expect(loadDealFormulationViewModelMock).toHaveBeenCalledTimes(1)
     expect(adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock).not.toHaveBeenCalled()
     expect(loadProfessionalEvidenceGatewayViewModelMock).not.toHaveBeenCalled()
   })
@@ -262,6 +343,27 @@ describe("loadInvestorReviewPageModel", () => {
 
     expect(result).toEqual({ status: "unavailable" })
     expect(JSON.stringify(result)).not.toContain("internal/adapter.ts")
+  })
+
+  it("returns unavailable when the Deal Formulation loader rejects and leaks no internal detail", async () => {
+    loadDealFormulationViewModelMock.mockRejectedValueOnce(new Error("internal/deal-formulation.ts:88"))
+
+    const result = await loadInvestorReviewPageModel("deal-123")
+
+    expect(result).toEqual({ status: "unavailable" })
+    expect(JSON.stringify(result)).not.toContain("internal/deal-formulation.ts")
+    expect(adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock).not.toHaveBeenCalled()
+    expect(loadProfessionalEvidenceGatewayViewModelMock).not.toHaveBeenCalled()
+  })
+
+  it("returns unavailable when the Deal Formulation loader returns null after pack load", async () => {
+    loadDealFormulationViewModelMock.mockResolvedValueOnce(null)
+
+    const result = await loadInvestorReviewPageModel("deal-123")
+
+    expect(result).toEqual({ status: "unavailable" })
+    expect(adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock).not.toHaveBeenCalled()
+    expect(loadProfessionalEvidenceGatewayViewModelMock).not.toHaveBeenCalled()
   })
 
   it("returns unavailable when the Gateway model builder throws and leaks no internal detail", async () => {
@@ -296,6 +398,7 @@ describe("loadInvestorReviewPageModel", () => {
       status: "ready",
       viewModel: {
         ...sampleViewModel,
+        dealFormulation: sampleDealFormulation,
         professionalEvidenceGateway: sampleProfessionalEvidenceGateway,
       },
     })
@@ -314,6 +417,7 @@ describe("loadInvestorReviewPageModel", () => {
 
     expect(getSavedDealByIdMock).toHaveBeenCalledTimes(1)
     expect(loadPdfEvidencePackForDealMock).toHaveBeenCalledTimes(1)
+    expect(loadDealFormulationViewModelMock).toHaveBeenCalledTimes(1)
     expect(mapPdfEvidencePackToInvestorReviewMock).toHaveBeenCalledTimes(1)
     expect(adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidenceMock).toHaveBeenCalledTimes(1)
     expect(loadProfessionalEvidenceGatewayViewModelMock).toHaveBeenCalledTimes(1)

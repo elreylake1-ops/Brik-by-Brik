@@ -1,3 +1,4 @@
+import DealFormulationSection from "@/components/investor-review/DealFormulationSection"
 import ProfessionalEvidenceGatewaySection from "@/components/investor-review/ProfessionalEvidenceGatewaySection"
 import {
   INVESTOR_REVIEW_EMPTY_ADVISORY_LABEL,
@@ -283,6 +284,8 @@ export default function InvestorReviewDocument({ viewModel }: Props) {
             <FieldCard field={viewModel.investmentSummary.latestOfferAmount} />
           </div>
         </section>
+
+        <DealFormulationSection viewModel={viewModel.dealFormulation} />
 
         <section aria-labelledby="decision-and-capital-protection-status" className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
           <SectionHeading id="decision-and-capital-protection-status">

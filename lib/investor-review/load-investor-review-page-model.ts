@@ -1,4 +1,5 @@
 import { adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidence } from "@/lib/investor-review/adapt-pdf-evidence-pack-evidence-to-professional-gateway"
+import { loadDealFormulationViewModel } from "@/lib/deal-formulation/load-deal-formulation-view-model"
 import { loadPdfEvidencePackForDeal } from "@/lib/pdf-evidence-pack/load-pdf-evidence-pack"
 import { mapPdfEvidencePackToInvestorReview } from "@/lib/investor-review/map-pdf-evidence-pack-to-investor-review"
 import { loadProfessionalEvidenceGatewayViewModel } from "@/lib/professional-evidence-gateway/load-professional-evidence-gateway-view-model"
@@ -61,6 +62,17 @@ export async function loadInvestorReviewPageModel(
     return { status: "not_found" }
   }
 
+  let dealFormulation
+  try {
+    dealFormulation = await loadDealFormulationViewModel(normalizedDealId)
+  } catch {
+    return { status: "unavailable" }
+  }
+
+  if (!dealFormulation) {
+    return { status: "unavailable" }
+  }
+
   try {
     const standardViewModel = mapPdfEvidencePackToInvestorReview({ pack, savedDeal })
     const professionalEvidence = adaptPdfEvidencePackEvidenceToProfessionalGatewayEvidence(
@@ -74,6 +86,7 @@ export async function loadInvestorReviewPageModel(
 
     const readyViewModel = {
       ...standardViewModel,
+      dealFormulation,
       professionalEvidenceGateway,
     } satisfies InvestorReviewReadyViewModel
 

@@ -1,3 +1,4 @@
+import type { DealFormulationViewModel } from "@/types/deal-formulation"
 import type { ProfessionalEvidenceGatewayViewModel } from "@/types/professional-evidence-gateway"
 
 export const INVESTOR_REVIEW_NOT_AVAILABLE_LABEL = "Not available" as const
@@ -178,5 +179,6 @@ export type InvestorReviewViewModel = {
 }
 
 export type InvestorReviewReadyViewModel = InvestorReviewViewModel & {
+  dealFormulation: DealFormulationViewModel
   professionalEvidenceGateway: ProfessionalEvidenceGatewayViewModel
 }

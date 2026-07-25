@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import InvestorReviewDocument from "@/components/investor-review/InvestorReviewDocument"
+import type { DealFormulationViewModel } from "@/types/deal-formulation"
 import type { Phase3MergedOrchestrationOutput, Phase3OrchestrationOutput } from "@/types/phase3-orchestration"
 import {
   INVESTOR_REVIEW_CONFIDENTIALITY_LABEL,
@@ -68,6 +69,76 @@ const ADDITIONAL_DEMO_SAVED_DEAL: SavedDealRecord = {
   next_action: "Review lender criteria and solicitor evidence",
 }
 
+const ADDITIONAL_DEMO_DEAL_FORMULATION: DealFormulationViewModel = {
+  identity: {
+    dealId: PDF_EVIDENCE_PACK_COMPLETE_FIXTURE.meta.savedDealId,
+    address: ADDITIONAL_DEMO_SAVED_DEAL.address,
+  },
+  financialSummary: {
+    purchasePrice: { amount: 125000, availability: "AVAILABLE", unavailableReason: null },
+    gdvRealistic: { amount: 200000, availability: "AVAILABLE", unavailableReason: null },
+    gdvDownside: { amount: 180000, availability: "AVAILABLE", unavailableReason: null },
+    gdvStrong: { amount: 220000, availability: "AVAILABLE", unavailableReason: null },
+    refurbishmentCost: { amount: 25000, availability: "AVAILABLE", unavailableReason: null },
+    stampDuty: { amount: 5000, availability: "AVAILABLE", unavailableReason: null },
+    legalCosts: { amount: 2000, availability: "AVAILABLE", unavailableReason: null },
+    saleCosts: { amount: 3000, availability: "AVAILABLE", unavailableReason: null },
+    acquisitionCosts: {
+      amount: null,
+      availability: "UNAVAILABLE",
+      unavailableReason: "No canonical acquisition-cost aggregate exists.",
+    },
+    financeCost: { amount: 9000, availability: "AVAILABLE", unavailableReason: null },
+    totalInvestment: { amount: 164000, availability: "AVAILABLE", unavailableReason: null },
+    projectedProfit: { amount: 36000, availability: "AVAILABLE", unavailableReason: null },
+    profitMargin: 18,
+    roi: null,
+  },
+  trueMao: {
+    fifteenPercent: { amount: 123800, availability: "AVAILABLE", unavailableReason: null },
+    twentyPercent: { amount: 113800, availability: "AVAILABLE", unavailableReason: null },
+    twentyFivePercent: { amount: 103800, availability: "AVAILABLE", unavailableReason: null },
+    selectedAmount: null,
+    selectedBand: null,
+    sourceLabel: "Canonical deterministic True MAO bands",
+  },
+  offerPosition: {
+    latestRecordedOffer: null,
+    latestOfferStatus: null,
+    openingOffer: null,
+    targetOffer: null,
+    finalOffer: null,
+    walkAwayAmount: null,
+    walkAwayThreshold: null,
+    unavailableReasons: [
+      "No canonical opening-offer source exists.",
+      "No canonical target-offer source exists.",
+      "No canonical final-offer source exists.",
+      "No canonical walk-away amount exists.",
+      "No canonical walk-away threshold exists.",
+    ],
+  },
+  decision: {
+    verdictStatus: "GO",
+    classification: "STRONG_DEAL",
+    capitalProtectionState: "SAFE",
+    strategyRecommendation: "BRRR_OR_FLIP",
+    recommendedNextAction: "Review lender criteria and solicitor evidence",
+  },
+  warnings: {
+    canonicalWarnings: [],
+    unavailableFields: [
+      "ROI is not available from the current canonical engine output.",
+      "Latest recorded offer unavailable.",
+      "No canonical opening-offer source exists.",
+      "No canonical target-offer source exists.",
+      "No canonical final-offer source exists.",
+      "No canonical walk-away amount exists.",
+      "No canonical walk-away threshold exists.",
+    ],
+  },
+}
+
 const ADDITIONAL_DEMO_REVIEW_VIEW_MODEL = {
   ...mapPdfEvidencePackToInvestorReview({
     pack: {
@@ -79,6 +150,7 @@ const ADDITIONAL_DEMO_REVIEW_VIEW_MODEL = {
     },
     savedDeal: ADDITIONAL_DEMO_SAVED_DEAL,
   }),
+  dealFormulation: ADDITIONAL_DEMO_DEAL_FORMULATION,
   professionalEvidenceGateway: {
     savedDealId: PDF_EVIDENCE_PACK_COMPLETE_FIXTURE.meta.savedDealId,
     gates: [],

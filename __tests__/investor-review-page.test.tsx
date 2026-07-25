@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs"
 import path from "node:path"
 import { describe, expect, it, vi, beforeEach } from "vitest"
 import { renderToStaticMarkup } from "react-dom/server"
+import type { DealFormulationViewModel } from "@/types/deal-formulation"
 import type { LoadInvestorReviewPageModelResult } from "@/lib/investor-review/load-investor-review-page-model"
 import type { InvestorReviewReadyViewModel } from "@/lib/investor-review/investor-review-view-model"
 import { mapPdfEvidencePackToInvestorReview } from "@/lib/investor-review/map-pdf-evidence-pack-to-investor-review"
@@ -80,6 +81,72 @@ function makeSampleGatewayViewModel(): ProfessionalEvidenceGatewayViewModel {
   }
 }
 
+function makeSampleDealFormulationViewModel(): DealFormulationViewModel {
+  return {
+    identity: {
+      dealId: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE.meta.savedDealId,
+      address: "12 Lake View Road, Leeds",
+    },
+    financialSummary: {
+      purchasePrice: { amount: 125000, availability: "AVAILABLE", unavailableReason: null },
+      gdvRealistic: { amount: 200000, availability: "AVAILABLE", unavailableReason: null },
+      gdvDownside: { amount: 180000, availability: "AVAILABLE", unavailableReason: null },
+      gdvStrong: { amount: 220000, availability: "AVAILABLE", unavailableReason: null },
+      refurbishmentCost: { amount: 25000, availability: "AVAILABLE", unavailableReason: null },
+      stampDuty: { amount: 3600, availability: "AVAILABLE", unavailableReason: null },
+      legalCosts: { amount: 2000, availability: "AVAILABLE", unavailableReason: null },
+      saleCosts: { amount: 3000, availability: "AVAILABLE", unavailableReason: null },
+      acquisitionCosts: {
+        amount: null,
+        availability: "UNAVAILABLE",
+        unavailableReason: "No canonical acquisition-cost aggregate exists.",
+      },
+      financeCost: { amount: 12600, availability: "AVAILABLE", unavailableReason: null },
+      totalInvestment: { amount: 166200, availability: "AVAILABLE", unavailableReason: null },
+      projectedProfit: { amount: 33800, availability: "AVAILABLE", unavailableReason: null },
+      profitMargin: 16.9,
+      roi: null,
+    },
+    trueMao: {
+      fifteenPercent: { amount: 123800, availability: "AVAILABLE", unavailableReason: null },
+      twentyPercent: { amount: 113800, availability: "AVAILABLE", unavailableReason: null },
+      twentyFivePercent: { amount: 103800, availability: "AVAILABLE", unavailableReason: null },
+      selectedAmount: null,
+      selectedBand: null,
+      sourceLabel: "Canonical deterministic True MAO bands",
+    },
+    offerPosition: {
+      latestRecordedOffer: 118000,
+      latestOfferStatus: "PENDING",
+      openingOffer: null,
+      targetOffer: null,
+      finalOffer: null,
+      walkAwayAmount: null,
+      walkAwayThreshold: null,
+      unavailableReasons: [
+        "No canonical opening-offer source exists.",
+        "No canonical target-offer source exists.",
+        "No canonical final-offer source exists.",
+        "No canonical walk-away amount exists.",
+        "No canonical walk-away threshold exists.",
+      ],
+    },
+    decision: {
+      verdictStatus: "GO",
+      classification: "MARGINAL",
+      capitalProtectionState: "CAUTION",
+      strategyRecommendation: "FLIP_ONLY_OR_RENEGOTIATE",
+      recommendedNextAction: "Review title and refurb evidence",
+    },
+    warnings: {
+      canonicalWarnings: [],
+      unavailableFields: [
+        "ROI is not available from the current canonical engine output.",
+      ],
+    },
+  }
+}
+
 function makeSampleViewModel(): InvestorReviewReadyViewModel {
   const viewModel = mapPdfEvidencePackToInvestorReview({
     pack: PDF_EVIDENCE_PACK_BLOCKED_FIXTURE,
@@ -88,6 +155,7 @@ function makeSampleViewModel(): InvestorReviewReadyViewModel {
 
   return {
     ...viewModel,
+    dealFormulation: makeSampleDealFormulationViewModel(),
     professionalEvidenceGateway: makeSampleGatewayViewModel(),
   }
 }
@@ -117,6 +185,11 @@ describe("InvestorReviewPage", () => {
       expect(html).toContain("£113,800.00")
       expect(html).toContain("Required hard gates")
       expect(html).toContain("Advisory and caution gates")
+      expect(html).toContain("Deal Formulation")
+      expect(html).toContain("Canonical saved-deal financial position and decision support.")
+      expect(html).toContain(
+        "Values shown here are read-only canonical outputs. Unsupported values remain unavailable and are not estimated."
+      )
       expect(html).toContain("Professional Evidence Gateway")
       expect(html).toContain(
         "Read-only professional decision support. This section does not satisfy, waive, approve, or override Investor Shield requirements."
