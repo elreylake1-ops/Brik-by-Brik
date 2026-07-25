@@ -153,6 +153,7 @@ export function getProfessionalEvidenceGatewayProofFixture(): ProfessionalEviden
       finalDecisionLockStatus: "MANUAL_REVIEW_REQUIRED",
       lockReason:
         "Read-only seeded Phase 5A-4B proof. Investor Shield remains unchanged.",
+      referenceDate: "2026-07-25T00:00:00.000Z",
     }),
     rightmoveRule: PROFESSIONAL_GATEWAY_RIGHTMOVE_RULE,
     qualifyingRule: PROFESSIONAL_GATEWAY_SOLD_COMPARABLE_QUALIFYING_RULE,

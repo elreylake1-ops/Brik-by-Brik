@@ -66,6 +66,13 @@ function makeProfessionalEvidenceGatewayViewModel(
       linkedGateAreas: gates.map((gate) => gate.professionalGateArea),
       linkedEvidenceIds: gates.flatMap((gate) => gate.linkedEvidenceIds),
     },
+    readinessPresentation: {
+      state: "PROFESSIONALLY_CONFIRMED",
+      displayLabel: "Professionally confirmed",
+      supportingSummary: defaultGate.professionalConfirmationSummary,
+      authorityNotice:
+        "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
+    },
     professionalGateStatus: "CONFIRMED",
     professionalReadiness: "PROFESSIONALLY_CONFIRMED",
     reviewSource: "SOLICITOR",
@@ -175,6 +182,10 @@ describe("InvestorReviewDocument", () => {
     expect(html).toContain(
       "Read-only professional decision support. This section does not satisfy, waive, approve, or override Investor Shield requirements."
     )
+    expect(html).toContain("Professionally confirmed")
+    expect(html).toContain(
+      "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements."
+    )
     expect(html).not.toContain("Reviewer note:")
     expect(html).not.toContain("Professional Evidence Gateway Proof")
     expect(html).not.toContain("Read-only dev/demo proof")
@@ -241,6 +252,13 @@ describe("InvestorReviewDocument", () => {
         linkedGateAreas: [],
         linkedEvidenceIds: [],
       },
+      readinessPresentation: {
+        state: "MISSING",
+        displayLabel: "Professional evidence missing",
+        supportingSummary: "No compatible professional evidence is currently available for review.",
+        authorityNotice:
+          "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
+      },
       professionalGateStatus: "NOT_STARTED",
       professionalReadiness: "NOT_READY",
       reviewSource: "OPERATOR_NOTE",
@@ -254,6 +272,7 @@ describe("InvestorReviewDocument", () => {
     const html = renderToStaticMarkup(<InvestorReviewDocument viewModel={viewModel} />)
 
     expect(html).toContain("No compatible professional evidence is currently available for review.")
+    expect(html).toContain("Professional evidence missing")
     expect(html).toContain("No Evidence Lite records are currently attached to this deal.")
     expect(html).toContain("No active tasks are currently recorded for this deal.")
     expect(html).toContain("No offers are currently recorded for this deal.")
@@ -328,6 +347,13 @@ describe("InvestorReviewDocument", () => {
         lockReason: "Professional evidence remains display-only.",
         linkedGateAreas: [],
         linkedEvidenceIds: [],
+      },
+      readinessPresentation: {
+        state: "MISSING",
+        displayLabel: "Professional evidence missing",
+        supportingSummary: "No compatible professional evidence is currently available for review.",
+        authorityNotice:
+          "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
       },
       professionalGateStatus: "NOT_STARTED",
       professionalReadiness: "NOT_READY",

@@ -9,6 +9,7 @@ import type {
   ProfessionalEvidenceGatewayViewModel,
   ProfessionalGateStatus,
   ProfessionalReadiness,
+  ProfessionalReadinessPresentationState,
 } from "@/types/professional-evidence-gateway"
 
 export type ProfessionalEvidenceGatewaySectionProps = {
@@ -20,6 +21,26 @@ const AUTHORITY_NOTICE =
 
 const EMPTY_STATE_MESSAGE =
   "No compatible professional evidence is currently available for review."
+
+function readinessPresentationTone(
+  state: ProfessionalReadinessPresentationState
+): InvestorReviewSemanticTone {
+  switch (state) {
+    case "PROFESSIONALLY_CONFIRMED":
+      return "success"
+    case "READY_FOR_REVIEW":
+      return "informational"
+    case "ADVERSE":
+    case "EXPIRED":
+      return "blocked"
+    case "WEAK_OR_NON_CONFIRMING":
+    case "MISSING":
+    case "MANUAL_REVIEW_REQUIRED":
+      return "caution"
+    default:
+      return "neutral"
+  }
+}
 
 function toneClasses(tone: InvestorReviewSemanticTone | undefined): string {
   switch (tone) {
@@ -195,6 +216,33 @@ export default function ProfessionalEvidenceGatewaySection({
 
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
           <p>{AUTHORITY_NOTICE}</p>
+        </div>
+
+        <div
+          data-testid="professional-gateway-readiness-block"
+          className={`rounded-2xl border p-4 ${toneClasses(
+            readinessPresentationTone(viewModel.readinessPresentation.state)
+          )}`}
+        >
+          <p className="text-xs uppercase tracking-wide opacity-80">Professional Readiness</p>
+          <p
+            data-testid="professional-gateway-readiness-label"
+            className="mt-1 text-sm font-semibold"
+          >
+            {viewModel.readinessPresentation.displayLabel}
+          </p>
+          <p
+            data-testid="professional-gateway-readiness-summary"
+            className="mt-2 break-words text-sm"
+          >
+            {displayValue(viewModel.readinessPresentation.supportingSummary)}
+          </p>
+          <p
+            data-testid="professional-gateway-readiness-authority"
+            className="mt-3 break-words text-sm"
+          >
+            {viewModel.readinessPresentation.authorityNotice}
+          </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

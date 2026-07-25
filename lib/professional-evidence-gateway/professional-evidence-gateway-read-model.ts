@@ -3,6 +3,7 @@ import {
   type ProfessionalEvidenceGatewayDecisionLock,
   type ProfessionalEvidenceGatewayGate,
   type ProfessionalEvidenceGatewayRecord,
+  type ProfessionalReadinessPresentation,
   type ProfessionalEvidenceGatewaySection,
   type ProfessionalEvidenceGatewayViewModel,
   type ProfessionalEvidenceReviewSource,
@@ -23,6 +24,9 @@ export type ProfessionalEvidenceGatewayEvidenceInput = {
   readonly savedDealId?: unknown
   readonly linkedEvidenceCommandEvidenceId?: unknown
   readonly linkedInvestorShieldGate?: unknown
+  readonly evidenceType?: unknown
+  readonly evidenceStatus?: unknown
+  readonly linkedProfessionalGate?: unknown
   readonly professionalGateArea?: unknown
   readonly professionalGateStatus?: unknown
   readonly professionalReadiness?: unknown
@@ -64,6 +68,7 @@ export type ProfessionalEvidenceGatewayViewModelInput = {
   readonly evidence: readonly ProfessionalEvidenceGatewayEvidenceInput[]
   readonly finalDecisionLockStatus?: unknown
   readonly lockReason?: unknown
+  readonly readinessPresentation?: ProfessionalReadinessPresentation
 }
 
 function normalizeRequiredText(value: unknown, fallback: string): string {
@@ -342,6 +347,48 @@ function collectLinkedEvidenceIds(
   return linkedEvidenceIds
 }
 
+function defaultReadinessPresentation(
+  gates: readonly ProfessionalEvidenceGatewayGate[]
+): ProfessionalReadinessPresentation {
+  if (gates.length === 0) {
+    return {
+      state: "MISSING",
+      displayLabel: "Professional evidence missing",
+      supportingSummary: "No compatible professional evidence is currently available for review.",
+      authorityNotice:
+        "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
+    }
+  }
+
+  if (
+    gates.some(
+      (gate) =>
+        gate.professionalGateStatus === "CONFIRMED" &&
+        gate.professionalReadiness === "PROFESSIONALLY_CONFIRMED"
+    )
+  ) {
+    return {
+      state: "PROFESSIONALLY_CONFIRMED",
+      displayLabel: "Professionally confirmed",
+      supportingSummary:
+        gates[0].professionalConfirmationSummary ??
+        "Professional confirmation is visible from a qualifying source.",
+      authorityNotice:
+        "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
+    }
+  }
+
+  return {
+    state: "READY_FOR_REVIEW",
+    displayLabel: "Ready for professional review",
+    supportingSummary:
+      gates[0].requiredEvidenceSummary ??
+      "Professional evidence is present and awaiting qualified review.",
+    authorityNotice:
+      "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
+  }
+}
+
 export function deriveProfessionalDecisionLock(
   input: ProfessionalEvidenceGatewayDecisionLockInput
 ): ProfessionalEvidenceGatewayDecisionLock {
@@ -402,6 +449,8 @@ export function buildProfessionalEvidenceGatewayViewModel(
       finalDecisionLockStatus,
       lockReason: input.lockReason,
     }),
+    readinessPresentation:
+      input.readinessPresentation ?? defaultReadinessPresentation(gates),
     professionalGateStatus: deriveAggregateGateStatus(gates),
     professionalReadiness: readiness,
     reviewSource: firstGate?.reviewSource ?? "OPERATOR_NOTE",

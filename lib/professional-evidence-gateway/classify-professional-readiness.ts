@@ -10,20 +10,14 @@ import type {
 import type {
   ProfessionalEvidenceReviewSource,
   ProfessionalGateArea,
+  ProfessionalReadinessPresentationState,
 } from "@/types/professional-evidence-gateway"
+import { PROFESSIONAL_READINESS_PRESENTATION_STATES } from "@/types/professional-evidence-gateway"
 
-export const PROFESSIONAL_READINESS_CLASSIFIER_STATES = [
-  "READY_FOR_REVIEW",
-  "PROFESSIONALLY_CONFIRMED",
-  "WEAK_OR_NON_CONFIRMING",
-  "MISSING",
-  "ADVERSE",
-  "EXPIRED",
-  "MANUAL_REVIEW_REQUIRED",
-] as const
+export const PROFESSIONAL_READINESS_CLASSIFIER_STATES =
+  PROFESSIONAL_READINESS_PRESENTATION_STATES
 
-export type ProfessionalReadinessClassifierState =
-  typeof PROFESSIONAL_READINESS_CLASSIFIER_STATES[number]
+export type ProfessionalReadinessClassifierState = ProfessionalReadinessPresentationState
 
 export type ProfessionalReadinessClassifierInput = {
   readonly linkedInvestorShieldGate: string | null

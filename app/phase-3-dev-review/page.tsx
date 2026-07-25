@@ -90,6 +90,13 @@ const ADDITIONAL_DEMO_REVIEW_VIEW_MODEL = {
       linkedGateAreas: [],
       linkedEvidenceIds: [],
     },
+    readinessPresentation: {
+      state: "MISSING",
+      displayLabel: "Professional evidence missing",
+      supportingSummary: "No compatible professional evidence is currently available for review.",
+      authorityNotice:
+        "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
+    },
     professionalGateStatus: "NOT_STARTED",
     professionalReadiness: "NOT_READY",
     reviewSource: "OPERATOR_NOTE",

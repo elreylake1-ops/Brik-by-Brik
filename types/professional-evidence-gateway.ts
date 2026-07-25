@@ -36,6 +36,19 @@ export const PROFESSIONAL_READINESS_STATUSES = [
 
 export type ProfessionalReadiness = typeof PROFESSIONAL_READINESS_STATUSES[number]
 
+export const PROFESSIONAL_READINESS_PRESENTATION_STATES = [
+  "READY_FOR_REVIEW",
+  "PROFESSIONALLY_CONFIRMED",
+  "WEAK_OR_NON_CONFIRMING",
+  "MISSING",
+  "ADVERSE",
+  "EXPIRED",
+  "MANUAL_REVIEW_REQUIRED",
+] as const
+
+export type ProfessionalReadinessPresentationState =
+  typeof PROFESSIONAL_READINESS_PRESENTATION_STATES[number]
+
 export const FINAL_DECISION_LOCK_STATUSES = [
   "LOCKED",
   "UNLOCKED_FOR_REVIEW",
@@ -124,11 +137,19 @@ export type ProfessionalEvidenceGatewayDecisionLock = {
   readonly linkedEvidenceIds: readonly string[]
 }
 
+export type ProfessionalReadinessPresentation = {
+  readonly state: ProfessionalReadinessPresentationState
+  readonly displayLabel: string
+  readonly supportingSummary: string
+  readonly authorityNotice: string
+}
+
 export type ProfessionalEvidenceGatewayViewModel = {
   readonly savedDealId: string
   readonly gates: readonly ProfessionalEvidenceGatewayGate[]
   readonly sections: readonly ProfessionalEvidenceGatewaySection[]
   readonly decisionLock: ProfessionalEvidenceGatewayDecisionLock
+  readonly readinessPresentation: ProfessionalReadinessPresentation
   readonly professionalGateStatus: ProfessionalGateStatus
   readonly professionalReadiness: ProfessionalReadiness
   readonly reviewSource: ProfessionalEvidenceReviewSource

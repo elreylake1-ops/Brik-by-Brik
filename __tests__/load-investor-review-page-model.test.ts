@@ -80,6 +80,13 @@ const sampleProfessionalEvidenceGateway = {
     linkedGateAreas: [],
     linkedEvidenceIds: [],
   },
+  readinessPresentation: {
+    state: "MISSING",
+    displayLabel: "Professional evidence missing",
+    supportingSummary: "No compatible professional evidence is currently available for review.",
+    authorityNotice:
+      "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
+  },
   professionalGateStatus: "NOT_STARTED",
   professionalReadiness: "NOT_READY",
   reviewSource: "OPERATOR_NOTE",
@@ -216,6 +223,7 @@ describe("loadInvestorReviewPageModel", () => {
     expect(loadProfessionalEvidenceGatewayViewModelMock).toHaveBeenCalledWith({
       savedDealId: "deal-123",
       evidence: sampleAdaptedEvidence,
+      referenceDate: "2026-07-01T10:00:00.000Z",
     })
   })
 
@@ -297,6 +305,7 @@ describe("loadInvestorReviewPageModel", () => {
     expect(loadProfessionalEvidenceGatewayViewModelMock).toHaveBeenCalledWith({
       savedDealId: "deal-123",
       evidence: [],
+      referenceDate: "2026-07-01T10:00:00.000Z",
     })
   })
 

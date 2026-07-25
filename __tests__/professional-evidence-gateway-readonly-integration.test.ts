@@ -53,6 +53,7 @@ describe("professional evidence gateway read-only integration", () => {
       evidence: [makeEvidence()],
       finalDecisionLockStatus: "MANUAL_REVIEW_REQUIRED",
       lockReason: "Display-only professional gateway state",
+      referenceDate: "2026-07-25T00:00:00.000Z",
     })
 
     expect(viewModel.savedDealId).toBe("deal-1")
@@ -68,6 +69,13 @@ describe("professional evidence gateway read-only integration", () => {
     expect(viewModel.decisionLock).toMatchObject({
       finalDecisionLockStatus: "MANUAL_REVIEW_REQUIRED",
       linkedEvidenceIds: ["evidence-1"],
+    })
+    expect(viewModel.readinessPresentation).toEqual({
+      state: "PROFESSIONALLY_CONFIRMED",
+      displayLabel: "Professionally confirmed",
+      supportingSummary: "Legal evidence summary",
+      authorityNotice:
+        "Professional readiness is read-only decision support. It does not satisfy, waive, approve, clear, or override Investor Shield requirements.",
     })
   })
 
@@ -88,6 +96,7 @@ describe("professional evidence gateway read-only integration", () => {
           reviewState: "PROFESSIONAL_CONFIRMED",
         }),
       ],
+      referenceDate: "2026-07-25T00:00:00.000Z",
     })
 
     expect(viewModel.gates[0]).toMatchObject({
@@ -98,6 +107,9 @@ describe("professional evidence gateway read-only integration", () => {
       professionalConfirmationSummary:
         "Professional confirmation requires explicit compatible qualifying source",
     })
+    expect(viewModel.readinessPresentation.displayLabel).toBe(
+      "Weak or non-confirming evidence"
+    )
   })
 
   it.each(["SURVEYOR", "SOLICITOR", "LAND_REGISTRY"] as const)(
@@ -119,6 +131,7 @@ describe("professional evidence gateway read-only integration", () => {
             reviewState: "PROFESSIONAL_CONFIRMED",
           }),
         ],
+        referenceDate: "2026-07-25T00:00:00.000Z",
       })
 
       expect(viewModel.gates[0]).toMatchObject({
@@ -127,6 +140,9 @@ describe("professional evidence gateway read-only integration", () => {
         professionalGateStatus: "CONFIRMED",
         professionalReadiness: "PROFESSIONALLY_CONFIRMED",
       })
+      expect(viewModel.readinessPresentation.displayLabel).toBe(
+        "Professionally confirmed"
+      )
     }
   )
 
@@ -170,12 +186,49 @@ describe("professional evidence gateway read-only integration", () => {
             reviewState: "PROFESSIONAL_CONFIRMED",
           }),
         ],
+        referenceDate: "2026-07-25T00:00:00.000Z",
       })
 
       expect(viewModel.gates[0].professionalGateStatus).toBe("UNDER_REVIEW")
       expect(viewModel.gates[0].professionalReadiness).toBe("READY_FOR_REVIEW")
+      expect(viewModel.readinessPresentation.displayLabel).toBe(
+        "Weak or non-confirming evidence"
+      )
     }
   )
+
+  it("uses explicit referenceDate to surface expired evidence conservatively", () => {
+    const viewModel = loadProfessionalEvidenceGatewayViewModel({
+      savedDealId: "deal-expired",
+      evidence: [
+        makeEvidence({
+          evidenceStatus: "SUFFICIENT",
+          reviewState: "PROFESSIONAL_CONFIRMED",
+          expiryOrUpdateDate: "2026-07-01",
+        }),
+      ],
+      referenceDate: "2026-07-25T00:00:00.000Z",
+    })
+
+    expect(viewModel.readinessPresentation.displayLabel).toBe(
+      "Professional evidence expired"
+    )
+  })
+
+  it("uses pure classifier output in loader and does not need UI recalculation", () => {
+    const source = readFileSync(
+      path.resolve(
+        process.cwd(),
+        "lib/professional-evidence-gateway/load-professional-evidence-gateway-view-model.ts"
+      ),
+      "utf8"
+    )
+
+    expect(source).toContain(
+      'from "@/lib/professional-evidence-gateway/classify-professional-readiness"'
+    )
+    expect(source).toContain("classifyProfessionalReadiness(")
+  })
 
   it("does not clear Investor Shield gates or mutate pipeline-shaped state", () => {
     const state = deepFreeze({
@@ -202,6 +255,7 @@ describe("professional evidence gateway read-only integration", () => {
     const viewModel = loadProfessionalEvidenceGatewayViewModel({
       savedDealId: "deal-state",
       evidence: state.evidence,
+      referenceDate: "2026-07-25T00:00:00.000Z",
     })
 
     expect(JSON.stringify(state)).toBe(before)

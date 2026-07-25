@@ -69,6 +69,7 @@ export async function loadInvestorReviewPageModel(
     const professionalEvidenceGateway = loadProfessionalEvidenceGatewayViewModel({
       savedDealId: normalizedDealId,
       evidence: professionalEvidence,
+      referenceDate: generatedAt,
     })
 
     const readyViewModel = {
