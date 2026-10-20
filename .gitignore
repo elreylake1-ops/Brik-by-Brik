@@ -46,3 +46,6 @@ CLAUDE.md
 # Local AI/tooling config
 .claude/
 .cursorrules
+
+# disposable local QA database state (generated credentials)
+.qa-local/
