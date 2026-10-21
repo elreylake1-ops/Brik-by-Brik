@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { guardSavedDealApi } from "@/lib/operator-command/guard-saved-deal-api"
 import { getInvestorSummaryForDeal } from "@/lib/investor-summary/investor-summary-repository"
 import { createSafeRouteErrorDiagnostic } from "@/lib/http/safe-route-error"
 
@@ -10,7 +11,10 @@ const SAFE_INVALID_ID = "INVESTOR_SUMMARY_INVALID_ID"
 const SAFE_NOT_FOUND = "INVESTOR_SUMMARY_NOT_FOUND"
 const SAFE_READ_ERROR = "INVESTOR_SUMMARY_READ_FAILED"
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const id = params?.id?.trim()

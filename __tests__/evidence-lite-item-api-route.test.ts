@@ -20,6 +20,9 @@ vi.mock("@/lib/evidence-lite/evidence-lite-repository", () => ({
 }))
 
 import { PATCH } from "@/app/api/saved-deals/[id]/evidence/[evidenceId]/route"
+import { operatorHeaders, registerTestOperator } from "./fixtures/operator-session"
+
+registerTestOperator()
 
 const ROUTE_PATH = path.resolve(
   process.cwd(),
@@ -58,7 +61,7 @@ function makeEvidenceRecord(overrides: Partial<Record<string, unknown>> = {}) {
 function makeRequest(body: unknown): Request {
   return new Request("http://localhost/api/saved-deals/deal-1/evidence/evidence-1", {
     method: "PATCH",
-    headers: { "content-type": "application/json" },
+    headers: operatorHeaders({ "content-type": "application/json" }),
     body: JSON.stringify(body),
   })
 }

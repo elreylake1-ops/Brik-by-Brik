@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { guardSavedDealApi } from "@/lib/operator-command/guard-saved-deal-api"
 import { createSafeRouteErrorDiagnostic } from "@/lib/http/safe-route-error"
 import { getSavedDealById } from "@/lib/operator-command/saved-deals-repository"
 import {
@@ -70,7 +71,10 @@ function isEvidenceCommandPayload(body: Record<string, unknown>): boolean {
   )
 }
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const id = params?.id?.trim()
@@ -104,6 +108,9 @@ export async function GET(_request: Request, context: RouteContext) {
 }
 
 export async function POST(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const id = params?.id?.trim()

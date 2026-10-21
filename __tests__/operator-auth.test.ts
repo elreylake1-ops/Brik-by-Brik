@@ -173,6 +173,7 @@ describe("operator identity: authentication is not authorization", () => {
     expect(await resolveTrustedInternalOperatorIdentity(bearer(signJwt(ec, validClaims({ sub: "operator-1" }))))).toEqual({
       status: "authenticated",
       principal: { kind: "internal_operator", subject: "operator-1" },
+      credential: "bearer",
     })
   })
 
@@ -247,6 +248,24 @@ describe("configuration is fail-closed", () => {
     expect(readOperatorAuthDeps({ ...good, ...over })).toBeNull()
   })
 
+  describe("the local identity simulator can never be configured in a hosted environment", () => {
+    const loopback = { OPERATOR_JWT_ISSUER: "https://localhost:3443", OPERATOR_JWKS_URL: "https://localhost:3443/jwks.json" }
+    it("is accepted on a developer machine (local QA only)", () => {
+      expect(readOperatorAuthDeps({ ...good, ...loopback })).not.toBeNull()
+    })
+    it.each([
+      ["VERCEL", { VERCEL: "1" }],
+      ["VERCEL_ENV=production", { VERCEL_ENV: "production" }],
+      ["VERCEL_ENV=preview", { VERCEL_ENV: "preview" }],
+    ])("is refused when %s is set, for every loopback spelling", (_n, hosted) => {
+      for (const host of ["localhost", "127.0.0.1", "[::1]", "0.0.0.0"]) {
+        const cfg = { ...good, ...hosted, OPERATOR_JWT_ISSUER: `https://${host}:3443`, OPERATOR_JWKS_URL: `https://${host}:3443/jwks.json` }
+        expect(readOperatorAuthDeps(cfg), host).toBeNull()
+      }
+      expect(readOperatorAuthDeps({ ...good, ...hosted })).not.toBeNull() // a real provider is still fine
+    })
+  })
+
   it("allowlist membership is exact-match", async () => {
     const store = createAllowlistMembershipStore(" a ,b")!
     expect([await store.isActiveOperator("a"), await store.isActiveOperator("b"), await store.isActiveOperator("A"), await store.isActiveOperator("a,b"), await store.isActiveOperator("")]).toEqual([true, true, false, false, false])
@@ -282,7 +301,7 @@ describe("test-only identity adapter cannot reach deployed code", () => {
     const root = path.resolve(__dirname, "..")
     for (const f of ["jwt.ts", "jwks.ts", "operator-auth.ts"]) {
       const src = readFileSync(path.join(root, "lib/auth", f), "utf8")
-      expect(src, f).not.toMatch(/BEGIN (RSA |EC )?(PRIVATE|PUBLIC) KEY|eyJ[A-Za-z0-9_-]{10,}|password|secret\s*[:=]/i)
+      expect(src, f).not.toMatch(/BEGIN (RSA |EC )?(PRIVATE|PUBLIC) KEY|eyJ[A-Za-z0-9_-]{10,}|password\s*[:=]\s*["'`]|secret\s*[:=]/i)
     }
   })
 })

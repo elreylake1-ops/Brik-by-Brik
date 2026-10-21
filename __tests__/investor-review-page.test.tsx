@@ -21,6 +21,9 @@ vi.mock("@/lib/investor-review/load-investor-review-page-model", () => ({
   loadInvestorReviewPageModel: loadInvestorReviewPageModelMock,
 }))
 
+// Page requests carry the test operator's credentials (the page guard itself is exercised for real).
+vi.mock("next/headers", () => ({ headers: async () => new Headers({ authorization: "Bearer tok-test-operator" }) }))
+
 vi.mock("next/navigation", () => ({
   notFound: notFoundMock,
 }))
@@ -28,6 +31,9 @@ vi.mock("next/navigation", () => ({
 import InvestorReviewPage from "../app/saved-deals/[id]/review/page"
 import InvestorReviewLoading from "../app/saved-deals/[id]/review/loading"
 import InvestorReviewNotFoundDocument from "../app/saved-deals/[id]/review/not-found"
+import { registerTestOperator } from "./fixtures/operator-session"
+
+registerTestOperator()
 
 function makeSavedDealRecord(overrides: Partial<SavedDealRecord> = {}): SavedDealRecord {
   return {

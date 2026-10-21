@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { developmentOnlyPage } from "@/lib/dev-only-page"
 import ProfessionalEvidenceGatewayProofPanel from "@/components/professional-evidence-gateway/ProfessionalEvidenceGatewayProofPanel"
 import { getProfessionalEvidenceGatewayProofFixture } from "@/lib/professional-evidence-gateway/professional-evidence-gateway-proof-fixture"
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 }
 
 export default function Phase5AProfessionalGatewayProofPage() {
+  developmentOnlyPage()
   const fixture = getProfessionalEvidenceGatewayProofFixture()
 
   return (

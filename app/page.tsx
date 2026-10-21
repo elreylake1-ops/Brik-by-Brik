@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from "react"
+import AuthStatus from "@/components/auth/AuthStatus"
 import CalculatorForm from "@/components/CalculatorForm"
 import ResultsDisplay from "@/components/ResultsDisplay"
 import RefurbScopeForm from "@/components/RefurbScopeForm"
@@ -363,20 +364,6 @@ export default function Home() {
     setSaveDealSuccessId(null)
     setSaveDealError(null)
 
-    const classification =
-      result.dueDiligence?.decision.dealClassification ?? result.verdict.status
-    const governanceState = result.verdict.status
-    const capitalProtectionState =
-      result.dueDiligence?.decision.capitalProtectionStatus ?? "UNKNOWN"
-    const refurbCost =
-      result.refurbSource === "generated"
-        ? (result.refurb?.totalRefurbCost ?? inputs.refurbCost)
-        : inputs.refurbCost
-    const riskSummary = {
-      riskFlags: result.dueDiligence?.decision.riskFlags ?? [],
-      warnings: result.warnings,
-    }
-
     try {
       const response = await fetch("/api/saved-deals", {
         method: "POST",
@@ -384,15 +371,10 @@ export default function Home() {
         body: JSON.stringify({
           address: saveAddress.trim(),
           listing_url: saveListingUrl.trim() || null,
-          purchase_price: inputs.purchasePrice,
-          gdv_realistic: inputs.gdv,
-          refurb_cost: refurbCost,
-          classification,
-          governance_state: governanceState,
-          capital_protection_state: capitalProtectionState,
-          pipeline_state: "UNDER_ANALYSIS",
-          engine_result_json: result,
-          risk_summary_json: riskSummary,
+          // Only the inputs are sent. The server re-runs the engine and derives classification, governance,
+          // capital protection, pipeline state and the stored result itself.
+          deal_inputs: inputs,
+          scope: useScope ? scope : undefined,
           next_action: saveNextAction.trim() || null,
         }),
       })
@@ -913,13 +895,20 @@ export default function Home() {
               {saveDealSuccessId && (
                 <p className="text-sm text-green-700">Saved deal id: {saveDealSuccessId}</p>
               )}
-              {saveDealError && <p className="text-sm text-red-700">{saveDealError}</p>}
+              {saveDealError && (
+                <p className="text-sm text-red-700">
+                  {saveDealError === "AUTHENTICATION_REQUIRED" ? "Sign in as an operator to save deals." : saveDealError}
+                </p>
+              )}
             </div>
           </div>
         )}
 
         <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-800">Saved Deals</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-800">Saved Deals</h2>
+            <AuthStatus />
+          </div>
           <p className="mt-1 text-xs text-gray-500">
             Read-only saved deals list. Reopen/detail behavior is intentionally not added in this step.
           </p>
@@ -927,7 +916,9 @@ export default function Home() {
           {isLoadingSavedDeals ? (
             <p className="mt-4 text-sm text-gray-500">Loading saved deals...</p>
           ) : savedDealsError ? (
-            <p className="mt-4 text-sm text-red-700">{savedDealsError}</p>
+            <p className="mt-4 text-sm text-red-700">
+              {savedDealsError === "AUTHENTICATION_REQUIRED" ? "Sign in as an operator to view saved deals." : savedDealsError}
+            </p>
           ) : savedDeals.length === 0 ? (
             <p className="mt-4 text-sm text-gray-500">No saved deals yet.</p>
           ) : (

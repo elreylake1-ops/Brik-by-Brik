@@ -9,6 +9,8 @@ export type TrustedInternalOperatorIdentityResult =
   | {
       status: "authenticated"
       principal: TrustedInternalOperatorPrincipal
+      // how the caller proved identity; cookie credentials are ambient, so they additionally require a CSRF check
+      credential?: "bearer" | "session"
     }
   | {
       status: "unauthenticated"

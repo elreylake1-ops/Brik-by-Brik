@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { developmentOnlyPage } from "@/lib/dev-only-page"
 import phase2StressTestResults from "@/docs/validation/phase2-stress-test-results.json"
 
 export const metadata: Metadata = {
@@ -170,6 +171,7 @@ function ScenarioCard({
 }
 
 export default function Phase2ReviewPage() {
+  developmentOnlyPage()
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-6xl">

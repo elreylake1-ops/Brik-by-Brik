@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { guardSavedDealApi } from "@/lib/operator-command/guard-saved-deal-api"
 import { createTask, listTasksForDeal } from "@/lib/operator-command/deal-tasks-repository"
 
 type RouteContext = {
@@ -13,7 +14,10 @@ function isValidOptionalString(value: unknown): value is string | null | undefin
   return value === undefined || value === null || typeof value === "string"
 }
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const dealId = params?.id?.trim()
@@ -36,6 +40,9 @@ export async function GET(_request: Request, context: RouteContext) {
 }
 
 export async function POST(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const dealId = params?.id?.trim()

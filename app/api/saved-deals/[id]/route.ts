@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { guardSavedDealApi } from "@/lib/operator-command/guard-saved-deal-api"
 import { getSavedDealById } from "@/lib/operator-command/saved-deals-repository"
 import { createSafeRouteErrorDiagnostic } from "@/lib/http/safe-route-error"
 
@@ -6,7 +7,10 @@ type RouteContext = {
   params: Promise<{ id?: string }> | { id?: string }
 }
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const id = params?.id?.trim()

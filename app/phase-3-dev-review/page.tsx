@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { developmentOnlyPage } from "@/lib/dev-only-page"
 import InvestorReviewDocument from "@/components/investor-review/InvestorReviewDocument"
 import type { DealFormulationViewModel } from "@/types/deal-formulation"
 import type { Phase3MergedOrchestrationOutput, Phase3OrchestrationOutput } from "@/types/phase3-orchestration"
@@ -402,5 +403,6 @@ export function Phase3DevReviewContent() {
 }
 
 export default function Phase3DevReviewPage() {
+  developmentOnlyPage()
   return <Phase3DevReviewContent />
 }

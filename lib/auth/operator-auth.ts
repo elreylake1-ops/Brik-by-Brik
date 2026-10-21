@@ -1,6 +1,9 @@
 import type { TrustedInternalOperatorIdentityResult } from "@/lib/operator-command/trusted-internal-operator-identity"
 import { createJwksKeyProvider, type KeyProvider } from "./jwks"
 import { verifyJwt } from "./jwt"
+import { pgSessionStore } from "./pg-session-store"
+import { createSupabasePasswordExchange } from "./password-exchange"
+import { checkSession, type SessionStore } from "./session"
 
 // Server-side operator identity boundary, in two independent steps:
 //   1. IdentityProvider  - AUTHENTICATION: who is this? (replaceable adapter; Supabase-issued JWT is the first)
@@ -21,7 +24,17 @@ export type IdentityProvider = { authenticate(request: Request): Promise<Provide
 
 export type MembershipStore = { isActiveOperator(subject: string): Promise<boolean> }
 
-export type OperatorAuthDeps = { provider: IdentityProvider; membership: MembershipStore }
+// AUTHENTICATION by credentials the user types at sign-in. The provider's tokens are verified and discarded server-side;
+// only the verified subject is kept (as a server-side session). Optional: without it, sign-in is unavailable.
+export type CredentialExchange = { signIn(email: string, password: string): Promise<ProviderResult> }
+
+export type OperatorAuthDeps = {
+  provider: IdentityProvider
+  membership: MembershipStore
+  sessions?: SessionStore
+  credentials?: CredentialExchange
+  now?: () => Date
+}
 
 // ---- Membership (first slice: owner-managed allowlist in env; DB-backed store is the planned replacement)
 
@@ -74,14 +87,21 @@ export function readOperatorAuthDeps(env: Record<string, string | undefined>): O
     const iss = new URL(issuer)
     const jwks = new URL(jwksUrl)
     if (iss.protocol !== "https:" || jwks.protocol !== "https:" || iss.origin !== jwks.origin) return null
+    // A loopback issuer is only ever the local test identity simulator. In a hosted environment (Vercel Production or
+    // Preview) such configuration is refused outright, so simulator tokens can never be accepted there.
+    if ((env.VERCEL || env.VERCEL_ENV) && /^(localhost|127\.|\[?::1\]?$|0\.0\.0\.0)/i.test(iss.hostname)) return null
   } catch {
     return null
   }
   const membership = createAllowlistMembershipStore(env.OPERATOR_ALLOWED_SUBJECTS)
   if (!membership) return null
+  const getKey = createJwksKeyProvider({ url: jwksUrl })
+  const config = { issuer, audience, jwksUrl }
   return {
-    provider: createBearerJwtProvider({ issuer, audience, jwksUrl }, createJwksKeyProvider({ url: jwksUrl })),
+    provider: createBearerJwtProvider(config, getKey),
     membership,
+    sessions: pgSessionStore,
+    credentials: createSupabasePasswordExchange(env, config, getKey) ?? undefined,
   }
 }
 
@@ -105,19 +125,39 @@ function currentDeps(): OperatorAuthDeps | null {
     env.OPERATOR_JWT_AUDIENCE,
     env.OPERATOR_JWKS_URL,
     env.OPERATOR_ALLOWED_SUBJECTS,
+    env.OPERATOR_PASSWORD_GRANT_URL,
+    env.OPERATOR_PASSWORD_GRANT_API_KEY,
   ].join("\u0000")
   if (cachedEnvDeps?.key !== key) cachedEnvDeps = { key, deps: readOperatorAuthDeps(env) }
   return cachedEnvDeps.deps
 }
 
+export function getOperatorAuthDeps(): OperatorAuthDeps | null {
+  return currentDeps()
+}
+
+// Credential precedence: an Authorization header is authoritative (a bad one is NOT rescued by a cookie); the session
+// cookie is consulted only when no Authorization header was sent. Membership is re-checked on every request either way.
 export async function resolveOperatorIdentity(request: Request): Promise<TrustedInternalOperatorIdentityResult> {
   try {
     const deps = currentDeps()
     if (!deps) return { status: "unauthenticated" }
+    let subject: string
+    let credential: "bearer" | "session"
     const result = await deps.provider.authenticate(request)
-    if (result.status !== "verified") return { status: "unauthenticated" }
-    if (!(await deps.membership.isActiveOperator(result.subject))) return { status: "unauthorized" }
-    return { status: "authenticated", principal: { kind: "internal_operator", subject: result.subject } }
+    if (result.status === "verified") {
+      subject = result.subject
+      credential = "bearer"
+    } else if (result.status === "absent" && deps.sessions) {
+      const session = await checkSession(request, deps.sessions, (deps.now ?? (() => new Date()))())
+      if (session.status !== "valid") return { status: "unauthenticated" }
+      subject = session.subject
+      credential = "session"
+    } else {
+      return { status: "unauthenticated" }
+    }
+    if (!(await deps.membership.isActiveOperator(subject))) return { status: "unauthorized" }
+    return { status: "authenticated", principal: { kind: "internal_operator", subject }, credential }
   } catch {
     return { status: "unauthenticated" }
   }

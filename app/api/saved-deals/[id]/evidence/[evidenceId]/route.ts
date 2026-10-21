@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { guardSavedDealApi } from "@/lib/operator-command/guard-saved-deal-api"
 import { createSafeRouteErrorDiagnostic } from "@/lib/http/safe-route-error"
 import { getSavedDealById } from "@/lib/operator-command/saved-deals-repository"
 import {
@@ -142,6 +143,9 @@ function buildCommandPatchInput(
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const dealId = params?.id?.trim()

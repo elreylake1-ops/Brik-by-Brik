@@ -27,8 +27,29 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".
 const stateDir = path.join(root, ".qa-local")
 const envFile = path.join(stateDir, "pg.env")
 const migrationsDir = path.join(root, "db", "migrations")
-const PREREQ = ["20260522_phase4a_saved_deals_table.sql", "20261020_task2_viewing_assessment_tables.sql"]
-const VIEWING_MIGRATION = "20261020_task2_viewing_assessment_tables.sql"
+// Applied in dependency order by `migrate`: Saved Deals and the tables its services read, then viewing, sessions, refurbishment plans.
+const PREREQ = [
+  "20260522_phase4a_saved_deals_table.sql",
+  "20260522_phase4a_deal_offers_table.sql",
+  "20260522_phase4a_deal_tasks_table.sql",
+  "20260524_phase4b_investor_shield_tables.sql",
+  "20260622_phase4e_deal_evidence_table.sql",
+  "20260706_phase4g_evidence_command_deal_evidence_extension.sql",
+  "20261020_task2_viewing_assessment_tables.sql",
+  "20261021_task5a_operator_sessions.sql",
+  "20261022_task6a_refurb_plan.sql",
+  "20261023_task6b_measurements.sql",
+  "20261024_task6b_financial_proposals.sql",
+  "20261025_task7a_capture_provenance.sql",
+]
+// Reverse dependency order: proposals depend on plans; plans depend on measurement sets; both depend on viewing assessments.
+const ROLLBACK_MIGRATIONS = [
+  "20261024_task6b_financial_proposals.sql",
+  "20261022_task6a_refurb_plan.sql",
+  "20261023_task6b_measurements.sql",
+  "20261020_task2_viewing_assessment_tables.sql",
+  "20261021_task5a_operator_sessions.sql",
+]
 
 const run = (cmd, args, opts = {}) =>
   spawnSync(cmd, args, { encoding: "utf8", env: scrubbedEnv(), cwd: root, ...opts })
@@ -193,10 +214,10 @@ switch (command) {
   case "rollback": {
     requireRunning()
     await requireIsolatedBinding()
-    const sql = readFileSync(path.join(migrationsDir, VIEWING_MIGRATION), "utf8")
+    const sql = ROLLBACK_MIGRATIONS.map((f) => readFileSync(path.join(migrationsDir, f), "utf8")).join("\n")
     const drops = sql.split(/\r?\n/).filter((l) => /^--\s{3}DROP (TABLE|FUNCTION) IF EXISTS brik_by_brik_engine\.\w+(\(\))?;$/.test(l)).map((l) => l.replace(/^--\s+/, ""))
-    if (drops.length !== 10) die(`Expected 10 documented DROP statements, found ${drops.length}. Not running a partial rollback.`)
-    psql(`${drops.join("\n")}\n`, "rollback viewing migration")
+    if (drops.length !== 15) die(`Expected 15 documented DROP statements, found ${drops.length}. Not running a partial rollback.`)
+    psql(`${drops.join("\n")}\n`, "rollback viewing + session migrations")
     break
   }
   case "test": {
@@ -204,7 +225,7 @@ switch (command) {
     await requireIsolatedBinding()
     const url = buildLocalQaUrl(readPassword())
     assertLocalQaTarget(url, {}) // same guard the tests apply; fail here with a clear message
-    const r = spawnSync(process.execPath, [path.join(root, "node_modules", "vitest", "vitest.mjs"), "run", "__tests__/postgres/viewing-"], {
+    const r = spawnSync(process.execPath, [path.join(root, "node_modules", "vitest", "vitest.mjs"), "run", "--no-file-parallelism", "__tests__/postgres/"], {
       cwd: root,
       stdio: "inherit",
       env: { ...scrubbedEnv(), VIEWING_QA_DATABASE_URL: url, VIEWING_QA_CONFIRM_ISOLATED: "I_CONFIRM_THIS_IS_NOT_PRODUCTION" },

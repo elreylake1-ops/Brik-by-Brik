@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { guardSavedDealApi } from "@/lib/operator-command/guard-saved-deal-api"
 import { createOffer, listOffersForDeal } from "@/lib/operator-command/deal-offers-repository"
 
 type RouteContext = {
@@ -9,7 +10,10 @@ function isValidOfferAmount(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value)
 }
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const dealId = params?.id?.trim()
@@ -32,6 +36,9 @@ export async function GET(_request: Request, context: RouteContext) {
 }
 
 export async function POST(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const dealId = params?.id?.trim()

@@ -20,17 +20,21 @@ vi.mock("@/lib/evidence-lite/evidence-lite-repository", () => ({
 }))
 
 import { GET, POST } from "@/app/api/saved-deals/[id]/evidence/route"
+import { operatorHeaders, registerTestOperator } from "./fixtures/operator-session"
+
+registerTestOperator()
 
 function makeGetRequest() {
   return new Request("http://localhost/api/saved-deals/deal-1/evidence", {
     method: "GET",
+    headers: operatorHeaders(),
   })
 }
 
 function makePostRequest(body: unknown) {
   return new Request("http://localhost/api/saved-deals/deal-1/evidence", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: operatorHeaders({ "content-type": "application/json" }),
     body: JSON.stringify(body),
   })
 }
@@ -38,7 +42,7 @@ function makePostRequest(body: unknown) {
 function makeMalformedPostRequest(body: string) {
   return new Request("http://localhost/api/saved-deals/deal-1/evidence", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: operatorHeaders({ "content-type": "application/json" }),
     body,
   })
 }

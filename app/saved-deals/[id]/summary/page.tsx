@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { requireOperatorPage } from "@/lib/auth/require-operator-page"
 import InvestorDealSummaryDocument from "@/components/investor-summary/InvestorDealSummaryDocument"
 import InvestorDealSummaryUnavailable from "@/components/investor-summary/InvestorDealSummaryUnavailable"
 import { mapInvestorReviewToDealSummary } from "@/lib/investor-summary/map-investor-review-to-deal-summary"
@@ -13,6 +14,8 @@ type RouteContext = {
 export default async function InvestorDealSummaryPage({ params }: RouteContext) {
   const resolvedParams = await params
   const dealId = resolvedParams?.id ?? ""
+
+  await requireOperatorPage(`/saved-deals/${encodeURIComponent(dealId)}/summary`, dealId)
 
   const result = await loadInvestorReviewPageModel(dealId)
 

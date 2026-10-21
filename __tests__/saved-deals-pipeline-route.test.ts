@@ -42,11 +42,14 @@ vi.mock("@/lib/investor-shield/persist-investor-shield-task-drafts", () => ({
 }))
 
 import { POST } from "@/app/api/saved-deals/[id]/pipeline/route"
+import { operatorHeaders, registerTestOperator } from "./fixtures/operator-session"
+
+registerTestOperator()
 
 function makeRequest(body: unknown) {
   return new Request("http://localhost/api/saved-deals/deal-1/pipeline", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: operatorHeaders({ "content-type": "application/json" }),
     body: JSON.stringify(body),
   })
 }

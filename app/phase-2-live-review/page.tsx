@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { developmentOnlyPage } from "@/lib/dev-only-page"
 import { loadPhase2Fixtures } from "@/lib/validation/load-phase2-fixtures"
 import { runPhase2Validation } from "@/lib/validation/run-phase2-validation"
 import type {
@@ -219,6 +220,7 @@ function ScenarioCard({
 }
 
 export default function Phase2LiveReviewPage() {
+  developmentOnlyPage()
   const renderedAt = new Date().toISOString()
   const fixtures = loadPhase2Fixtures()
   const validationRun = runPhase2Validation(fixtures)

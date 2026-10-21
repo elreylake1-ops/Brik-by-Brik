@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { guardSavedDealApi } from "@/lib/operator-command/guard-saved-deal-api"
 import { getSavedDealById } from "@/lib/operator-command/saved-deals-repository"
 import { loadInvestorShieldUiModelForDeal } from "@/lib/investor-shield/load-investor-shield-ui-model"
 import { createSafeRouteErrorDiagnostic } from "@/lib/http/safe-route-error"
@@ -9,7 +10,10 @@ type RouteContext = {
 
 const SAFE_ERROR = "Investor Shield status could not be loaded. Pipeline rules remain unchanged."
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const id = params?.id?.trim()

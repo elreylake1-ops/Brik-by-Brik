@@ -3,6 +3,7 @@ import {
   type TrustedInternalOperatorIdentityResult,
   type TrustedInternalOperatorPrincipal,
 } from "@/lib/operator-command/trusted-internal-operator-identity"
+import { isSameOrigin, isStateChanging } from "@/lib/auth/session"
 
 export type SavedDealReadAccessResult =
   | {
@@ -14,6 +15,12 @@ export type SavedDealReadAccessResult =
       reason: "unauthenticated"
       status: 401
       code: "AUTHENTICATION_REQUIRED"
+    }
+  | {
+      allowed: false
+      reason: "cross_origin"
+      status: 403
+      code: "CROSS_ORIGIN_REJECTED"
     }
   | {
       allowed: false
@@ -32,6 +39,10 @@ function buildUnauthenticatedResult(): SavedDealReadAccessResult {
     status: 401,
     code: AUTHENTICATION_REQUIRED_CODE,
   }
+}
+
+function buildCrossOriginResult(): SavedDealReadAccessResult {
+  return { allowed: false, reason: "cross_origin", status: 403, code: "CROSS_ORIGIN_REJECTED" }
 }
 
 function buildUnauthorizedResult(): SavedDealReadAccessResult {
@@ -54,6 +65,8 @@ export async function requireSavedDealReadAccess(
   request: Request,
   dealId?: string,
 ): Promise<SavedDealReadAccessResult> {
+  // Authorization policy today: every active operator may use every saved deal. saved_deals has no owner column, so a
+  // deal id on its own is never treated as proof of ownership; this is the single place a per-deal rule would be added.
   void dealId
 
   let identity: TrustedInternalOperatorIdentityResult
@@ -66,6 +79,10 @@ export async function requireSavedDealReadAccess(
 
   if (identity.status === "authenticated") {
     if (identity.principal.kind === "internal_operator") {
+      // Cookies are sent by the browser automatically, so a cookie-authenticated change must come from this site.
+      if (identity.credential === "session" && isStateChanging(request) && !isSameOrigin(request)) {
+        return buildCrossOriginResult()
+      }
       return buildAllowedResult(identity.principal)
     }
 

@@ -16,6 +16,9 @@ vi.mock("@/lib/investor-review/load-investor-review-page-model", () => ({
   loadInvestorReviewPageModel: loadInvestorReviewPageModelMock,
 }))
 
+// Page requests carry the test operator's credentials (the page guard itself is exercised for real).
+vi.mock("next/headers", () => ({ headers: async () => new Headers({ authorization: "Bearer tok-test-operator" }) }))
+
 vi.mock("next/navigation", () => ({
   notFound: notFoundMock,
 }))
@@ -23,6 +26,9 @@ vi.mock("next/navigation", () => ({
 import InvestorDealSummaryPage from "../app/saved-deals/[id]/summary/page"
 import InvestorDealSummaryLoading from "../app/saved-deals/[id]/summary/loading"
 import InvestorDealSummaryNotFound from "../app/saved-deals/[id]/summary/not-found"
+import { registerTestOperator } from "./fixtures/operator-session"
+
+registerTestOperator()
 
 describe("InvestorDealSummaryPage", () => {
   beforeEach(() => {
