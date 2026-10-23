@@ -84,6 +84,59 @@ export function applyCostOverrides(
       continue
     }
 
+    if (override.type === "contractor_quote") {
+      const quotePrice = asNumber(override.value)
+      if (quotePrice === null || quotePrice < 0) {
+        warnings.push(`Override '${override.id}' ignored: contractor_quote requires numeric value >= 0.`)
+        continue
+      }
+
+      if (!override.targetTaskId) {
+        warnings.push(`Override '${override.id}' ignored: contractor_quote requires targetTaskId.`)
+        continue
+      }
+
+      let matched = 0
+      for (let i = 0; i < tasks.length; i++) {
+        const task = tasks[i]
+        if (task.id !== override.targetTaskId) {
+          continue
+        }
+
+        const previousTotalCost = task.totalCost
+        const qty = task.quantity > 0 ? task.quantity : 1
+        tasks[i] = recomputeTask({
+          ...task,
+          materialCost: quotePrice / qty,
+          labourCost: 0,
+          dayRate: 0,
+          labourDays: 0,
+          isUnpriced: false,
+          assumptionsUsed: [
+            ...task.assumptionsUsed,
+            `Override ${override.id}: contractor quotation accepted at £${quotePrice}${override.reason ? ` (${override.reason})` : ""}.`,
+          ],
+          warnings: task.warnings.filter((w) => !w.includes("has no task templates")),
+        })
+
+        applied.push({
+          overrideId: override.id,
+          type: override.type,
+          target: task.id,
+          previousValue: previousTotalCost,
+          newValue: quotePrice,
+          reason: override.reason,
+        })
+        assumptions.push(`Override ${override.id}: applied accepted contractor quote of £${quotePrice} to '${task.id}'.`)
+        matched++
+      }
+
+      if (matched === 0) {
+        warnings.push(`Override '${override.id}' did not match any tasks.`)
+      }
+      continue
+    }
+
     if (override.type === "material_price") {
       const price = asNumber(override.value)
       if (price === null || price < 0) {
@@ -158,10 +211,12 @@ export function applyCostOverrides(
         tasks[i] = recomputeTask({
           ...task,
           materialCost: price,
+          isUnpriced: price > 0 ? false : task.isUnpriced,
           assumptionsUsed: [
             ...task.assumptionsUsed,
             `Override ${override.id}: task material cost changed from ${previousMaterialCost} to ${price}.`,
           ],
+          warnings: price > 0 ? task.warnings.filter((w) => !w.includes("has no task templates")) : task.warnings,
         })
 
         applied.push({

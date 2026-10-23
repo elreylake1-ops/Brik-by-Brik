@@ -2,8 +2,11 @@ import type { Trade, GeneratedRefurbTask } from "@/types/refurb"
 import type { PricingCompleteness, RefurbCostResult } from "@/types/scope"
 
 export function isTaskUnpriced(task: GeneratedRefurbTask): boolean {
+  if (task.totalCost > 0 && task.isUnpriced === false) {
+    return false
+  }
   if (task.isUnpriced === true) return true
-  if (task.id.endsWith("-unsupported")) return true
+  if (task.id.endsWith("-unsupported") && task.totalCost === 0) return true
   return task.warnings.some(
     (w) =>
       w.includes("has no task templates") ||

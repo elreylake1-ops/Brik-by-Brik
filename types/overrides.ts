@@ -4,6 +4,7 @@ export type OverrideType =
   | "material_price"
   | "task_include"
   | "task_exclude"
+  | "contractor_quote"
 
 export type CostOverride = {
   id: string

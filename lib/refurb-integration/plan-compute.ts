@@ -1,9 +1,11 @@
 import { FINDING_WORK_MAPPINGS, SCOPE_DEFAULTS } from "@/lib/data/finding-work-mapping"
 import { analyzeDealWithRefurb, type DealWithRefurbResult } from "@/lib/engine/analyze-deal-with-refurb"
-import { calculateRefurbCost } from "@/lib/engine/refurb-cost-engine"
+import { applyCostOverrides } from "@/lib/engine/apply-overrides"
+import { calculateRefurbCost, isTaskUnpriced } from "@/lib/engine/refurb-cost-engine"
 import { generateTasksFromScope } from "@/lib/engine/scope-to-tasks"
 import { calculateTimeline } from "@/lib/engine/timeline-engine"
 import type { DealInputs } from "@/types/deal"
+import type { CostOverride } from "@/types/overrides"
 import type { BathroomScope, KitchenScope, RefurbScopeInput } from "@/types/scope"
 import type {
   ConfirmedWorkItem,
@@ -72,8 +74,6 @@ export function deriveScope(accepted: readonly ConfirmedWorkItem[], basics: Prop
   return scope
 }
 
-const isStub = (taskId: string) => taskId.endsWith("-unsupported")
-
 function snapshot(inputs: DealInputs, result: DealWithRefurbResult): FinancialSnapshot {
   return {
     refurbCost: result.refurbSource === "generated" ? (result.refurb?.totalRefurbCost ?? inputs.refurbCost) : inputs.refurbCost,
@@ -105,9 +105,10 @@ export type ComputePlanInput = {
   basics: PropertyBasics | null
   assumptions: FinancialAssumptions | null
   deal: DealFigures
+  overrides?: CostOverride[]
 }
 
-export function computePlan({ accepted, basics, assumptions, deal }: ComputePlanInput): PlanComputation {
+export function computePlan({ accepted, basics, assumptions, deal, overrides = [] }: ComputePlanInput): PlanComputation {
   const baselineRefurb = deal.refurbCost ?? 0
   const impactInputs: FinancialImpact["inputs"] = {
     purchasePrice: deal.purchasePrice ?? 0,
@@ -136,7 +137,9 @@ export function computePlan({ accepted, basics, assumptions, deal }: ComputePlan
 
   const scope = deriveScope(accepted, basics)
   if (scope.kitchen.scope === "full_replace" && !basics.kitchenSize) return blockedPlan(["KITCHEN_SIZE_MISSING"], "A kitchen replacement is in scope but no kitchen size has been recorded; it cannot be costed until it is.")
-  const tasks = generateTasksFromScope(scope)
+  const baseTasks = generateTasksFromScope(scope)
+  const overrideResult = applyCostOverrides(baseTasks, overrides)
+  const tasks = overrideResult.tasks
   const refurb = calculateRefurbCost(tasks)
   const timeline = calculateTimeline(tasks)
 
@@ -148,6 +151,7 @@ export function computePlan({ accepted, basics, assumptions, deal }: ComputePlan
   const lines: CostLine[] = refurb.taskList.map((task) => {
     const owner = selectors.find(({ sel }) => sel.room === task.room && sel.scope === task.scope)
     if (!owner) throw new Error(`Engine task ${task.id} is not attributable to any confirmed work item`) // invariant
+    const priced = task.totalCost > 0 && !isTaskUnpriced(task)
     return {
       itemId: owner.item.itemId,
       taskId: task.id,
@@ -159,7 +163,7 @@ export function computePlan({ accepted, basics, assumptions, deal }: ComputePlan
       labourCost: task.labourCost,
       materialCost: task.materialCost * task.quantity,
       totalCost: task.totalCost,
-      priced: !isStub(task.id),
+      priced,
       warnings: task.warnings,
     }
   })
@@ -220,7 +224,7 @@ export function computePlan({ accepted, basics, assumptions, deal }: ComputePlan
   } else {
     dealInputs = { purchasePrice: deal.purchasePrice as number, gdv: deal.gdv as number, refurbCost: baselineRefurb, ...(assumptions as FinancialAssumptions) }
     const before = analyzeDealWithRefurb(dealInputs)
-    const after = analyzeDealWithRefurb(dealInputs, scope)
+    const after = analyzeDealWithRefurb(dealInputs, scope, overrides)
     if (Math.abs((after.refurb?.totalRefurbCost ?? NaN) - refurb.totalRefurbCost) > 0.005) {
       throw new Error("Estimate and canonical financial pathway disagree on refurbishment cost") // invariant
     }
