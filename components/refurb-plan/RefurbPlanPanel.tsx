@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { formatCurrency } from "@/lib/formatters"
 import type { FinancialState } from "@/types/refurb-financial"
 import type { ConfirmedPlanRecord, PlanComputation, ProposedWorkItem, ScopeLevel, WorkProposal } from "@/types/refurb-integration"
@@ -12,11 +12,24 @@ import type { MeasurementSetRecord } from "@/types/refurb-measurements"
 
 export type MeasurementSpecRow = { key: string; label: string; unit: string; usedByEngine: boolean; perRoom: boolean; values: readonly string[] | null }
 
+export type ContractorQuoteOverrideView = {
+  id: string
+  itemId: string
+  taskId: string
+  quoteRef: string
+  approvedAmount: number
+  approvedBy: string
+  approvedAt: string
+  status: "APPROVED" | "SUPERSEDED" | "DECLINED"
+  supersededBy: string | null
+}
+
 export type PanelState = {
   proposal: WorkProposal
   current: { record: ConfirmedPlanRecord; stale: boolean; staleReasons: string[] } | null
   measurements: MeasurementSetRecord | null
   financial: FinancialState
+  quoteOverrides?: ContractorQuoteOverrideView[]
 }
 
 type Props = { dealId: string; assessmentId: string; initial: PanelState; spec: readonly MeasurementSpecRow[]; fetchImpl?: typeof fetch }
@@ -59,6 +72,10 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
   const [preview, setPreview] = useState<PlanComputation | null>(null)
   const [note, setNote] = useState("")
   const [ack, setAck] = useState({ notWriteBack: false, exclusions: false, unresolvedQuantities: false })
+  const [quoteOverrides, setQuoteOverrides] = useState<ContractorQuoteOverrideView[]>(initial.quoteOverrides ?? [])
+  const [quoteForms, setQuoteForms] = useState<Record<string, { quoteRef: string; approvedAmount: string }>>({})
+  const [showQuoteForm, setShowQuoteForm] = useState<Record<string, boolean>>({})
+
   // One key per attempt, created when the button is pressed and kept until it succeeds, so a retry after a network failure
   // replays the same request instead of creating a second one.
   const keys = useRef<Record<string, string | null>>({})
@@ -67,9 +84,14 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
 
   async function reload() {
     try {
-      const [plan, meas, fin] = await Promise.all([doFetch(`${base}/refurb-plan`), doFetch(`${base}/measurements`), doFetch(`${base}/financial-proposal`)])
+      const [plan, meas, fin] = await Promise.all([
+        doFetch(`${base}/refurb-plan`),
+        doFetch(`${base}/measurements`),
+        doFetch(`${base}/financial-proposal`),
+      ])
       const [p, m, f] = await Promise.all([plan.json(), meas.json(), fin.json()])
       if (!plan.ok || !meas.ok || !fin.ok) return setError("Could not reload.")
+      if (Array.isArray(p.quoteOverrides)) setQuoteOverrides(p.quoteOverrides)
       setState({ proposal: p.proposal, current: p.current, measurements: m.current, financial: { proposals: f.proposals, latest: f.latest, decision: f.decision, outdated: f.outdated, outdatedReasons: f.outdatedReasons, status: f.status } })
       setRows(rowsFrom(m.current))
       setPicked({})
@@ -187,6 +209,31 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
     }
   }
 
+  const defaultTaskIdForItem = (item: ProposedWorkItem, level?: ScopeLevel | true) => {
+    if (item.itemId === "bathroom") return "bathroom-partial-unsupported"
+    if (item.itemId === "kitchen") {
+      if (level === "upgrade") return "kitchen-upgrade-unsupported"
+      return "kitchen-refresh-unsupported"
+    }
+    return `${item.itemId}-unsupported`
+  }
+
+  async function approveQuote(itemId: string, taskId: string) {
+    const formData = quoteForms[itemId] ?? { quoteRef: "", approvedAmount: "" }
+    const ref = formData.quoteRef.trim()
+    const amount = Number(formData.approvedAmount)
+    if (!ref) return setError("Contractor or quote reference is required.")
+    if (!Number.isFinite(amount) || amount < 0) return setError("Approved amount must be a positive number.")
+    const json = await send(`${base}/quote-overrides`, { itemId, taskId, quoteRef: ref, approvedAmount: amount })
+    if (json) {
+      setDone(`Contractor quote approved: ${money(amount)} for ${ref}. Recomputing...`)
+      setShowQuoteForm((prev) => ({ ...prev, [itemId]: false }))
+      setQuoteForms((prev) => ({ ...prev, [itemId]: { quoteRef: "", approvedAmount: "" } }))
+      await reload()
+      await runPreview()
+    }
+  }
+
   const { proposal, current, financial } = state
   const toggle = (item: ProposedWorkItem) =>
     setPicked((p) => {
@@ -282,10 +329,114 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
                     </select>
                   </label>
                 ) : null}
+                {(() => {
+                  const taskId = defaultTaskIdForItem(item, picked[item.itemId])
+                  const activeQuote = quoteOverrides.find((o) => o.status === "APPROVED" && (o.itemId === item.itemId || o.taskId === taskId))
+                  const formVisible = showQuoteForm[item.itemId] || !activeQuote
+                  return (
+                    <div className="mt-2 space-y-2">
+                      {activeQuote ? (
+                        <div className="flex flex-wrap items-center justify-between rounded bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-950 border border-emerald-200">
+                          <span>
+                            <strong className="font-semibold text-emerald-800">Approved contractor quote:</strong> {money(activeQuote.approvedAmount)} ({activeQuote.quoteRef}) approved by {activeQuote.approvedBy} at {new Date(activeQuote.approvedAt).toLocaleDateString()}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowQuoteForm((p) => ({ ...p, [item.itemId]: !p[item.itemId] }))}
+                            className="ml-2 font-medium text-emerald-700 underline hover:text-emerald-900"
+                          >
+                            {showQuoteForm[item.itemId] ? "Cancel" : "Supersede quote"}
+                          </button>
+                        </div>
+                      ) : null}
+
+                      {formVisible ? (
+                        <div className="rounded border border-dashed border-gray-300 bg-gray-50/50 p-2 text-xs">
+                          <p className="font-medium text-gray-700">{activeQuote ? "Supersede contractor quote" : "Approve contractor quote for this scope"}</p>
+                          <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                            <label>Contractor quote reference
+                              <input
+                                aria-label={`Contractor quote reference for ${item.label}`}
+                                placeholder="e.g. Apex Contractors APX-3500"
+                                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-1 py-0.5"
+                                value={quoteForms[item.itemId]?.quoteRef ?? ""}
+                                onInput={(e) => {
+                                  const val = e.currentTarget.value
+                                  setQuoteForms((f) => ({ ...f, [item.itemId]: { ...f[item.itemId], quoteRef: val } }))
+                                }}
+                                onChange={(e) => {
+                                  const val = e.target.value
+                                  setQuoteForms((f) => ({ ...f, [item.itemId]: { ...f[item.itemId], quoteRef: val } }))
+                                }}
+                              />
+                            </label>
+                            <label>Approved price (GBP)
+                              <input
+                                aria-label={`Approved price for ${item.label}`}
+                                inputMode="decimal"
+                                placeholder="e.g. 3500"
+                                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-1 py-0.5"
+                                value={quoteForms[item.itemId]?.approvedAmount ?? ""}
+                                onInput={(e) => {
+                                  const val = e.currentTarget.value
+                                  setQuoteForms((f) => ({ ...f, [item.itemId]: { ...f[item.itemId], approvedAmount: val } }))
+                                }}
+                                onChange={(e) => {
+                                  const val = e.target.value
+                                  setQuoteForms((f) => ({ ...f, [item.itemId]: { ...f[item.itemId], approvedAmount: val } }))
+                                }}
+                              />
+                            </label>
+                            <div className="flex items-end">
+                              <button
+                                type="button"
+                                disabled={busy}
+                                aria-label={`Approve contractor quote for ${item.label}`}
+                                onClick={() => approveQuote(item.itemId, taskId)}
+                                className="rounded bg-gray-900 px-3 py-1 text-xs text-white hover:bg-gray-800 disabled:opacity-50"
+                              >
+                                Approve Contractor Quote
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  )
+                })()}
               </li>
             ))}
           </ul>
         )}
+        {quoteOverrides.length > 0 ? (
+          <div className="mt-3 rounded border border-gray-200 bg-gray-50 p-3 text-xs" aria-label="Contractor quote audit log">
+            <p className="font-semibold text-gray-800">Contractor quote overrides (persisted audit trail)</p>
+            <table className="mt-1 w-full text-left">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="py-1">Task / Item</th>
+                  <th className="py-1">Quote Reference</th>
+                  <th className="py-1">Approved Price</th>
+                  <th className="py-1">Status</th>
+                  <th className="py-1">Approved By</th>
+                  <th className="py-1">Approved At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quoteOverrides.map((o) => (
+                  <tr key={o.id} className={o.status === "SUPERSEDED" ? "text-gray-400 line-through" : "text-gray-900 font-medium"}>
+                    <td className="py-1">{o.taskId}</td>
+                    <td className="py-1">{o.quoteRef}</td>
+                    <td className="py-1">{money(o.approvedAmount)}</td>
+                    <td className="py-1">{o.status}</td>
+                    <td className="py-1">{o.approvedBy}</td>
+                    <td className="py-1">{new Date(o.approvedAt).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
         <fieldset className="mt-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
           <legend className="font-medium">Deal assumptions for the financial figures (all four needed; no defaults are assumed)</legend>
           {(["stampDuty", "legalCosts", "saleCosts", "bridgeTermMonths"] as const).map((k) => (

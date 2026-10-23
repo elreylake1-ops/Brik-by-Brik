@@ -41,6 +41,8 @@ const PREREQ = [
   "20261023_task6b_measurements.sql",
   "20261024_task6b_financial_proposals.sql",
   "20261025_task7a_capture_provenance.sql",
+  "20261026_task11b_video_evidence_schema.sql",
+  "20261027_contractor_quote_overrides.sql",
 ]
 // Reverse dependency order: proposals depend on plans; plans depend on measurement sets; both depend on viewing assessments.
 const ROLLBACK_MIGRATIONS = [

@@ -14,9 +14,11 @@ export async function GET(request: Request, context: RouteContext) {
   try {
     const auth = await authorize(request, context, { assessment: true })
     if (!auth.ok) return auth.response
-    const base = await getProposalAndCurrent(getRefurbDeps(), auth.dealId, auth.assessmentId as string)
+    const deps = getRefurbDeps()
+    const base = await getProposalAndCurrent(deps, auth.dealId, auth.assessmentId as string)
     if (!base) return assessmentNotFound()
-    return json({ success: true, proposal: base.proposal, current: base.current }, 200)
+    const quoteOverrides = deps.quoteOverrides ? await deps.quoteOverrides.list(auth.dealId, auth.assessmentId as string) : []
+    return json({ success: true, proposal: base.proposal, current: base.current, quoteOverrides }, 200)
   } catch (error) {
     return serverError("saved-deals.refurb-plan.get", error)
   }

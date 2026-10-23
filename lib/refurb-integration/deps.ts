@@ -4,6 +4,7 @@ import { pgViewingAssessmentRepository } from "@/lib/viewing-assessment/pg-viewi
 import { pgFinancialProposalRepository } from "./pg-financial-proposal-repository"
 import { pgMeasurementRepository } from "./pg-measurement-repository"
 import { pgRefurbPlanRepository } from "./pg-plan-repository"
+import { pgQuoteOverridesRepository } from "./quote-overrides-repository"
 import type { DocumentDeps } from "./documents-service"
 
 // The one place production dependencies are wired. Note what is NOT here: no function that updates a Saved Deal,
@@ -14,6 +15,7 @@ const productionDeps: DocumentDeps = {
   plans: pgRefurbPlanRepository,
   measurements: pgMeasurementRepository,
   proposals: pgFinancialProposalRepository,
+  quoteOverrides: pgQuoteOverridesRepository,
   getDeal: getSavedDealById,
   now: () => new Date(),
   loadPack: (dealId, generatedAt) =>

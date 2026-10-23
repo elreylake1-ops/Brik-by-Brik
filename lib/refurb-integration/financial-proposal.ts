@@ -11,6 +11,7 @@ import {
 import type { ConfirmedPlanRecord } from "@/types/refurb-integration"
 import type { MeasurementSetRecord } from "@/types/refurb-measurements"
 import { basicsFromMeasurements } from "./measurements"
+import type { CostOverride } from "@/types/overrides"
 import { computePlan, type DealFigures } from "./plan-compute"
 
 // Builds the financial-impact PROPOSAL for a confirmed refurbishment scope.
@@ -69,13 +70,13 @@ export const baselineFingerprint = (figures: AuthoritativeFigures): string => sh
 
 export type BuiltProposal = { content: FinancialProposalContent; contentHash: string; baselineFingerprint: string }
 
-export function buildFinancialProposal(input: { plan: ConfirmedPlanRecord; measurementSet: MeasurementSetRecord | null; deal: SavedDealRecord }): BuiltProposal {
-  const { plan, deal } = input
+export function buildFinancialProposal(input: { plan: ConfirmedPlanRecord; measurementSet: MeasurementSetRecord | null; deal: SavedDealRecord; overrides?: CostOverride[] }): BuiltProposal {
+  const { plan, deal, overrides = [] } = input
   const authoritative = authoritativeFigures(deal)
   const figures: DealFigures = { purchasePrice: authoritative.purchasePrice, gdv: authoritative.gdvRealistic, refurbCost: authoritative.refurbCost }
 
   // Re-run the confirmed scope against the Saved Deal AS IT IS NOW (it may have changed since the plan was confirmed).
-  const computation = computePlan({ accepted: plan.acceptedItems, basics: plan.propertyBasics, assumptions: plan.financialAssumptions, deal: figures })
+  const computation = computePlan({ accepted: plan.acceptedItems, basics: plan.propertyBasics, assumptions: plan.financialAssumptions, deal: figures, overrides })
   const impact = computation.financialImpact
 
   const blockedBy = [...new Set([...(computation.estimate.status === "BLOCKED" ? computation.estimate.blockedBy : []), ...(impact.status === "BLOCKED" ? impact.blockedBy : [])])]

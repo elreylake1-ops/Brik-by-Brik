@@ -18,6 +18,7 @@ import type {
 } from "@/types/refurb-integration"
 import { buildWorkProposal } from "./findings-to-work"
 import { computePlan, type DealFigures } from "./plan-compute"
+import { toCostOverrides, type QuoteOverridesRepository } from "./quote-overrides-repository"
 import type { ConfirmRequest, PreviewRequest } from "./plan-request-validation"
 import { basicsFromMeasurements } from "./measurements"
 import type { FinancialProposalRepository } from "./financial-proposal-repository"
@@ -44,6 +45,7 @@ export type PlanDeps = {
   plans: RefurbPlanRepository
   measurements: MeasurementRepository
   proposals: FinancialProposalRepository
+  quoteOverrides?: QuoteOverridesRepository
   getDeal: (dealId: string) => Promise<SavedDealRecord | null>
   now: () => Date
 }
@@ -206,7 +208,18 @@ export async function previewPlan(deps: PlanDeps, dealId: string, assessmentId: 
   if (!selected.ok) return { status: "invalid", errors: selected.errors }
   const resolved = await resolveBasics(deps, dealId, assessmentId, request, true)
   if (!resolved.ok) return resolved.status === "invalid" ? { status: "invalid", errors: resolved.errors } : { status: "stale_measurements", currentMeasurementSetId: resolved.currentMeasurementSetId }
-  const computation = withBasisAssumptions(computePlan({ accepted: selected.accepted, basics: resolved.basics, assumptions: request.financialAssumptions ?? null, deal: dealFigures(deal) }), resolved.report)
+  const activeOverrides = deps.quoteOverrides ? await deps.quoteOverrides.list(dealId, assessmentId, true) : []
+  const costOverrides = toCostOverrides(activeOverrides)
+  const computation = withBasisAssumptions(
+    computePlan({
+      accepted: selected.accepted,
+      basics: resolved.basics,
+      assumptions: request.financialAssumptions ?? null,
+      deal: dealFigures(deal),
+      overrides: costOverrides,
+    }),
+    resolved.report
+  )
   return { status: "ok", proposal: base.proposal, selection: request.accepted ? "AS_REQUESTED" : "ALL_PROPOSED_DEFAULT", computation, current: base.current, basis: resolved.report }
 }
 
@@ -252,7 +265,18 @@ export async function confirmPlan(deps: PlanDeps, dealId: string, assessmentId: 
   if (!resolved.ok) return resolved.status === "invalid" ? { status: "invalid", errors: resolved.errors } : { status: "stale_measurements", currentMeasurementSetId: resolved.currentMeasurementSetId }
   if (!resolved.basics) return { status: "invalid", errors: [`The recorded measurements are not enough to cost the scope: ${resolved.report.blockedBy.join(", ")}. Record or correct them first.`] }
 
-  const computation = withBasisAssumptions(computePlan({ accepted: selected.accepted, basics: resolved.basics, assumptions: request.financialAssumptions, deal: dealFigures(deal) }), resolved.report)
+  const activeOverrides = deps.quoteOverrides ? await deps.quoteOverrides.list(dealId, assessmentId, true) : []
+  const costOverrides = toCostOverrides(activeOverrides)
+  const computation = withBasisAssumptions(
+    computePlan({
+      accepted: selected.accepted,
+      basics: resolved.basics,
+      assumptions: request.financialAssumptions,
+      deal: dealFigures(deal),
+      overrides: costOverrides,
+    }),
+    resolved.report
+  )
 
   const created = await deps.plans.create({
     dealId,

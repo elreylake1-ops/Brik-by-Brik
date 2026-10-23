@@ -47,6 +47,7 @@ import * as videoIntent from "@/app/api/saved-deals/[id]/viewing-assessments/[as
 import * as videoStatus from "@/app/api/saved-deals/[id]/viewing-assessments/[assessmentId]/videos/[jobId]/route"
 import * as videoConfirm from "@/app/api/saved-deals/[id]/viewing-assessments/[assessmentId]/videos/[jobId]/confirm/route"
 import * as videoAttach from "@/app/api/saved-deals/[id]/viewing-assessments/[assessmentId]/videos/[jobId]/attach/route"
+import * as quoteOverrides from "@/app/api/saved-deals/[id]/viewing-assessments/[assessmentId]/quote-overrides/route"
 import ReviewPage from "@/app/saved-deals/[id]/review/page"
 import SummaryPage from "@/app/saved-deals/[id]/summary/page"
 import ViewingPage from "@/app/saved-deals/[id]/viewing/page"
@@ -102,6 +103,8 @@ const ROUTES: Array<[string, Handler, string, string]> = [
   ["video job status", videoStatus.GET as unknown as Handler, "GET", "/api/saved-deals/deal-1/viewing-assessments/as-1/videos/vj-1"],
   ["video job confirm", videoConfirm.POST as unknown as Handler, "POST", "/api/saved-deals/deal-1/viewing-assessments/as-1/videos/vj-1/confirm"],
   ["video frame attach", videoAttach.POST as unknown as Handler, "POST", "/api/saved-deals/deal-1/viewing-assessments/as-1/videos/vj-1/attach"],
+  ["quote overrides list", quoteOverrides.GET as unknown as Handler, "GET", "/api/saved-deals/deal-1/viewing-assessments/as-1/quote-overrides"],
+  ["quote overrides create", quoteOverrides.POST as unknown as Handler, "POST", "/api/saved-deals/deal-1/viewing-assessments/as-1/quote-overrides"],
 ]
 
 const call = (handler: Handler, method: string, path: string, headers: Record<string, string> = {}, body: unknown = {}) =>
@@ -130,9 +133,9 @@ describe("every Saved Deals API handler is authenticated before it touches anyth
       }
     }
     walk(path.join(process.cwd(), "app", "api", "saved-deals"))
-    expect(files.length).toBe(29)
+    expect(files.length).toBe(30)
     for (const f of files) expect(readFileSync(f, "utf8"), f).toMatch(/(guardSavedDealApi|authorize|requireSavedDealReadAccess)\(/)
-    expect(ROUTES.length).toBe(37) // one entry per exported handler
+    expect(ROUTES.length).toBe(39) // one entry per exported handler
   })
 
   it.each(ROUTES)("%s: anonymous -> 401 and no database access", async (_label, handler, method, path) => {

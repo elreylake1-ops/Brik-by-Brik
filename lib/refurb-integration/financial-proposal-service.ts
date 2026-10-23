@@ -3,6 +3,7 @@ import type { ConfirmedPlanRecord, PlanStaleReason } from "@/types/refurb-integr
 import type { DecisionRequest } from "./financial-request-validation"
 import { authoritativeFigures, baselineFingerprint, buildFinancialProposal, canonicalJson, sha256 } from "./financial-proposal"
 import { getProposalAndCurrent, type PlanDeps } from "./plan-service"
+import { toCostOverrides } from "./quote-overrides-repository"
 
 // Creating, reading and deciding financial-impact proposals.
 //
@@ -33,7 +34,9 @@ export async function createFinancialProposal(deps: PlanDeps, dealId: string, as
   if (plan.stale) return { status: "plan_stale", reasons: plan.staleReasons }
 
   const measurementSet = plan.record.measurementSetId ? await deps.measurements.getById(dealId, assessmentId, plan.record.measurementSetId) : null
-  const built = buildFinancialProposal({ plan: plan.record, measurementSet, deal: ctx.deal })
+  const activeOverrides = deps.quoteOverrides ? await deps.quoteOverrides.list(dealId, assessmentId, true) : []
+  const costOverrides = toCostOverrides(activeOverrides)
+  const built = buildFinancialProposal({ plan: plan.record, measurementSet, deal: ctx.deal, overrides: costOverrides })
   const created = await deps.proposals.createProposal({
     dealId,
     assessmentId,
@@ -64,7 +67,9 @@ export async function getFinancialState(deps: PlanDeps, dealId: string, assessme
     if (plan.stale) reasons.push(...plan.staleReasons.map((r) => (r === "FINDINGS_CHANGED" ? "Findings have been reviewed again since the scope was confirmed." : "Measurements have been recorded since the scope was confirmed.")))
     else {
       const measurementSet = plan.record.measurementSetId ? await deps.measurements.getById(dealId, assessmentId, plan.record.measurementSetId) : null
-      const fresh = buildFinancialProposal({ plan: plan.record, measurementSet, deal: ctx.deal })
+      const activeOverrides = deps.quoteOverrides ? await deps.quoteOverrides.list(dealId, assessmentId, true) : []
+      const costOverrides = toCostOverrides(activeOverrides)
+      const fresh = buildFinancialProposal({ plan: plan.record, measurementSet, deal: ctx.deal, overrides: costOverrides })
       if (fresh.contentHash !== latest.contentHash) reasons.push("The Saved Deal figures (or the engine's output for them) have changed since this proposal was made.")
     }
   }
