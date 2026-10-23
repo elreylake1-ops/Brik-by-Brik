@@ -221,10 +221,98 @@ export function evaluateInvestorShield(
         pushUniqueText(blockingReasons, "ADVISORY_ONLY_EVIDENCE_INSUFFICIENT")
       }
 
-      if (gate.key === "REFURB_CERTAINTY" && !refurbHardEvidencePresent) {
-        pushUnique(blockingGateKeys, gate.key)
-        pushUnique(missingEvidenceGateKeys, gate.key)
-        pushUniqueText(blockingReasons, "REFURB_CERTAINTY_INSUFFICIENT")
+      if (gate.key === "REFURB_CERTAINTY") {
+        if (!refurbHardEvidencePresent) {
+          pushUnique(blockingGateKeys, gate.key)
+          pushUnique(missingEvidenceGateKeys, gate.key)
+          pushUniqueText(blockingReasons, "REFURB_CERTAINTY_INSUFFICIENT")
+          continue
+        }
+
+        const quoteItems = evidenceItems.filter(
+          (item) => item.evidenceType === "BUILDER_QUOTE" || item.evidenceType === "BUILDER_PROPOSAL" || item.evidenceType === "BUILDER_CONTRACT"
+        )
+
+        const quoteReceived = Boolean(input.refurbPricing?.quoteReceived || quoteItems.length > 0)
+        const unreviewedQuotePresent =
+          input.refurbPricing?.quoteReviewedAndAccepted === false ||
+          quoteItems.some(
+            (i) => i.quoteAccepted === false || i.status === "RECEIVED" || i.reviewState === "NOT_REVIEWED"
+          )
+
+        if (quoteReceived && unreviewedQuotePresent) {
+          pushUnique(cautionGateKeys, gate.key)
+          taskRecommendations.push(
+            buildTaskRecommendation(
+              input.dealId,
+              gate,
+              "OBTAIN_BUILDER_QUOTE",
+              "Contractor quotation received but not yet reviewed and accepted by operator.",
+              topLevelCheck.subGateKey
+            )
+          )
+          continue
+        }
+
+        const priceIncorporated =
+          input.refurbPricing?.priceIncorporatedIntoCalculations !== false &&
+          !quoteItems.some((i) => i.incorporatedIntoCalculations === false)
+
+        const scopeCoverageVerified =
+          input.refurbPricing?.scopeCoverageVerified !== false &&
+          !quoteItems.some((i) => i.scopeCoverageVerified === false)
+
+        if (!priceIncorporated) {
+          pushUnique(cautionGateKeys, gate.key)
+          taskRecommendations.push(
+            buildTaskRecommendation(
+              input.dealId,
+              gate,
+              "OBTAIN_BUILDER_QUOTE",
+              "Accepted contractor quote has not been incorporated into financial calculations.",
+              topLevelCheck.subGateKey
+            )
+          )
+          continue
+        }
+
+        const hasUnpricedWork = Boolean(
+          input.refurbPricing?.hasRemainingUnpricedWork ||
+          (input.refurbPricing?.unpricedTaskNames && input.refurbPricing.unpricedTaskNames.length > 0) ||
+          quoteItems.some((i) => i.remainingUnpricedWork === true) ||
+          input.riskFlags.some((rf) => rf.message.includes("Unresolved refurbishment scope"))
+        )
+
+        if (hasUnpricedWork) {
+          pushUnique(cautionGateKeys, gate.key)
+          const unpricedSummary = input.refurbPricing?.unpricedTaskNames?.length
+            ? ` (${input.refurbPricing.unpricedTaskNames.join(", ")})`
+            : ""
+          taskRecommendations.push(
+            buildTaskRecommendation(
+              input.dealId,
+              gate,
+              "OBTAIN_BUILDER_QUOTE",
+              `Remaining unpriced refurbishment work${unpricedSummary} requires contractor quotation before refurb certainty can be cleared.`,
+              topLevelCheck.subGateKey
+            )
+          )
+          continue
+        }
+
+        if (!scopeCoverageVerified) {
+          pushUnique(cautionGateKeys, gate.key)
+          taskRecommendations.push(
+            buildTaskRecommendation(
+              input.dealId,
+              gate,
+              "OBTAIN_BUILDER_QUOTE",
+              "Contractor quote scope coverage is unverified or only partially covers required refurbishment.",
+              topLevelCheck.subGateKey
+            )
+          )
+          continue
+        }
       }
 
       continue

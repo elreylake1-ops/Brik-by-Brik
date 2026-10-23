@@ -83,6 +83,15 @@ export type InvestorShieldManualOverrideRequirement = {
   reason?: string
 }
 
+export type InvestorShieldRefurbPricingState = {
+  quoteReceived?: boolean
+  quoteReviewedAndAccepted?: boolean
+  scopeCoverageVerified?: boolean
+  priceIncorporatedIntoCalculations?: boolean
+  hasRemainingUnpricedWork?: boolean
+  unpricedTaskNames?: readonly string[]
+}
+
 export type InvestorShieldEvaluationInput = {
   dealId: string
   checks: readonly InvestorShieldCheck[]
@@ -91,6 +100,7 @@ export type InvestorShieldEvaluationInput = {
   manualOverrides: readonly ManualOverride[]
   deterministicDealStatus?: string
   evaluatedAt?: string
+  refurbPricing?: InvestorShieldRefurbPricingState
 }
 
 export type InvestorShieldTaskRecommendation = {

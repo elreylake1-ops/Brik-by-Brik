@@ -122,11 +122,20 @@ export type EvidenceItem = {
   subGateKey?: InvestorShieldSubGateKey
   evidenceType: InvestorShieldEvidenceType
   source: InvestorShieldSource
-  confidence: InvestorShieldConfidence
-  label: string
+  confidence?: InvestorShieldConfidence
+  label?: string
+  title?: string
   notes?: string
   fileUrl?: string
+  url?: string
   advisoryOnly?: boolean
+  status?: string
+  reviewState?: string
+  quoteAccepted?: boolean
+  scopeCoverageVerified?: boolean
+  incorporatedIntoCalculations?: boolean
+  remainingUnpricedWork?: boolean
+  uploadedAt?: string
   createdAt?: string
 }
 
