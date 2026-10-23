@@ -34,6 +34,32 @@ export async function POST(request: Request, context: RouteContext) {
       return json({ success: false, error: "VIDEO_JOB_NOT_FOUND" }, 404)
     }
 
+    // Check cancellation
+    if (job.deletion_status && job.deletion_status.toUpperCase() !== "ACTIVE") {
+      return json(
+        {
+          success: false,
+          error: "JOB_CANCELLED",
+          message: `Cannot confirm video job that has been marked as '${job.deletion_status}'.`,
+        },
+        410
+      )
+    }
+
+    // Application-level expiration check (independent of storage token lifetime)
+    const MAX_CONFIRMATION_WINDOW_MS = 7_200_000 // 2 hours
+    const ageMs = Date.now() - new Date(job.created_at).getTime()
+    if (ageMs > MAX_CONFIRMATION_WINDOW_MS) {
+      return json(
+        {
+          success: false,
+          error: "UPLOAD_INTENT_EXPIRED",
+          message: "Upload intent has expired. Please create a new upload intent.",
+        },
+        410
+      )
+    }
+
     // Verify legal state transitions (reject duplicate confirmation)
     if (job.state !== "upload_pending") {
       if (job.state === "queued" || job.state === "processing" || job.state === "ready_for_review") {

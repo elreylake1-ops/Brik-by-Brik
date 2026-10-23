@@ -567,4 +567,62 @@ describe.skipIf(!gate.enabled)("Postgres video upload intent, confirmation and s
     const jobRow = await db.query(`SELECT state FROM ${S}.video_jobs WHERE id = $1`, [jobId])
     expect(jobRow.rows[0].state).toBe("upload_pending")
   })
+
+  // 13. Preliminary correction: rejects late confirmation exceeding 2-hour window
+  it("rejects late confirmation with 410 UPLOAD_INTENT_EXPIRED when intent is older than 2 hours", async () => {
+    const viewingId = await createViewing(dealIdA)
+    const declaredBytes = 5_000_000
+    const intentRes = await asJson(
+      await videoRoute.POST(
+        req({ token: tokenMember, body: { contentType: "video/mp4", declaredBytes } }),
+        ctx({ id: dealIdA, assessmentId: viewingId })
+      )
+    )
+    expect(intentRes.status).toBe(201)
+    const { jobId, sourcePath } = intentRes.body as { jobId: string; sourcePath: string }
+    storage.setObject("deal-evidence", sourcePath, declaredBytes, "video/mp4")
+
+    // Simulate elapsed time: update created_at to 3 hours ago
+    await db.query(`UPDATE ${S}.video_jobs SET created_at = NOW() - INTERVAL '3 hours' WHERE id = $1`, [jobId])
+
+    const confirmRes = await asJson(
+      await confirmRoute.POST(
+        req({ token: tokenMember, body: {} }),
+        ctx({ id: dealIdA, assessmentId: viewingId, jobId })
+      )
+    )
+    expect(confirmRes.status).toBe(410)
+    expect(confirmRes.body.error).toBe("UPLOAD_INTENT_EXPIRED")
+
+    // State remains upload_pending
+    const jobRow = await db.query(`SELECT state FROM ${S}.video_jobs WHERE id = $1`, [jobId])
+    expect(jobRow.rows[0].state).toBe("upload_pending")
+  })
+
+  // 14. Preliminary correction: rejects confirmation when job is marked cancelled
+  it("rejects confirmation with 410 JOB_CANCELLED when job deletion_status is not active", async () => {
+    const viewingId = await createViewing(dealIdA)
+    const declaredBytes = 5_000_000
+    const intentRes = await asJson(
+      await videoRoute.POST(
+        req({ token: tokenMember, body: { contentType: "video/mp4", declaredBytes } }),
+        ctx({ id: dealIdA, assessmentId: viewingId })
+      )
+    )
+    expect(intentRes.status).toBe(201)
+    const { jobId, sourcePath } = intentRes.body as { jobId: string; sourcePath: string }
+    storage.setObject("deal-evidence", sourcePath, declaredBytes, "video/mp4")
+
+    // Mark job cancelled (PENDING_DELETION satisfies check constraint)
+    await db.query(`UPDATE ${S}.video_jobs SET deletion_status = 'PENDING_DELETION' WHERE id = $1`, [jobId])
+
+    const confirmRes = await asJson(
+      await confirmRoute.POST(
+        req({ token: tokenMember, body: {} }),
+        ctx({ id: dealIdA, assessmentId: viewingId, jobId })
+      )
+    )
+    expect(confirmRes.status).toBe(410)
+    expect(confirmRes.body.error).toBe("JOB_CANCELLED")
+  })
 })

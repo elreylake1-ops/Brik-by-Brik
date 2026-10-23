@@ -20,6 +20,8 @@ export type IVideoStorageService = {
   createSignedUploadUrl(bucket: string, path: string): Promise<SignedUploadUrlResult>
   getObjectMetadata(bucket: string, path: string): Promise<VideoStorageObjectMetadata | null>
   createSignedReadUrl(bucket: string, path: string, expiresInSeconds?: number): Promise<string>
+  downloadObject(bucket: string, path: string): Promise<Buffer | null>
+  uploadObject(bucket: string, path: string, data: Buffer, contentType?: string): Promise<void>
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -27,10 +29,11 @@ export type IVideoStorageService = {
 // -------------------------------------------------------------------------------------------------
 export class InMemoryVideoStorageService implements IVideoStorageService {
   private objects = new Map<string, VideoStorageObjectMetadata>()
+  private objectData = new Map<string, Buffer>()
   private uploadTokens = new Map<string, { path: string; bucket: string; expiresAt: number }>()
 
   // Helper for tests to simulate a completed upload
-  setObject(bucket: string, path: string, sizeBytes: number, contentType = "video/mp4", sha256?: string) {
+  setObject(bucket: string, path: string, sizeBytes: number, contentType = "video/mp4", sha256?: string, data?: Buffer) {
     const key = `${bucket}:${path}`
     this.objects.set(key, {
       bucket,
@@ -40,11 +43,32 @@ export class InMemoryVideoStorageService implements IVideoStorageService {
       sha256: sha256 ?? "a".repeat(64),
       createdAt: new Date().toISOString(),
     })
+    if (data) {
+      this.objectData.set(key, data)
+    }
   }
 
   // Helper for tests to delete an object
   removeObject(bucket: string, path: string) {
     this.objects.delete(`${bucket}:${path}`)
+    this.objectData.delete(`${bucket}:${path}`)
+  }
+
+  async downloadObject(bucket: string, path: string): Promise<Buffer | null> {
+    const key = `${bucket}:${path}`
+    return this.objectData.get(key) ?? null
+  }
+
+  async uploadObject(bucket: string, path: string, data: Buffer, contentType = "application/octet-stream"): Promise<void> {
+    const key = `${bucket}:${path}`
+    this.objects.set(key, {
+      bucket,
+      path,
+      sizeBytes: data.length,
+      contentType,
+      createdAt: new Date().toISOString(),
+    })
+    this.objectData.set(key, data)
   }
 
   async createSignedUploadUrl(bucket: string, path: string): Promise<SignedUploadUrlResult> {
@@ -187,6 +211,44 @@ export class SupabaseRestVideoStorageService implements IVideoStorageService {
 
     const data = (await res.json()) as { signedURL: string }
     return data.signedURL.startsWith("http") ? data.signedURL : `${cleanBase}/storage/v1${data.signedURL}`
+  }
+
+  async downloadObject(bucket: string, path: string): Promise<Buffer | null> {
+    if (!this.baseUrl || !this.serviceKey) {
+      throw new Error("Supabase Storage configuration missing")
+    }
+    const cleanBase = this.baseUrl.replace(/\/$/, "")
+    const cleanPath = path.replace(/^\//, "")
+    const url = `${cleanBase}/storage/v1/object/authenticated/${encodeURIComponent(bucket)}/${cleanPath}`
+    const res = await fetch(url, { headers: this.getHeaders() })
+    if (res.status === 404) return null
+    if (!res.ok) {
+      throw new Error(`Failed to download storage object: ${res.status} ${res.statusText}`)
+    }
+    return Buffer.from(await res.arrayBuffer())
+  }
+
+  async uploadObject(bucket: string, path: string, data: Buffer, contentType = "application/octet-stream"): Promise<void> {
+    if (!this.baseUrl || !this.serviceKey) {
+      throw new Error("Supabase Storage configuration missing")
+    }
+    const cleanBase = this.baseUrl.replace(/\/$/, "")
+    const cleanPath = path.replace(/^\//, "")
+    const url = `${cleanBase}/storage/v1/object/${encodeURIComponent(bucket)}/${cleanPath}`
+    const headers = {
+      Authorization: `Bearer ${this.serviceKey}`,
+      apikey: this.serviceKey,
+      "Content-Type": contentType,
+      "x-upsert": "true",
+    }
+    const res = await fetch(url, {
+      method: "POST",
+      headers,
+      body: new Uint8Array(data),
+    })
+    if (!res.ok) {
+      throw new Error(`Failed to upload storage object: ${res.status} ${res.statusText}`)
+    }
   }
 }
 

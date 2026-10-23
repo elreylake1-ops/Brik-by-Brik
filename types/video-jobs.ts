@@ -21,6 +21,7 @@ export const ALLOWED_VIDEO_MIME_TYPES: readonly VideoContentType[] = [
 export const MAX_VIDEO_BYTES = 524_288_000 // 500 MB hard cap
 export const MAX_DURATION_MS = 300_000 // 5 minutes hard cap
 export const MAX_ACTIVE_OPERATOR_JOBS = 3 // Per operator/viewing active limit
+export const MAX_CONFIRMATION_WINDOW_MS = 7_200_000 // 2 hours application-level upload confirmation window
 
 export type VideoJobRecord = {
   id: string

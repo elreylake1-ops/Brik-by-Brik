@@ -43,6 +43,9 @@ import * as dealPassport from "@/app/api/saved-deals/[id]/deal-passport/route"
 import * as measurements from "@/app/api/saved-deals/[id]/viewing-assessments/[assessmentId]/measurements/route"
 import * as financialProposal from "@/app/api/saved-deals/[id]/viewing-assessments/[assessmentId]/financial-proposal/route"
 import * as financialDecision from "@/app/api/saved-deals/[id]/viewing-assessments/[assessmentId]/financial-proposal/[proposalId]/decision/route"
+import * as videoIntent from "@/app/api/saved-deals/[id]/viewing-assessments/[assessmentId]/videos/route"
+import * as videoStatus from "@/app/api/saved-deals/[id]/viewing-assessments/[assessmentId]/videos/[jobId]/route"
+import * as videoConfirm from "@/app/api/saved-deals/[id]/viewing-assessments/[assessmentId]/videos/[jobId]/confirm/route"
 import ReviewPage from "@/app/saved-deals/[id]/review/page"
 import SummaryPage from "@/app/saved-deals/[id]/summary/page"
 import ViewingPage from "@/app/saved-deals/[id]/viewing/page"
@@ -55,7 +58,7 @@ import { createInMemorySessionStore } from "./fixtures/in-memory-session-store"
 import { installTestOperator, operatorHeaders, removeTestOperator } from "./fixtures/operator-session"
 
 type Handler = (request: Request, context: { params: Promise<Record<string, string>> }) => Promise<Response>
-const ids = { id: "deal-1", evidenceId: "ev-1", assessmentId: "as-1", proposalId: "pr-1" }
+const ids = { id: "deal-1", evidenceId: "ev-1", assessmentId: "as-1", proposalId: "pr-1", jobId: "vj-1" }
 const ctx = { params: Promise.resolve(ids) }
 const BASE = "http://localhost"
 
@@ -94,6 +97,9 @@ const ROUTES: Array<[string, Handler, string, string]> = [
   ["financial proposal read", financialProposal.GET as unknown as Handler, "GET", "/api/saved-deals/deal-1/viewing-assessments/as-1/financial-proposal"],
   ["financial proposal create", financialProposal.POST as unknown as Handler, "POST", "/api/saved-deals/deal-1/viewing-assessments/as-1/financial-proposal"],
   ["financial proposal decision", financialDecision.POST as unknown as Handler, "POST", "/api/saved-deals/deal-1/viewing-assessments/as-1/financial-proposal/pr-1/decision"],
+  ["video upload intent", videoIntent.POST as unknown as Handler, "POST", "/api/saved-deals/deal-1/viewing-assessments/as-1/videos"],
+  ["video job status", videoStatus.GET as unknown as Handler, "GET", "/api/saved-deals/deal-1/viewing-assessments/as-1/videos/vj-1"],
+  ["video job confirm", videoConfirm.POST as unknown as Handler, "POST", "/api/saved-deals/deal-1/viewing-assessments/as-1/videos/vj-1/confirm"],
 ]
 
 const call = (handler: Handler, method: string, path: string, headers: Record<string, string> = {}, body: unknown = {}) =>
@@ -122,9 +128,9 @@ describe("every Saved Deals API handler is authenticated before it touches anyth
       }
     }
     walk(path.join(process.cwd(), "app", "api", "saved-deals"))
-    expect(files.length).toBe(25)
+    expect(files.length).toBe(28)
     for (const f of files) expect(readFileSync(f, "utf8"), f).toMatch(/(guardSavedDealApi|authorize|requireSavedDealReadAccess)\(/)
-    expect(ROUTES.length).toBe(33) // one entry per exported handler
+    expect(ROUTES.length).toBe(36) // one entry per exported handler
   })
 
   it.each(ROUTES)("%s: anonymous -> 401 and no database access", async (_label, handler, method, path) => {
