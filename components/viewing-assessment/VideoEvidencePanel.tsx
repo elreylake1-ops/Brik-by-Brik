@@ -598,7 +598,7 @@ export default function VideoEvidencePanel({
                 <span className="font-medium text-emerald-800">Unenhanced Lossless PNGs</span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" data-testid="frames-gallery">
+              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3" data-testid="frames-gallery">
                 {activeJobDetail.frames?.map((frame) => (
                   <div
                     key={frame.id}
@@ -627,7 +627,7 @@ export default function VideoEvidencePanel({
                     </div>
 
                     {/* Metadata & Actions */}
-                    <div className="p-2.5 flex flex-col justify-between flex-1 space-y-2">
+                    <div className="p-2 sm:p-2.5 flex flex-col justify-between flex-1 space-y-2">
                       <div className="space-y-0.5">
                         <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
                           <span>{frame.width}×{frame.height}</span>
@@ -642,11 +642,11 @@ export default function VideoEvidencePanel({
                         )}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-1 pt-1 border-t border-slate-100">
+                      <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-100">
                         <button
                           type="button"
                           onClick={() => setInspectedFrame(frame)}
-                          className="rounded border border-slate-200 bg-slate-50 px-1.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100"
+                          className="inline-flex items-center justify-center min-h-[32px] rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors"
                         >
                           Inspect
                         </button>
@@ -656,7 +656,7 @@ export default function VideoEvidencePanel({
                             setAttachingFrame(frame)
                             setAttachObservation(`Visual evidence from frame ${frame.sequenceNo} at ${formatMmSs(frame.sourceTimeMs)}.`)
                           }}
-                          className="rounded bg-emerald-600 px-1.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700"
+                          className="inline-flex items-center justify-center min-h-[32px] rounded-lg bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors"
                         >
                           Attach
                         </button>
@@ -708,11 +708,11 @@ export default function VideoEvidencePanel({
                 </div>
               )}
             </div>
-            <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
-              <span>Pristine unenhanced lossless PNG · Zero AI modifications · Audio stripped</span>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 border-t border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+              <span className="text-[11px] text-slate-500">Pristine unenhanced lossless PNG · Zero AI modifications · Audio stripped</span>
               <button
                 type="button"
-                className={BUTTON_PRIMARY}
+                className={`${BUTTON_PRIMARY} justify-center w-full sm:w-auto`}
                 onClick={() => {
                   const frame = inspectedFrame
                   setInspectedFrame(null)
@@ -855,10 +855,10 @@ export default function VideoEvidencePanel({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 p-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 p-3">
               <button
                 type="button"
-                className={BUTTON_SECONDARY}
+                className={`${BUTTON_SECONDARY} order-2 sm:order-1 justify-center`}
                 onClick={() => setAttachingFrame(null)}
                 disabled={attachingBusy}
               >
@@ -866,7 +866,7 @@ export default function VideoEvidencePanel({
               </button>
               <button
                 type="submit"
-                className={BUTTON_PRIMARY}
+                className={`${BUTTON_PRIMARY} order-1 sm:order-2 justify-center`}
                 disabled={attachingBusy}
               >
                 {attachingBusy ? "Attaching..." : "Attach as Suggestion"}

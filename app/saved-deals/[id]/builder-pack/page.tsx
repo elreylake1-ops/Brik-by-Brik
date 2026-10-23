@@ -32,9 +32,9 @@ export default async function BuilderPackPage({ params, searchParams }: PageProp
   if (outcome.status === "not_found" || outcome.status === "no_plan") notFound()
 
   return (
-    <main className="min-h-screen bg-gray-100 px-4 py-8">
-      <div className="mx-auto max-w-4xl space-y-4">
-        <div className="flex items-center justify-between text-xs text-slate-600">
+    <main className="min-h-screen bg-gray-100 px-4 py-8 print:min-h-0 print:bg-white print:p-0">
+      <div className="mx-auto max-w-4xl space-y-4 print:max-w-none print:space-y-0">
+        <div className="flex items-center justify-between text-xs text-slate-600 print:hidden">
           <a href={`/saved-deals/${encodeURIComponent(dealId)}/viewing?assessment=${encodeURIComponent(assessmentId)}`} className="font-medium text-slate-900 underline hover:text-slate-700">
             ← Back to Viewing Assessment
           </a>
@@ -42,7 +42,7 @@ export default async function BuilderPackPage({ params, searchParams }: PageProp
             View Deal Passport →
           </a>
         </div>
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
+        <div className="rounded-3xl bg-white p-6 shadow-sm print:rounded-none print:p-0 print:shadow-none">
           <BuilderPackView pack={outcome.pack} />
         </div>
       </div>

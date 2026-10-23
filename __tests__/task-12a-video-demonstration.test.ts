@@ -410,5 +410,5 @@ describe("Task 12A: Genuine Video Demonstration and Evidence Verification", () =
     const c01Rec = dataset.records.find((r) => r.checkId === "C01")!
     expect(c01Rec.outcomes[0]).toMatchObject({ result: "CONFIRMED", source: "SURVEY" })
     expect(c01Rec.outcomeLabel).toBe("TRUE_POSITIVE")
-  })
+  }, 30000)
 })

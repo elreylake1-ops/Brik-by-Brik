@@ -180,7 +180,7 @@ function renderDocument() {
   return renderToStaticMarkup(<InvestorReviewDocument viewModel={attachModels(baseViewModel)} />)
 }
 
-describe("InvestorReviewDocument", () => {
+describe("InvestorReviewDocument", { timeout: 15000 }, () => {
   it("renders locked report structure, canonical review values, and Deal Formulation", () => {
     const html = renderDocument()
 

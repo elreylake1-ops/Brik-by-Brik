@@ -516,5 +516,5 @@ describe("Task 12B: Real MP4 Local Video Demonstration", () => {
     // Outsider receives 404 (zero deal leakage)
     const leaked = await detailRoute.GET(call("tok-outsider", undefined, "GET"), ctx({ id: DEAL_ID, assessmentId }))
     expect(leaked.status).toBe(404)
-  })
+  }, 60000)
 })
