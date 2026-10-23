@@ -29,6 +29,8 @@ export type RefurbScopeInput = {
   }
 }
 
+export type PricingCompleteness = "FULLY_PRICED" | "PARTIALLY_PRICED" | "UNPRICED"
+
 export type RefurbCostResult = {
   totalRefurbCost: number
   labourCost: number
@@ -37,4 +39,9 @@ export type RefurbCostResult = {
   tradeBreakdown: Partial<Record<Trade, number>> // e.g. { plumber: 800, electrician: 1600 }
   taskList: GeneratedRefurbTask[]
   confidenceFlags: string[]                      // Warnings about low-confidence assumptions
+  pricingCompleteness?: PricingCompleteness
+  hasUnpricedItems?: boolean
+  unpricedItemsCount?: number
+  unpricedTaskNames?: string[]
+  isProvisional?: boolean
 }

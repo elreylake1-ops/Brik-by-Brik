@@ -140,6 +140,11 @@ export function buildFinancialProposal(input: { plan: ConfirmedPlanRecord; measu
       "This is a PROPOSAL. The Saved Deal figures above are the authoritative record and have not been changed.",
       "Every figure was produced by the existing Brik-by-Brik engine (analyzeDealWithRefurb); nothing was estimated by AI or by this document.",
       "Confirming records that a named operator approved this proposed adjustment. It does not update the Saved Deal, Investor Shield, governance state or pipeline, and it is not an investment approval.",
+      ...(exclusions.length || unresolvedQuantities.length
+        ? [
+            "Unresolved refurbishment scope items require contractor quotation. Apparent refurb cost difference from baseline is provisional and must not be treated as confirmed savings.",
+          ]
+        : []),
     ],
   }
   return { content, contentHash: sha256(canonicalJson(content)), baselineFingerprint: baselineFingerprint(authoritative) }

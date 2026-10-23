@@ -60,6 +60,7 @@ function unsupportedScopeStub(
     quantity,
     labourCost: 0,
     totalCost: 0,
+    isUnpriced: true,
     assumptionsUsed: [],
     warnings: [
       `Scope "${scope}" for "${room}" has no task templates in Phase 1A. Cost not included. Add templates to task-cost-library.ts.`,

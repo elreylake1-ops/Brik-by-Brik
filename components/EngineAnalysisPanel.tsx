@@ -48,7 +48,7 @@ function formatTechnicalCapitalProtectionStatus(status: string): string {
 
 export default function EngineAnalysisPanel({ inputs, result }: Props) {
   const refurbTotal = result.refurbSource === "generated"
-    ? formatCurrency(result.refurb?.totalRefurbCost ?? 0)
+    ? `${formatCurrency(result.refurb?.totalRefurbCost ?? 0)}${result.refurb?.isProvisional ? " (provisional)" : ""}`
     : `${formatCurrency(inputs.refurbCost)} (manual)`
   const dueDiligence = result.dueDiligence
   const dueDiligenceClassificationLabel = dueDiligence
@@ -148,11 +148,24 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
           <div className="text-xs text-gray-500">{formatPercent(result.deal.profitMargin)}</div>
         </div>
       </div>
+      {result.refurb?.isProvisional && (
+        <div className="mt-3 rounded border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+          <div className="font-semibold uppercase tracking-wide text-amber-800">
+            Provisional Acquisition Ceiling
+          </div>
+          <p className="mt-1">
+            True MAO targets exclude {result.refurb.unpricedItemsCount} unpriced scope item(s) pending supplier quotations.
+            Do not treat apparent savings as confirmed or bid up to this ceiling until full pricing is received.
+          </p>
+        </div>
+      )}
       <div className="mt-3 overflow-x-auto rounded border border-gray-200">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
             <tr>
-              <th className="px-3 py-2">MAO Target</th>
+              <th className="px-3 py-2">
+                MAO Target {result.refurb?.isProvisional && <span className="ml-1 rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">PROVISIONAL</span>}
+              </th>
               <th className="px-3 py-2">Max Purchase</th>
             </tr>
           </thead>
@@ -301,6 +314,11 @@ export default function EngineAnalysisPanel({ inputs, result }: Props) {
       )}
 
       {sectionTitle("Refurb Breakdown")}
+      {result.refurb?.isProvisional && (
+        <div className="mb-3 rounded border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+          <span className="font-semibold">Incomplete Scope:</span> {result.refurb.unpricedItemsCount} item(s) unpriced pending supplier quotation ({result.refurb.unpricedTaskNames?.join(", ")}). Direct total represents priced tasks only.
+        </div>
+      )}
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded border border-gray-200 p-3"><div className="text-xs text-gray-500">Refurb Cost</div><div className="mt-1 text-sm font-semibold text-gray-900">{refurbTotal}</div></div>
         <div className="rounded border border-gray-200 p-3"><div className="text-xs text-gray-500">Labour Cost</div><div className="mt-1 text-sm font-semibold text-gray-900">{result.refurb ? formatCurrency(result.refurb.labourCost) : "N/A (manual mode)"}</div></div>

@@ -93,6 +93,7 @@ export type GeneratedRefurbTask = RefurbTaskTemplate & {
   totalCost: number         // labourCost + (materialCost x quantity)
   assumptionsUsed: string[] // Human-readable list of assumptions applied
   warnings: string[]        // Flags for anything that needs user verification
+  isUnpriced?: boolean      // True when the task represents scope without a cost library template
 }
 
 // Timeline types - output of the timeline engine

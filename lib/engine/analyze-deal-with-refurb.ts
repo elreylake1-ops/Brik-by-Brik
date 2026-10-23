@@ -49,7 +49,11 @@ function formatCheck(label: string, pass: boolean, detail: string): string {
   return `${pass ? "PASS" : "FAIL"}: ${label} - ${detail}`
 }
 
-function calculateVerdict(inputs: DealInputs, deal: DealResult): DealVerdict {
+function calculateVerdict(
+  inputs: DealInputs,
+  deal: DealResult,
+  refurb?: RefurbCostResult
+): DealVerdict {
   if (inputs.purchasePrice <= 0 || inputs.gdv <= 0) {
     return {
       status: "ANALYSIS ONLY",
@@ -77,15 +81,40 @@ function calculateVerdict(inputs: DealInputs, deal: DealResult): DealVerdict {
     reason = "Projected profit is positive and purchase is within 15% MAO, but outside 20% target band."
   }
 
+  const checks: string[] = [
+    formatCheck("Purchase <= MAO 20%", withinMao20, `Purchase=${inputs.purchasePrice}, MAO20=${deal.trueMao.twentyPercent}`),
+    formatCheck("Purchase <= MAO 15%", withinMao15, `Purchase=${inputs.purchasePrice}, MAO15=${deal.trueMao.fifteenPercent}`),
+    formatCheck("Projected profit positive", positiveProfit, `Profit=${deal.profit}`),
+    formatCheck("Projected profit margin positive", positiveMargin, `Margin=${deal.profitMargin}`),
+  ]
+
+  // Safeguard: unpriced scope cannot award a "GO" verdict or validate an unconditional acquisition ceiling
+  if (refurb?.hasUnpricedItems) {
+    checks.push(
+      formatCheck(
+        "Refurbishment scope fully priced",
+        false,
+        `${refurb.unpricedItemsCount} item(s) unpriced pending supplier quote (${(refurb.unpricedTaskNames ?? []).join(", ")})`
+      )
+    )
+    if (status === "GO") {
+      status = "CONDITIONAL"
+      reason = `Scope contains ${refurb.unpricedItemsCount} unpriced item(s) (${(refurb.unpricedTaskNames ?? []).join(", ")}). Calculated True MAO of £${Math.round(deal.trueMao.twentyPercent).toLocaleString()} is PROVISIONAL and cannot be validated as a binding acquisition ceiling until contractor quotes are received.`
+    }
+  } else if (refurb) {
+    checks.push(
+      formatCheck(
+        "Refurbishment scope fully priced",
+        true,
+        "All accepted scope items priced from cost library"
+      )
+    )
+  }
+
   return {
     status,
     reason,
-    checks: [
-      formatCheck("Purchase <= MAO 20%", withinMao20, `Purchase=${inputs.purchasePrice}, MAO20=${deal.trueMao.twentyPercent}`),
-      formatCheck("Purchase <= MAO 15%", withinMao15, `Purchase=${inputs.purchasePrice}, MAO15=${deal.trueMao.fifteenPercent}`),
-      formatCheck("Projected profit positive", positiveProfit, `Profit=${deal.profit}`),
-      formatCheck("Projected profit margin positive", positiveMargin, `Margin=${deal.profitMargin}`),
-    ],
+    checks,
   }
 }
 
@@ -93,7 +122,8 @@ function calculateConfidence(
   inputs: DealInputs,
   refurbSource: "manual" | "generated",
   warnings: string[],
-  overridesApplied: OverrideApplied[]
+  overridesApplied: OverrideApplied[],
+  refurb?: RefurbCostResult
 ): DealConfidence {
   let score = 100
   const factors: string[] = []
@@ -106,6 +136,13 @@ function calculateConfidence(
   if (overridesApplied.length > 0) {
     score -= overridesApplied.length * 4
     factors.push(`${overridesApplied.length} override(s) applied; assumptions changed from baseline.`)
+  }
+
+  if (refurb?.hasUnpricedItems) {
+    score -= 25
+    factors.push(
+      `${refurb.unpricedItemsCount} unpriced refurb item(s); financial metrics and True MAO are provisional pending contractor quotation.`
+    )
   }
 
   if (refurbSource === "manual") {
@@ -197,8 +234,28 @@ export function analyzeDealWithRefurb(
 
     const deal = analyzeDeal(dealInputs)
     const dueDiligence = buildDueDiligence(inputs, refurb.totalRefurbCost)
-    const verdict = calculateVerdict(inputs, deal)
-    const confidence = calculateConfidence(inputs, "generated", warnings, overrideResult.applied)
+
+    if (refurb.hasUnpricedItems && dueDiligence) {
+      const riskFlag = `Unresolved refurbishment scope: ${refurb.unpricedItemsCount} item(s) unpriced pending contractor quotation`
+      if (!dueDiligence.decision.riskFlags.includes(riskFlag)) {
+        dueDiligence.decision.riskFlags.push(riskFlag)
+        dueDiligence.decision.reasons.push(riskFlag)
+      }
+    }
+
+    if (refurb.hasUnpricedItems) {
+      warnings.push(
+        `Scope contains ${refurb.unpricedItemsCount} unpriced item(s) (${(refurb.unpricedTaskNames ?? []).join(", ")}). Calculated True MAO of £${Math.round(deal.trueMao.twentyPercent).toLocaleString()} is PROVISIONAL and must not be used as an unconditional bidding ceiling.`
+      )
+      if (inputs.refurbCost > refurb.totalRefurbCost) {
+        warnings.push(
+          `Apparent cost reduction of £${Math.round(inputs.refurbCost - refurb.totalRefurbCost).toLocaleString()} from baseline is NOT a confirmed saving until contractor quotes are received.`
+        )
+      }
+    }
+
+    const verdict = calculateVerdict(inputs, deal, refurb)
+    const confidence = calculateConfidence(inputs, "generated", warnings, overrideResult.applied, refurb)
 
     return {
       deal,

@@ -107,7 +107,7 @@ describe("Financial and Refurbishment Traceability", () => {
     expect(timeline.assumptions.some((a) => a.includes("contingency buffer"))).toBe(true)
   })
 
-  it("5. Computes baseline versus proposed True MAO and explains delta reasons", () => {
+  it("5. Computes baseline versus proposed True MAO and explains delta reasons with unpriced safeguards", () => {
     // 5.1 Baseline deal result (using manual £50k refurb)
     const baselineResult = analyzeDealWithRefurb(baselineDeal)
     expect(baselineResult.refurbSource).toBe("manual")
@@ -128,11 +128,20 @@ describe("Financial and Refurbishment Traceability", () => {
     const proposedResult = analyzeDealWithRefurb(baselineDeal, scopeZero)
     expect(proposedResult.refurbSource).toBe("generated")
     expect(proposedResult.refurb?.totalRefurbCost).toBe(0)
-    expect(proposedResult.deal.trueMao.twentyPercent).toBe(500_875)
+    expect(proposedResult.refurb?.pricingCompleteness).toBe("UNPRICED")
+    expect(proposedResult.refurb?.hasUnpricedItems).toBe(true)
+    expect(proposedResult.refurb?.isProvisional).toBe(true)
 
-    // Delta explanation: £50,000 reduction in refurb cost increases MAO by exactly £50,000
+    // Mathematical formula output: True MAO increases mathematically by £50,000
+    expect(proposedResult.deal.trueMao.twentyPercent).toBe(500_875)
     const deltaMao = proposedResult.deal.trueMao.twentyPercent - baselineResult.deal.trueMao.twentyPercent
     expect(deltaMao).toBe(50_000)
+
+    // Financial safeguards: verdict MUST NOT be "GO"; must be "CONDITIONAL" with explicit provisional warnings
+    expect(proposedResult.verdict.status).toBe("CONDITIONAL")
+    expect(proposedResult.verdict.reason).toContain("PROVISIONAL")
+    expect(proposedResult.warnings.some((w) => w.includes("NOT a confirmed saving"))).toBe(true)
+    expect(proposedResult.dueDiligence?.decision.riskFlags.some((f) => f.includes("Unresolved refurbishment scope"))).toBe(true)
   })
 
   it("6. Strictly guarantees Saved Deal input immutability", () => {
