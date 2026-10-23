@@ -50,3 +50,8 @@ CLAUDE.md
 
 # disposable local QA database state (generated credentials)
 .qa-local/
+
+# private demonstration evidence vault (genuine walkthrough recordings, extracted frames)
+/.demonstration-evidence/
+/private-evidence/
+

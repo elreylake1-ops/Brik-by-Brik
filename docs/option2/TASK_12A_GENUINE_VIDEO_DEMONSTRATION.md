@@ -153,28 +153,32 @@ The decoded frame and its provenance records were processed through the Viewing 
 ├───────────────────┬──────────────┬───────────────┬──────────────────────────────┤
 │ Item ID           │ AI Proposal  │ Operator Plan │ Verification Outcome         │
 ├───────────────────┼──────────────┼───────────────┼──────────────────────────────┤
-│ C09 (Roof)        │ DEFECT       │ ACCEPT        │ Accepted without change      │
-│ C12 (External)    │ DEFECT       │ AMEND         │ Operator amended severity    │
-│ C18 (Damp/Timber) │ DEFECT       │ REJECT        │ Dismissed: condensation only │
+│ C01 (Roof)        │ DEFECT       │ ACCEPT        │ Accepted without change      │
+│ C08 (Ext Masonry) │ DEFECT       │ AMEND         │ Operator amended severity    │
+│ C41 (Bathroom)    │ DEFECT       │ REJECT        │ Dismissed: condensation only │
 └───────────────────┴──────────────┴───────────────┴──────────────────────────────┘
 ```
 
-1. **Item C09 (Roof condition):**
-   - AI proposal: Visible roof tile damage detected.
+1. **Item C01 — Main roof pitched covering (Group: Roof):**
+   - AI proposal: Visible roof tile damage / slipped tiles on rear pitch.
    - Operator action: **ACCEPTED**.
    - Review state: `ACCEPTED` with operator note `"Operator verified slipped tiles on main pitch"`.
+   - Work mapping: Maps to `roof` (Roof works, `ENGINE_SCOPE`).
 
-2. **Item C12 (External walls / masonry):**
-   - AI proposal: Severe structural wall cracking.
+2. **Item C08 — External masonry and wall finishes (Group: External walls):**
+   - AI proposal: Severe structural wall cracking near opening.
    - Operator action: **AMENDED** (`EDITED`).
-   - Operator adjustment: Downgraded to cosmetic hairline render crack; severity changed from High to Low.
-   - Review state: `EDITED`.
+   - Operator adjustment: Downgraded to cosmetic hairline render crack near DPC; severity changed from High to Low.
+   - Review state: `EDITED` with observation `"Render spalling verified near ground damp proof course."`.
+   - Work mapping: Maps to `external-walls` (Facade and masonry repairs, `UNPRICED`).
 
-3. **Item C18 (Damp / timber):**
-   - AI proposal: Suspected rising damp.
+3. **Item C41 — Sanitary appliances and bath/basin condition (Group: Bathroom):**
+   - AI proposal: Suspected water leakage / bath sealant decay.
    - Operator action: **REJECTED**.
-   - Operator rejection reason: `"Condensation around cold window reveal, no rising damp observed"`.
-   - Review state: `REJECTED`. Excluded from downstream scope of works.
+   - Operator rejection reason: `"Bath tiling intact; surface condensation only."`.
+   - Review state: `REJECTED`. Excluded from downstream scope of works (`reason: "REJECTED"`).
+
+*(Note on Canonical Checklist Alignment: C09 represents "Mortar joint pointing" under External walls; C12 represents "Insulated double glazing unit seals" under External glazing and doors; C18 represents "Textured decorative ceiling coatings" under Ceilings; C22 represents "Dampness signs, salt efflorescence and mould" under Internal walls. See Section 5 and regression test suite for full mapping audit).*
 
 ---
 
@@ -184,7 +188,7 @@ Using operator-approved findings and verified measurements, all downstream modul
 
 ### 5.1 Refurbishment Scope & Pricing Engine
 
-- **Scope items passed:** Roof repair (Item C09), External masonry pointing (Item C12).
+- **Scope items passed:** Roof works (mapped from accepted Item C01), Facade and masonry repairs (mapped from amended Item C08).
 - **Supplier pricing applied:**
   - Roof repair: Fully priced via task cost library (`totalRefurbCost > 0`).
   - External walls: **Explicitly unpriced** in local trade rate baselines. Correctly listed under `unpricedItems: ["external-walls"]` without inventing arbitrary numbers.
@@ -253,7 +257,7 @@ The following security gates were validated in `__tests__/task-12a-video-demonst
 | **1. Previous Demo Audit** | Inspect `task-12-e2e-demonstration.test.ts` and document exact distinction | **PASSED** | Documented in Section 1 (synthetic strings vs FFmpeg binaries) |
 | **2. Media Discovery** | Search authorized local media without fabricating evidence | **PASSED** | Found `synthetic-video.mp4` (SHA-256 `468e7ee...`) |
 | **3. Media Pipeline** | Real FFprobe inspection, hardware PTS timestamps, FFmpeg extraction | **PASSED** | 30 PTS timestamps probed, unenhanced PNG (SHA-256 `d24b4af...`), JPEG thumbnail (SHA-256 `949fb66...`) |
-| **4. Human Review** | Demonstrate ACCEPT, AMEND, REJECT with simulated AI proposals | **PASSED** | Verified C09 (Accept), C12 (Amend), C18 (Reject) |
+| **4. Human Review** | Demonstrate ACCEPT, AMEND, REJECT with simulated AI proposals | **PASSED** | Verified C01 (Accept), C08 (Amend), C41 (Reject) |
 | **5. Business Outputs** | Refurb scope, unpriced items, True MAO, Builder Pack, Deal Passport, Learning records | **PASSED** | All 5 outputs generated and verified |
 | **6. Security Gates** | Isolation (404), CSRF (403), Saved Deal immutability | **PASSED** | Validated in test suite |
 | **7. Real Property Video** | Authentic real-world property walkthrough video | **BLOCKED** | External dependency: Requires physical capture or owner supply |
