@@ -22,11 +22,16 @@ export type ClaudeClient = {
   }
 }
 
+export const DEFAULT_MAX_RETRY_DELAY_MS = 5000
+
 export type ClaudeProviderOptions = {
   client: ClaudeClient
   model: string
   checklist: readonly ChecklistItem[]
   effort?: "low" | "medium" | "high"
+  maxRetries?: number
+  maxRetryDelayMs?: number
+  retryDelayMs?: (attempt: number, retryAfterMs?: number | null) => number
 }
 
 const usageOf = (message: Anthropic.Message): ProviderUsage => ({
@@ -36,7 +41,68 @@ const usageOf = (message: Anthropic.Message): ProviderUsage => ({
   cacheWriteTokens: message.usage?.cache_creation_input_tokens ?? 0,
 })
 
-export function createClaudeProvider({ client, model, checklist, effort = "medium" }: ClaudeProviderOptions): FrameAnalysisProvider {
+function isTransientError(error: unknown): boolean {
+  if (error instanceof Anthropic.APIConnectionError) {
+    return true
+  }
+  if (error instanceof Anthropic.APIError) {
+    const s = error.status
+    return s === 408 || s === 429 || s === 500 || s === 502 || s === 503 || s === 504 || s === 529
+  }
+  if (error instanceof Error) {
+    const m = error.message.toLowerCase()
+    return m.includes("econnreset") || m.includes("etimedout") || m.includes("fetch failed") || m.includes("network")
+  }
+  return false
+}
+
+export function extractRetryAfterMs(error: unknown): number | null {
+  if (error instanceof Anthropic.APIError && error.headers) {
+    try {
+      const getHeader = (name: string): string | null => {
+        const h = error.headers as unknown
+        if (h && typeof (h as { get?: unknown }).get === "function") {
+          return (h as { get: (k: string) => string | null }).get(name)
+        }
+        if (h && typeof h === "object") {
+          const rec = h as Record<string, string>
+          return rec[name] ?? rec[name.toLowerCase()] ?? null
+        }
+        return null
+      }
+
+      const msStr = getHeader("retry-after-ms")
+      if (msStr !== null && msStr !== undefined) {
+        const ms = Number(msStr)
+        if (!Number.isNaN(ms) && ms >= 0) return ms
+      }
+
+      const secStr = getHeader("retry-after")
+      if (secStr !== null && secStr !== undefined) {
+        const sec = Number(secStr)
+        if (!Number.isNaN(sec) && sec >= 0) return sec * 1000
+      }
+    } catch {
+      // Safe fallback on header parsing error
+    }
+  }
+  return null
+}
+
+export function createClaudeProvider({
+  client,
+  model,
+  checklist,
+  effort = "medium",
+  maxRetries = 2,
+  maxRetryDelayMs = DEFAULT_MAX_RETRY_DELAY_MS,
+  retryDelayMs = (attempt, retryAfterMs) => {
+    if (retryAfterMs !== null && retryAfterMs !== undefined && retryAfterMs >= 0) {
+      return Math.min(retryAfterMs, maxRetryDelayMs)
+    }
+    return process.env.NODE_ENV === "test" ? 0 : Math.min(250 * Math.pow(2, attempt), maxRetryDelayMs)
+  },
+}: ClaudeProviderOptions): FrameAnalysisProvider {
   const system = buildSystemPrompt(checklist)
   const schema = buildOutputSchema(checklist.map((c) => c.id))
 
@@ -63,24 +129,62 @@ export function createClaudeProvider({ client, model, checklist, effort = "mediu
       }
       content.push({ type: "text", text: "Review these frames against the checklist and return the findings JSON." })
 
-      let message: Anthropic.Message
-      try {
-        message = await client.messages
-          .stream(
-            {
-              model,
-              max_tokens: limits.maxOutputTokens,
-              system,
-              messages: [{ role: "user", content }],
-              output_config: { effort, format: { type: "json_schema", schema } },
-            },
-            { signal }
-          )
-          .finalMessage()
-      } catch (error) {
+      let message: Anthropic.Message | undefined
+      let lastError: unknown
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        if (signal.aborted) return { kind: "timeout" }
+        try {
+          message = await client.messages
+            .stream(
+              {
+                model,
+                max_tokens: limits.maxOutputTokens,
+                system,
+                messages: [{ role: "user", content }],
+                output_config: { effort, format: { type: "json_schema", schema } },
+              },
+              { signal }
+            )
+            .finalMessage()
+          break
+        } catch (error) {
+          lastError = error
+          if (signal.aborted) return { kind: "timeout" }
+          if (attempt < maxRetries && isTransientError(error)) {
+            const retryAfterMs = extractRetryAfterMs(error)
+            const rawDelay = retryDelayMs(attempt, retryAfterMs)
+            const delay = Math.min(rawDelay, maxRetryDelayMs)
+            if (delay > 0) {
+              await new Promise<void>((resolve) => {
+                if (signal.aborted) {
+                  resolve()
+                  return
+                }
+                const timer = setTimeout(resolve, delay)
+                signal.addEventListener(
+                  "abort",
+                  () => {
+                    clearTimeout(timer)
+                    resolve()
+                  },
+                  { once: true }
+                )
+              })
+            }
+            if (signal.aborted) return { kind: "timeout" }
+            continue
+          }
+          break
+        }
+      }
+
+      if (!message) {
         if (signal.aborted) return { kind: "timeout" }
         // Status only: never the message body, headers or anything that could echo a credential.
-        if (error instanceof Anthropic.APIError) return { kind: "error", detail: `provider API error (status ${error.status ?? "unknown"})` }
+        if (lastError instanceof Anthropic.APIError) {
+          return { kind: "error", detail: `provider API error (status ${lastError.status ?? "unknown"})` }
+        }
         return { kind: "error", detail: "provider request failed" }
       }
 
