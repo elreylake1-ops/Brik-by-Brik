@@ -132,6 +132,17 @@ export async function getVideoFrames(jobId: string): Promise<VideoFrameRecord[]>
 
 export const listVideoFramesByJobId = getVideoFrames
 
+export async function getVideoFrame(jobId: string, frameId: string): Promise<VideoFrameRecord | null> {
+  const sql = `
+    SELECT *
+    FROM ${SCHEMA}.video_frames
+    WHERE job_id = $1 AND id = $2
+    LIMIT 1
+  `
+  const res = await query<VideoFrameRecord>(sql, [jobId, frameId])
+  return res.rows[0] ?? null
+}
+
 export async function confirmVideoJob(
   dealId: string,
   viewingId: string,

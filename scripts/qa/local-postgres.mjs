@@ -225,7 +225,8 @@ switch (command) {
     await requireIsolatedBinding()
     const url = buildLocalQaUrl(readPassword())
     assertLocalQaTarget(url, {}) // same guard the tests apply; fail here with a clear message
-    const r = spawnSync(process.execPath, [path.join(root, "node_modules", "vitest", "vitest.mjs"), "run", "--no-file-parallelism", "__tests__/postgres/"], {
+    const testTargets = flags.length > 0 ? flags : ["__tests__/postgres/"]
+    const r = spawnSync(process.execPath, [path.join(root, "node_modules", "vitest", "vitest.mjs"), "run", "--no-file-parallelism", ...testTargets], {
       cwd: root,
       stdio: "inherit",
       env: { ...scrubbedEnv(), VIEWING_QA_DATABASE_URL: url, VIEWING_QA_CONFIRM_ISOLATED: "I_CONFIRM_THIS_IS_NOT_PRODUCTION" },

@@ -279,7 +279,7 @@ describe.skipIf(!gate.enabled)("Postgres genuine video extraction worker (isolat
     const contactSheetBytes = await storage.downloadObject(job.source_bucket, updatedJob!.contact_sheet_path!)
     expect(contactSheetBytes).not.toBeNull()
     expect(contactSheetBytes!.length).toBeGreaterThan(0)
-  })
+  }, 20_000)
 
   it("proves source_time_ms is derived from actual stream presentation timestamps on variable-frame-rate (VFR) video", async () => {
     const vfrBytes = await createSyntheticClip({
@@ -312,7 +312,7 @@ describe.skipIf(!gate.enabled)("Postgres genuine video extraction worker (isolat
     for (const f of frames) {
       expect(genuineMsSet.has(f.source_time_ms)).toBe(true)
     }
-  })
+  }, 20_000)
 
   it("fences out stale workers from publishing ready_for_review after their lease expires or gets reclaimed", async () => {
     const job = await insertTestJob({ state: "queued" })

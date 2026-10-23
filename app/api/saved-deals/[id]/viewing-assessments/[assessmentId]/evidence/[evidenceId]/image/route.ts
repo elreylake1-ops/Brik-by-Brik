@@ -11,6 +11,8 @@ import { BlobPolicyError, OBJECT_POLICIES } from "@/lib/viewing-assessment/stora
 import { getBlobStore } from "@/lib/viewing-assessment/storage/get-blob-store"
 import { sha256Hex } from "@/lib/viewing-assessment/storage/local-fs-blob-store"
 
+import { getVideoStorageService } from "@/lib/viewing-assessment/video/video-storage-service"
+
 // PUT .../evidence/:evidenceId/image   store the JPEG for one registered frame (immutable once stored)
 // GET .../evidence/:evidenceId/image   serve it to an authenticated operator
 //
@@ -102,19 +104,52 @@ export async function PUT(request: Request, context: RouteContext) {
   }
 }
 
+import { query } from "@/lib/db/postgres"
+
 export async function GET(request: Request, context: RouteContext) {
   try {
     const auth = await authorize(request, context, { assessment: true, evidence: true })
     if (!auth.ok) return auth.response
+
     const store = getBlobStore()
-    if (!store) return unavailable()
+    if (!store && !auth.evidenceId?.startsWith("ev_")) return unavailable()
 
     const location = await repo.getEvidenceBlobLocation(auth.dealId, auth.assessmentId as string, auth.evidenceId as string)
-    if (!location) return json({ success: false, error: "IMAGE_NOT_FOUND" }, 404)
+    let storageKey = location?.storageKey
+    let expectedSha256 = location?.sha256
 
-    const bytes = await store.get(location.storageKey)
-    if (!bytes) return json({ success: false, error: "IMAGE_NOT_AVAILABLE" }, 410) // purged under retention
-    if (sha256Hex(bytes) !== location.sha256) {
+    if (!storageKey && auth.evidenceId?.startsWith("ev_")) {
+      const frameId = auth.evidenceId.slice(3)
+      const frameRes = await query(
+        `SELECT vf.thumbnail_path, vf.sha256
+         FROM brik_by_brik_engine.video_frames vf
+         JOIN brik_by_brik_engine.video_jobs vj ON vj.id = vf.job_id
+         WHERE vf.id = $1 AND vj.deal_id = $2 AND vj.viewing_id = $3
+         LIMIT 1`,
+        [frameId, auth.dealId, auth.assessmentId]
+      )
+      if (frameRes.rows[0]) {
+        storageKey = frameRes.rows[0].thumbnail_path
+        expectedSha256 = frameRes.rows[0].sha256
+      }
+    }
+
+    if (!storageKey) return json({ success: false, error: "IMAGE_NOT_FOUND" }, 404)
+
+    let bytes = store ? await store.get(storageKey) : null
+
+    if (!bytes && storageKey.startsWith("video-evidence/")) {
+      const videoStorage = getVideoStorageService()
+      bytes = await videoStorage.downloadObject("deal-evidence", storageKey).catch(() => null)
+    }
+
+    if (!bytes) {
+      if (!store && !storageKey.startsWith("video-evidence/")) {
+        return unavailable()
+      }
+      return json({ success: false, error: "IMAGE_NOT_AVAILABLE" }, 410) // purged under retention
+    }
+    if (expectedSha256 && sha256Hex(bytes) !== expectedSha256) {
       console.error("Viewing frame failed its integrity check.", { evidenceId: auth.evidenceId })
       return json({ success: false, error: "IMAGE_INTEGRITY_FAILED" }, 500)
     }

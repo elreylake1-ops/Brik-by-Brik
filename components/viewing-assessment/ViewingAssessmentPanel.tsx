@@ -5,6 +5,7 @@ import { useState } from "react"
 import ChecklistReview, { type CheckMeta } from "./ChecklistReview"
 import ProposalCard, { type ReviewBody } from "./ProposalCard"
 import VideoCapture from "./VideoCapture"
+import VideoEvidencePanel from "./VideoEvidencePanel"
 import { buildCheckStates } from "@/lib/viewing-assessment/check-states"
 import { formatClock } from "@/lib/viewing-assessment/capture/capture-logic"
 import type { OutcomeInput, ViewingAssessmentDetail, ViewingAssessmentRecord } from "@/types/viewing-assessment"
@@ -199,6 +200,14 @@ export default function ViewingAssessmentPanel({ dealId, assessments, detail, ch
           {detail.summary.evidenceFrameCount === 0 ? (
             <p className="text-sm text-slate-700">No evidence registered: nothing can be analysed, and every check stays not assessed.</p>
           ) : null}
+
+          <VideoEvidencePanel
+            dealId={dealId}
+            assessmentId={detail.assessment.id}
+            checks={checks}
+            onEvidenceAttached={() => router.refresh()}
+            headers={headers}
+          />
 
           <VideoCapture baseUrl={assessmentBase} onSaved={() => router.refresh()} />
 

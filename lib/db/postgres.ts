@@ -1,4 +1,4 @@
-﻿import { Pool } from "pg"
+import { Pool } from "pg"
 import type { QueryResultRow } from "pg"
 
 let pool: Pool | null = null
@@ -22,6 +22,21 @@ export function getPostgresPool(): Pool {
 
 export async function query<T extends QueryResultRow = QueryResultRow>(text: string, values?: unknown[]) {
   return getPostgresPool().query<T>(text, values)
+}
+
+export async function withTransaction<T>(fn: (client: import("pg").PoolClient) => Promise<T>): Promise<T> {
+  const client = await getPostgresPool().connect()
+  try {
+    await client.query("BEGIN")
+    const result = await fn(client)
+    await client.query("COMMIT")
+    return result
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined)
+    throw error
+  } finally {
+    client.release()
+  }
 }
 
 export function __resetPostgresPoolForTests() {

@@ -75,6 +75,7 @@ export type SafeVideoFrame = {
   originalFrameUrl?: string
   thumbnailUrl?: string
   sha256: string
+  mimeType?: string
   width: number
   height: number
   isReviewedEvidence: boolean
@@ -89,8 +90,10 @@ export type SafeVideoJob = {
   contentType: VideoContentType
   declaredBytes: number
   observedBytes: number | null
+  sha256?: string | null
   durationMs: number | null
   contactSheetUrl?: string | null
+  processorVersion?: string | null
   attemptCount: number
   failureCode: string | null
   temporaryRetentionExpiresAt: string
