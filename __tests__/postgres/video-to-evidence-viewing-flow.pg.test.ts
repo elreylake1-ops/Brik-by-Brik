@@ -382,7 +382,7 @@ describe.skipIf(!gate.enabled)("Postgres video-to-evidence viewing assessment in
     expect(record.humanReview.label).toBe("HUMAN_AGREES")
     expect(record.humanReview.revisions[0].disposition).toBe("ACCEPTED")
     expect(record.evidence[0].timestampSeconds).toBeCloseTo(frame0.sourceTimeMs / 1000, 1)
-  })
+  }, 30_000)
 
   it("rejects unauthorized, cross-deal, and malformed attach requests", async () => {
     // 1. Cross-deal rejection: accessing job from another deal

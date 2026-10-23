@@ -4,6 +4,7 @@ import {
   type TrustedInternalOperatorPrincipal,
 } from "@/lib/operator-command/trusted-internal-operator-identity"
 import { isSameOrigin, isStateChanging } from "@/lib/auth/session"
+import { isDevelopmentOpen } from "@/lib/operator-command/guard-saved-deal-api"
 
 export type SavedDealReadAccessResult =
   | {
@@ -65,6 +66,9 @@ export async function requireSavedDealReadAccess(
   request: Request,
   dealId?: string,
 ): Promise<SavedDealReadAccessResult> {
+  if (isDevelopmentOpen()) {
+    return buildAllowedResult({ kind: "internal_operator", subject: "local-dev-operator" })
+  }
   // Authorization policy today: every active operator may use every saved deal. saved_deals has no owner column, so a
   // deal id on its own is never treated as proof of ownership; this is the single place a per-deal rule would be added.
   void dealId

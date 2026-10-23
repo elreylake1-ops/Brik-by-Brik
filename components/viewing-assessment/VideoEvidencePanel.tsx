@@ -63,6 +63,7 @@ export default function VideoEvidencePanel({
   const [attachObservation, setAttachObservation] = useState("")
   const [attachRoom, setAttachRoom] = useState("")
   const [attachingBusy, setAttachingBusy] = useState(false)
+  const [workerBusy, setWorkerBusy] = useState(false)
 
   // Contact sheet modal state
   const [showContactSheet, setShowContactSheet] = useState(false)
@@ -102,6 +103,36 @@ export default function VideoEvidencePanel({
       console.error(err)
     } finally {
       setLoadingJobs(false)
+    }
+  }
+
+  const triggerWorker = async () => {
+    setWorkerBusy(true)
+    setStatusMessage("Running media extraction worker via FFmpeg...")
+    setErrorMessage(null)
+    try {
+      const res = await fetchImpl("/api/qa/video-worker/cycle", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(headers?.() ?? {}),
+        },
+        body: JSON.stringify({ dealId }),
+      })
+      const data = await res.json()
+      if (data.success && data.result) {
+        setStatusMessage(`Worker completed: extracted ${data.result.frameCount} genuine frames (${formatMmSs(data.result.durationMs)}).`)
+        if (selectedJobId) {
+          await refreshJobDetail(selectedJobId)
+        }
+        await refreshJobs()
+      } else {
+        setErrorMessage(data.error || "Worker run failed.")
+      }
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : String(err))
+    } finally {
+      setWorkerBusy(false)
     }
   }
 
@@ -535,9 +566,20 @@ export default function VideoEvidencePanel({
 
           {/* Pending or Processing Notice */}
           {activeJobDetail.state === "queued" && (
-            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-xs text-blue-900 space-y-1">
-              <p className="font-semibold">Queued for server extraction worker</p>
-              <p>The upload is confirmed and is awaiting extraction by the worker process.</p>
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-xs text-blue-900 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="space-y-1">
+                <p className="font-semibold">Queued for server extraction worker</p>
+                <p>The upload is confirmed and is awaiting extraction by the worker process.</p>
+              </div>
+              <button
+                type="button"
+                className={BUTTON_PRIMARY}
+                onClick={triggerWorker}
+                disabled={workerBusy}
+                data-testid="run-media-worker-btn"
+              >
+                {workerBusy ? "Extracting Frames..." : "Run Media Worker"}
+              </button>
             </div>
           )}
 

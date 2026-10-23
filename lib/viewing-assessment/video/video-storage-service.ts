@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto"
+import { getLocalFsVideoStorageService } from "./local-fs-video-storage"
 
 export type VideoStorageObjectMetadata = {
   bucket: string
@@ -265,8 +266,11 @@ export function getVideoStorageService(): IVideoStorageService {
   if (testStorageService !== undefined && testStorageService !== null) {
     return testStorageService
   }
-  // In development/test with no Supabase configured, fall back to in-memory store
+  // In development/test with no Supabase configured, fall back to local-fs if configured, or in-memory store
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (process.env.VIEWING_BLOB_STORE === "local-fs" && process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+      return getLocalFsVideoStorageService()
+    }
     return new InMemoryVideoStorageService()
   }
   return new SupabaseRestVideoStorageService()

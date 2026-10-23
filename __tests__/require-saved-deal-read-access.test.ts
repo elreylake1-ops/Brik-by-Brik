@@ -139,4 +139,94 @@ describe("requireSavedDealReadAccess", () => {
 
     expect(first).toEqual(second)
   })
+
+  describe("development-open security isolation", () => {
+    it("allows local dev operator only when NODE_ENV is development and SAVED_DEALS_AUTH_ENFORCEMENT is development-open", async () => {
+      vi.stubEnv("NODE_ENV", "development")
+      vi.stubEnv("SAVED_DEALS_AUTH_ENFORCEMENT", "development-open")
+
+      const request = new Request("http://localhost/api/saved-deals/deal-1")
+      const result = await requireSavedDealReadAccess(request, "deal-1")
+
+      expect(result).toEqual({
+        allowed: true,
+        principal: { kind: "internal_operator", subject: "local-dev-operator" },
+      })
+      expect(resolveTrustedInternalOperatorIdentityMock).not.toHaveBeenCalled()
+      vi.unstubAllEnvs()
+    })
+
+    it("fails closed in production even if SAVED_DEALS_AUTH_ENFORCEMENT is set", async () => {
+      vi.stubEnv("NODE_ENV", "production")
+      vi.stubEnv("SAVED_DEALS_AUTH_ENFORCEMENT", "development-open")
+      resolveTrustedInternalOperatorIdentityMock.mockResolvedValueOnce({ status: "unauthenticated" })
+
+      const request = new Request("http://localhost/api/saved-deals/deal-1")
+      const result = await requireSavedDealReadAccess(request, "deal-1")
+
+      expect(result).toEqual({
+        allowed: false,
+        reason: "unauthenticated",
+        status: 401,
+        code: "AUTHENTICATION_REQUIRED",
+      })
+      expect(resolveTrustedInternalOperatorIdentityMock).toHaveBeenCalledTimes(1)
+      vi.unstubAllEnvs()
+    })
+
+    it("fails closed in CI even if SAVED_DEALS_AUTH_ENFORCEMENT is set", async () => {
+      vi.stubEnv("NODE_ENV", "development")
+      vi.stubEnv("CI", "true")
+      vi.stubEnv("SAVED_DEALS_AUTH_ENFORCEMENT", "development-open")
+      resolveTrustedInternalOperatorIdentityMock.mockResolvedValueOnce({ status: "unauthenticated" })
+
+      const request = new Request("http://localhost/api/saved-deals/deal-1")
+      const result = await requireSavedDealReadAccess(request, "deal-1")
+
+      expect(result).toEqual({
+        allowed: false,
+        reason: "unauthenticated",
+        status: 401,
+        code: "AUTHENTICATION_REQUIRED",
+      })
+      expect(resolveTrustedInternalOperatorIdentityMock).toHaveBeenCalledTimes(1)
+      vi.unstubAllEnvs()
+    })
+
+    it("fails closed on Vercel preview even if SAVED_DEALS_AUTH_ENFORCEMENT is set", async () => {
+      vi.stubEnv("NODE_ENV", "development")
+      vi.stubEnv("VERCEL_ENV", "preview")
+      vi.stubEnv("SAVED_DEALS_AUTH_ENFORCEMENT", "development-open")
+      resolveTrustedInternalOperatorIdentityMock.mockResolvedValueOnce({ status: "unauthenticated" })
+
+      const request = new Request("http://localhost/api/saved-deals/deal-1")
+      const result = await requireSavedDealReadAccess(request, "deal-1")
+
+      expect(result).toEqual({
+        allowed: false,
+        reason: "unauthenticated",
+        status: 401,
+        code: "AUTHENTICATION_REQUIRED",
+      })
+      expect(resolveTrustedInternalOperatorIdentityMock).toHaveBeenCalledTimes(1)
+      vi.unstubAllEnvs()
+    })
+
+    it("fails closed in test environment when SAVED_DEALS_AUTH_ENFORCEMENT is set", async () => {
+      // Vitest defaults NODE_ENV="test"
+      vi.stubEnv("SAVED_DEALS_AUTH_ENFORCEMENT", "development-open")
+      resolveTrustedInternalOperatorIdentityMock.mockResolvedValueOnce({ status: "unauthenticated" })
+
+      const request = new Request("http://localhost/api/saved-deals/deal-1")
+      const result = await requireSavedDealReadAccess(request, "deal-1")
+
+      expect(result).toEqual({
+        allowed: false,
+        reason: "unauthenticated",
+        status: 401,
+        code: "AUTHENTICATION_REQUIRED",
+      })
+      vi.unstubAllEnvs()
+    })
+  })
 })

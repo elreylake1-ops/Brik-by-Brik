@@ -14,8 +14,10 @@ export function isDevelopmentOpen(env: Record<string, string | undefined> = proc
   return (
     env.SAVED_DEALS_AUTH_ENFORCEMENT === "development-open" &&
     env.NODE_ENV === "development" &&
+    env.APP_ENV !== "production" &&
     !env.VERCEL &&
     !env.VERCEL_ENV &&
+    !env.NEXT_PUBLIC_VERCEL_ENV &&
     !env.CI
   )
 }
