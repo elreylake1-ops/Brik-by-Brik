@@ -8,7 +8,7 @@ import { MAX_BODY_BYTES } from "./request-validation"
 // Order: validate ids -> authenticate (existing fail-closed guard) -> saved deal exists.
 // `actor` is always the server-side principal subject; nothing identity-related is read from the body.
 
-export type RouteParams = { id?: string; assessmentId?: string; proposalId?: string; evidenceId?: string }
+export type RouteParams = { id?: string; assessmentId?: string; proposalId?: string; evidenceId?: string; jobId?: string }
 export type RouteContext = { params: Promise<RouteParams> | RouteParams }
 
 const ID_PATTERN = /^[A-Za-z0-9:_.-]{1,150}$/
@@ -22,13 +22,14 @@ export type Authorized = {
   assessmentId?: string
   proposalId?: string
   evidenceId?: string
+  jobId?: string
   actor: string
 }
 
 export async function authorize(
   request: Request,
   context: RouteContext,
-  require: { assessment?: boolean; proposal?: boolean; evidence?: boolean } = {}
+  require: { assessment?: boolean; proposal?: boolean; evidence?: boolean; job?: boolean } = {}
 ): Promise<Authorized | { ok: false; response: NextResponse }> {
   const params = await context.params
   const ids = {
@@ -36,12 +37,14 @@ export async function authorize(
     assessmentId: params?.assessmentId,
     proposalId: params?.proposalId,
     evidenceId: params?.evidenceId,
+    jobId: params?.jobId,
   }
   const required = [
     ids.dealId,
     require.assessment ? ids.assessmentId : "x",
     require.proposal ? ids.proposalId : "x",
     require.evidence ? ids.evidenceId : "x",
+    require.job ? ids.jobId : "x",
   ]
   if (required.some((v) => typeof v !== "string" || !ID_PATTERN.test(v))) {
     return { ok: false, response: json({ success: false, error: "Invalid identifier." }, 400) }
