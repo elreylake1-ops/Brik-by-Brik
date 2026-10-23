@@ -50,6 +50,22 @@ export default async function ViewingAssessmentPage({ params, searchParams }: Pa
     detail = selected ? await loadAssessmentDetail(repo, dealId, selected) : null
     refurb = selected ? await getProposalAndCurrent(getRefurbDeps(), dealId, selected) : null
     financial = selected ? await getFinancialState(getRefurbDeps(), dealId, selected) : "not_found"
+    const overrides = (selected && getRefurbDeps().quoteOverrides) ? await getRefurbDeps().quoteOverrides!.list(dealId, selected) : []
+    var quoteOverrides = overrides.map((r) => ({
+      id: r.id,
+      itemId: r.itemId,
+      taskId: r.taskId,
+      quoteRef: r.quoteRef,
+      approvedAmount: r.approvedAmount,
+      approvedBy: r.approvedBy,
+      approvedAt: r.approvedAt,
+      status: r.status,
+      supersededBy: r.supersededBy,
+      vatBasis: r.vatBasis,
+      quoteType: r.quoteType,
+      scopeVerified: r.scopeVerified,
+      quoteEvidenceId: r.quoteEvidenceId,
+    }))
   } catch (error) {
     if ((error as { digest?: string })?.digest?.startsWith("NEXT_")) throw error // notFound() etc.
     return <Notice title="Viewing assessment unavailable" body="The assessment data could not be loaded. Nothing has been changed." />
@@ -101,7 +117,7 @@ export default async function ViewingAssessmentPage({ params, searchParams }: Pa
           <RefurbPlanPanel
             dealId={dealId}
             assessmentId={detail.assessment.id}
-            initial={{ proposal: refurb.proposal, current: refurb.current, measurements: refurb.latestMeasurements, financial }}
+            initial={{ proposal: refurb.proposal, current: refurb.current, measurements: refurb.latestMeasurements, financial, quoteOverrides }}
             spec={Object.entries(MEASUREMENT_SPEC).map(([key, v]) => ({ key, label: v.label, unit: v.unit, usedByEngine: v.engine, perRoom: Boolean(v.perRoom), values: v.values ?? null }))}
           />
         ) : null}

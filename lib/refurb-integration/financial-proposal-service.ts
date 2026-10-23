@@ -70,7 +70,7 @@ export async function getFinancialState(deps: PlanDeps, dealId: string, assessme
       const activeOverrides = deps.quoteOverrides ? await deps.quoteOverrides.list(dealId, assessmentId, true) : []
       const costOverrides = toCostOverrides(activeOverrides)
       const fresh = buildFinancialProposal({ plan: plan.record, measurementSet, deal: ctx.deal, overrides: costOverrides })
-      if (fresh.contentHash !== latest.contentHash) reasons.push("The Saved Deal figures (or the engine's output for them) have changed since this proposal was made.")
+      if (fresh.contentHash !== latest.contentHash) reasons.push("Saved Deal figures or contractor quotation prices have changed since this proposal was made.")
     }
   }
   const outdated = reasons.length > 0

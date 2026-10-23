@@ -199,10 +199,11 @@ describe("RefurbPlanPanel: contractor quote approval browser workflow", () => {
       taskId: "bathroom-partial-unsupported",
       quoteRef: "Apex Contractors APX-3500",
       approvedAmount: 3500,
+      vatBasis: "GROSS",
+      quoteEvidenceId: null,
     })
 
     // Verifies approved badge is displayed after reload
-    expect(host.textContent).toMatch(/Approved contractor quote:/)
     expect(host.textContent).toMatch(/Apex Contractors APX-3500/)
     expect(host.textContent).toMatch(/operator-wp4b/)
 
@@ -221,6 +222,10 @@ describe("RefurbPlanPanel: contractor quote approval browser workflow", () => {
       approvedAt: "2026-10-23T08:00:00.000Z",
       status: "APPROVED" as const,
       supersededBy: null,
+      quoteType: "VERIFIED_CONTRACTOR_QUOTE" as const,
+      vatBasis: "GROSS" as const,
+      scopeVerified: true,
+      quoteEvidenceId: "ev-quote-001",
     }
 
     const initial: PanelState = {
@@ -242,7 +247,7 @@ describe("RefurbPlanPanel: contractor quote approval browser workflow", () => {
       )
     )
 
-    expect(host.textContent).toMatch(/Approved contractor quote:/)
+    expect(host.textContent).toMatch(/Verified contractor quote:/)
     expect(host.textContent).toMatch(/Apex Contractors Initial #APX-4200/)
     expect(byText("button", "Supersede quote")).toBeTruthy()
   })

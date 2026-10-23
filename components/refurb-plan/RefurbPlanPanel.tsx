@@ -22,6 +22,10 @@ export type ContractorQuoteOverrideView = {
   approvedAt: string
   status: "APPROVED" | "SUPERSEDED" | "DECLINED"
   supersededBy: string | null
+  vatBasis?: "GROSS" | "NET_PLUS_VAT" | "EXEMPT"
+  quoteType?: "VERIFIED_CONTRACTOR_QUOTE" | "OPERATOR_PROVISIONAL_ESTIMATE"
+  scopeVerified?: boolean
+  quoteEvidenceId?: string | null
 }
 
 export type PanelState = {
@@ -73,7 +77,7 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
   const [note, setNote] = useState("")
   const [ack, setAck] = useState({ notWriteBack: false, exclusions: false, unresolvedQuantities: false })
   const [quoteOverrides, setQuoteOverrides] = useState<ContractorQuoteOverrideView[]>(initial.quoteOverrides ?? [])
-  const [quoteForms, setQuoteForms] = useState<Record<string, { quoteRef: string; approvedAmount: string }>>({})
+  const [quoteForms, setQuoteForms] = useState<Record<string, { quoteRef?: string; approvedAmount?: string; vatBasis?: "GROSS" | "NET_PLUS_VAT" | "EXEMPT"; quoteEvidenceId?: string }>>({})
   const [showQuoteForm, setShowQuoteForm] = useState<Record<string, boolean>>({})
 
   // One key per attempt, created when the button is pressed and kept until it succeeds, so a retry after a network failure
@@ -219,16 +223,19 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
   }
 
   async function approveQuote(itemId: string, taskId: string) {
-    const formData = quoteForms[itemId] ?? { quoteRef: "", approvedAmount: "" }
-    const ref = formData.quoteRef.trim()
+    const formData = quoteForms[itemId] ?? { quoteRef: "", approvedAmount: "", vatBasis: "GROSS", quoteEvidenceId: "" }
+    const ref = (formData.quoteRef ?? "").trim()
     const amount = Number(formData.approvedAmount)
+    const vatBasis = formData.vatBasis ?? "GROSS"
+    const quoteEvidenceId = formData.quoteEvidenceId?.trim() || null
+
     if (!ref) return setError("Contractor or quote reference is required.")
-    if (!Number.isFinite(amount) || amount < 0) return setError("Approved amount must be a positive number.")
-    const json = await send(`${base}/quote-overrides`, { itemId, taskId, quoteRef: ref, approvedAmount: amount })
+    if (!Number.isFinite(amount) || amount <= 0) return setError("Approved amount must be a positive number.")
+    const json = await send(`${base}/quote-overrides`, { itemId, taskId, quoteRef: ref, approvedAmount: amount, vatBasis, quoteEvidenceId })
     if (json) {
-      setDone(`Contractor quote approved: ${money(amount)} for ${ref}. Recomputing...`)
+      setDone(`Contractor price approved: ${money(amount)} for ${ref}. Recomputing...`)
       setShowQuoteForm((prev) => ({ ...prev, [itemId]: false }))
-      setQuoteForms((prev) => ({ ...prev, [itemId]: { quoteRef: "", approvedAmount: "" } }))
+      setQuoteForms((prev) => ({ ...prev, [itemId]: { quoteRef: "", approvedAmount: "", vatBasis: "GROSS", quoteEvidenceId: "" } }))
       await reload()
       await runPreview()
     }
@@ -336,9 +343,16 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
                   return (
                     <div className="mt-2 space-y-2">
                       {activeQuote ? (
-                        <div className="flex flex-wrap items-center justify-between rounded bg-emerald-50 px-2.5 py-1.5 text-xs text-emerald-950 border border-emerald-200">
+                        <div className={`flex flex-wrap items-center justify-between rounded px-2.5 py-1.5 text-xs border ${
+                          activeQuote.quoteType === "VERIFIED_CONTRACTOR_QUOTE"
+                            ? "bg-emerald-50 text-emerald-950 border-emerald-200"
+                            : "bg-amber-50 text-amber-950 border-amber-200"
+                        }`}>
                           <span>
-                            <strong className="font-semibold text-emerald-800">Approved contractor quote:</strong> {money(activeQuote.approvedAmount)} ({activeQuote.quoteRef}) approved by {activeQuote.approvedBy} at {new Date(activeQuote.approvedAt).toLocaleDateString()}
+                            <strong className={`font-semibold ${activeQuote.quoteType === "VERIFIED_CONTRACTOR_QUOTE" ? "text-emerald-800" : "text-amber-800"}`}>
+                              {activeQuote.quoteType === "VERIFIED_CONTRACTOR_QUOTE" ? "Verified contractor quote:" : "Operator provisional estimate (unverified):"}
+                            </strong>{" "}
+                            {money(activeQuote.approvedAmount)} ({activeQuote.quoteRef}, VAT: {activeQuote.vatBasis ?? "GROSS"}) approved by {activeQuote.approvedBy} at {new Date(activeQuote.approvedAt).toLocaleDateString()}
                           </span>
                           <button
                             type="button"
@@ -353,7 +367,7 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
                       {formVisible ? (
                         <div className="rounded border border-dashed border-gray-300 bg-gray-50/50 p-2 text-xs">
                           <p className="font-medium text-gray-700">{activeQuote ? "Supersede contractor quote" : "Approve contractor quote for this scope"}</p>
-                          <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                          <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-4">
                             <label>Contractor quote reference
                               <input
                                 aria-label={`Contractor quote reference for ${item.label}`}
@@ -387,6 +401,21 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
                                 }}
                               />
                             </label>
+                            <label>VAT Basis
+                              <select
+                                aria-label={`VAT basis for ${item.label}`}
+                                className="mt-0.5 w-full rounded border border-gray-300 bg-white px-1 py-0.5"
+                                value={quoteForms[item.itemId]?.vatBasis ?? "GROSS"}
+                                onChange={(e) => {
+                                  const val = e.target.value as "GROSS" | "NET_PLUS_VAT" | "EXEMPT"
+                                  setQuoteForms((f) => ({ ...f, [item.itemId]: { ...f[item.itemId], vatBasis: val } }))
+                                }}
+                              >
+                                <option value="GROSS">GROSS (inclusive)</option>
+                                <option value="NET_PLUS_VAT">NET + 20% VAT</option>
+                                <option value="EXEMPT">EXEMPT</option>
+                              </select>
+                            </label>
                             <div className="flex items-end">
                               <button
                                 type="button"
@@ -417,6 +446,8 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
                   <th className="py-1">Task / Item</th>
                   <th className="py-1">Quote Reference</th>
                   <th className="py-1">Approved Price</th>
+                  <th className="py-1">VAT Basis</th>
+                  <th className="py-1">Type</th>
                   <th className="py-1">Status</th>
                   <th className="py-1">Approved By</th>
                   <th className="py-1">Approved At</th>
@@ -428,6 +459,8 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
                     <td className="py-1">{o.taskId}</td>
                     <td className="py-1">{o.quoteRef}</td>
                     <td className="py-1">{money(o.approvedAmount)}</td>
+                    <td className="py-1">{o.vatBasis ?? "GROSS"}</td>
+                    <td className="py-1">{o.quoteType === "VERIFIED_CONTRACTOR_QUOTE" ? "Verified quote" : "Provisional"}</td>
                     <td className="py-1">{o.status}</td>
                     <td className="py-1">{o.approvedBy}</td>
                     <td className="py-1">{new Date(o.approvedAt).toLocaleString()}</td>

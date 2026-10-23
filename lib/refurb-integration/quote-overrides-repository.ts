@@ -6,6 +6,9 @@ import type { CostOverride } from "@/types/overrides"
 const S = "brik_by_brik_engine"
 const iso = (v: unknown): string => (v instanceof Date ? v.toISOString() : String(v))
 
+export type VatBasis = "GROSS" | "NET_PLUS_VAT" | "EXEMPT"
+export type QuoteType = "VERIFIED_CONTRACTOR_QUOTE" | "OPERATOR_PROVISIONAL_ESTIMATE"
+
 export type ContractorQuoteOverrideRecord = {
   id: string
   dealId: string
@@ -19,6 +22,9 @@ export type ContractorQuoteOverrideRecord = {
   approvedAt: string
   status: "APPROVED" | "SUPERSEDED" | "DECLINED"
   supersededBy: string | null
+  vatBasis: VatBasis
+  quoteType: QuoteType
+  scopeVerified: boolean
 }
 
 export type CreateQuoteOverrideInput = {
@@ -28,6 +34,7 @@ export type CreateQuoteOverrideInput = {
   quoteRef: string
   approvedAmount: number
   approvedBy: string
+  vatBasis?: VatBasis
 }
 
 export interface QuoteOverridesRepository {
@@ -48,10 +55,13 @@ const mapRow = (r: QueryResultRow): ContractorQuoteOverrideRecord => ({
   approvedAt: iso(r.approved_at),
   status: r.status as ContractorQuoteOverrideRecord["status"],
   supersededBy: r.superseded_by ?? null,
+  vatBasis: (r.vat_basis ?? "GROSS") as VatBasis,
+  quoteType: (r.quote_type ?? "OPERATOR_PROVISIONAL_ESTIMATE") as QuoteType,
+  scopeVerified: Boolean(r.scope_verified),
 })
 
 const FIELDS =
-  "id, deal_id, assessment_id, item_id, task_id, quote_evidence_id, quote_ref, approved_amount, approved_by, approved_at, status, superseded_by"
+  "id, deal_id, assessment_id, item_id, task_id, quote_evidence_id, quote_ref, approved_amount, approved_by, approved_at, status, superseded_by, vat_basis, quote_type, scope_verified"
 
 async function withTransaction<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await getPostgresPool().connect()
@@ -85,10 +95,39 @@ export const pgQuoteOverridesRepository: QuoteOverridesRepository = {
     assessmentId: string,
     input: CreateQuoteOverrideInput
   ): Promise<ContractorQuoteOverrideRecord> {
+    if (!Number.isFinite(input.approvedAmount) || input.approvedAmount < 0 || input.approvedAmount > 10_000_000) {
+      throw new Error("approvedAmount must be between 0 and 10,000,000")
+    }
+
+    const vatBasis: VatBasis = input.vatBasis ?? "GROSS"
+
     return withTransaction(async (client) => {
-      // Find existing active approved override for this specific task
+      let quoteType: QuoteType = "OPERATOR_PROVISIONAL_ESTIMATE"
+      let scopeVerified = false
+
+      if (input.quoteEvidenceId) {
+        // Enforce evidence integrity & cross-deal protection
+        const evRes = await client.query(
+          `SELECT id, deal_id, evidence_type FROM ${S}.deal_evidence WHERE id = $1`,
+          [input.quoteEvidenceId]
+        )
+        if (evRes.rows.length === 0) {
+          throw new Error(`Invalid quoteEvidenceId: evidence record "${input.quoteEvidenceId}" not found`)
+        }
+        const ev = evRes.rows[0]
+        if (ev.deal_id !== dealId) {
+          throw new Error(`Cross-deal quotation evidence reference forbidden: evidence belongs to deal "${ev.deal_id}", not "${dealId}"`)
+        }
+        if (ev.evidence_type !== "BUILDER_QUOTE" && ev.evidence_type !== "BUILDER_PROPOSAL" && ev.evidence_type !== "BUILDER_CONTRACT") {
+          throw new Error(`Invalid quote evidence type: expected BUILDER_QUOTE, got "${ev.evidence_type}"`)
+        }
+        quoteType = "VERIFIED_CONTRACTOR_QUOTE"
+        scopeVerified = true
+      }
+
+      // Lock and find existing active approved overrides for this specific task
       const existing = await client.query(
-        `SELECT id FROM ${S}.contractor_quote_overrides WHERE deal_id = $1 AND assessment_id = $2 AND task_id = $3 AND status = 'APPROVED'`,
+        `SELECT id FROM ${S}.contractor_quote_overrides WHERE deal_id = $1 AND assessment_id = $2 AND task_id = $3 AND status = 'APPROVED' FOR UPDATE`,
         [dealId, assessmentId, input.taskId]
       )
 
@@ -105,8 +144,8 @@ export const pgQuoteOverridesRepository: QuoteOverridesRepository = {
 
       const inserted = await client.query(
         `INSERT INTO ${S}.contractor_quote_overrides (
-          id, deal_id, assessment_id, item_id, task_id, quote_evidence_id, quote_ref, approved_amount, approved_by, approved_at, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), 'APPROVED')
+          id, deal_id, assessment_id, item_id, task_id, quote_evidence_id, quote_ref, approved_amount, approved_by, approved_at, status, vat_basis, quote_type, scope_verified
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), 'APPROVED', $10, $11, $12)
         RETURNING ${FIELDS}`,
         [
           newId,
@@ -118,6 +157,9 @@ export const pgQuoteOverridesRepository: QuoteOverridesRepository = {
           input.quoteRef,
           input.approvedAmount,
           input.approvedBy,
+          vatBasis,
+          quoteType,
+          scopeVerified,
         ]
       )
 
@@ -142,6 +184,9 @@ export function createInMemoryQuoteOverridesRepository(
         .sort((a, b) => b.approvedAt.localeCompare(a.approvedAt))
     },
     async createAndApprove(dealId: string, assessmentId: string, input: CreateQuoteOverrideInput) {
+      if (!Number.isFinite(input.approvedAmount) || input.approvedAmount < 0 || input.approvedAmount > 10_000_000) {
+        throw new Error("approvedAmount must be between 0 and 10,000,000")
+      }
       const newId = `cvr-${randomUUID()}`
       for (const r of records) {
         if (
@@ -154,6 +199,10 @@ export function createInMemoryQuoteOverridesRepository(
           r.supersededBy = newId
         }
       }
+      const vatBasis: VatBasis = input.vatBasis ?? "GROSS"
+      const quoteType: QuoteType = input.quoteEvidenceId ? "VERIFIED_CONTRACTOR_QUOTE" : "OPERATOR_PROVISIONAL_ESTIMATE"
+      const scopeVerified = Boolean(input.quoteEvidenceId)
+
       const newRecord: ContractorQuoteOverrideRecord = {
         id: newId,
         dealId,
@@ -167,6 +216,9 @@ export function createInMemoryQuoteOverridesRepository(
         approvedAt: new Date().toISOString(),
         status: "APPROVED",
         supersededBy: null,
+        vatBasis,
+        quoteType,
+        scopeVerified,
       }
       records.unshift(newRecord)
       return { ...newRecord }
@@ -182,6 +234,6 @@ export function toCostOverrides(records: readonly ContractorQuoteOverrideRecord[
       type: "contractor_quote" as const,
       targetTaskId: r.taskId,
       value: r.approvedAmount,
-      reason: `${r.quoteRef}: approved £${r.approvedAmount} by ${r.approvedBy}`,
+      reason: `${r.quoteRef} (${r.quoteType === "VERIFIED_CONTRACTOR_QUOTE" ? "Verified quotation" : "Provisional estimate"}, VAT: ${r.vatBasis}): approved £${r.approvedAmount} by ${r.approvedBy}`,
     }))
 }
