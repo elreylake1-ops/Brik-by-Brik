@@ -81,16 +81,20 @@ export function buildCheckStates(checkIds: readonly string[], proposals: readonl
   })
 }
 
-export type CheckFilter = "all" | "needs_review" | "specialist" | "not_assessed" | "reviewed"
+export type CheckFilter = "all" | "needs_review" | "concerns" | "specialist" | "reviewed" | "not_assessed" | "evidence_gaps"
 
 export function filterChecks(rows: readonly CheckStateRow[], filter: CheckFilter): CheckStateRow[] {
   switch (filter) {
     case "needs_review":
       return rows.filter((r) => r.pendingCount > 0)
+    case "concerns":
+      return rows.filter((r) => r.state === "CONCERN")
     case "specialist":
       return rows.filter((r) => r.needsSpecialist)
     case "not_assessed":
       return rows.filter((r) => r.state === "NOT_ASSESSED")
+    case "evidence_gaps":
+      return rows.filter((r) => r.state === "NOT_ASSESSED" && r.items.length === 0)
     case "reviewed":
       return rows.filter((r) => r.basis === "human_reviewed")
     default:
@@ -106,5 +110,6 @@ export function summariseChecks(rows: readonly CheckStateRow[]) {
     awaitingReview: rows.filter((r) => r.pendingCount > 0).length,
     specialist: rows.filter((r) => r.needsSpecialist).length,
     concern: rows.filter((r) => r.state === "CONCERN").length,
+    evidenceGaps: rows.filter((r) => r.state === "NOT_ASSESSED" && r.items.length === 0).length,
   }
 }

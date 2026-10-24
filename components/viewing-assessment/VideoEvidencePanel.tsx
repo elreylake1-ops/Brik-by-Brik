@@ -559,7 +559,7 @@ export default function VideoEvidencePanel({
                 className={BUTTON_SECONDARY}
                 onClick={() => setShowContactSheet(true)}
               >
-                View Contact Sheet [DERIVATIVE]
+                View Contact Sheet
               </button>
             )}
           </div>
@@ -621,8 +621,8 @@ export default function VideoEvidencePanel({
                       <span className="absolute top-1 left-1 rounded bg-black/75 px-1.5 py-0.5 text-[9px] font-mono font-bold text-white tracking-wider">
                         F{String(frame.sequenceNo).padStart(2, "0")} · {formatMmSs(frame.sourceTimeMs)}
                       </span>
-                      <span className="absolute top-1 right-1 rounded bg-amber-500/90 px-1 py-0.2 text-[8px] font-bold text-white uppercase">
-                        Derivative
+                      <span className="absolute top-1 right-1 rounded bg-slate-900/70 backdrop-blur-xs px-1.5 py-0.5 text-[8px] font-semibold text-slate-200 uppercase tracking-wide">
+                        Still
                       </span>
                     </div>
 
@@ -787,7 +787,7 @@ export default function VideoEvidencePanel({
               {/* Checklist Item Picker */}
               <div>
                 <label className="block font-semibold text-slate-700">
-                  Target Checklist Item (Unapproved Working Draft)
+                  Target Inspection Check
                 </label>
                 <select
                   value={attachCheckId}
@@ -796,7 +796,7 @@ export default function VideoEvidencePanel({
                 >
                   {checks.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.id} {c.title ? `- ${c.title} [DRAFT]` : ""}
+                      {c.id} {c.title ? `- ${c.title}` : ""}
                     </option>
                   ))}
                 </select>

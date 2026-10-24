@@ -106,7 +106,7 @@ export default function ViewingAssessmentPanel({ dealId, assessments, detail, ch
 
       <p role="note" data-testid="mock-banner" className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
         <strong>Simulated AI findings.</strong> Unless a live provider has been enabled, findings below come from a deterministic fixture, not real
-        AI video analysis. Original videos are never uploaded; only the still frames you save are stored, privately. All findings are unverified drafts
+        AI video analysis. Video footage is processed directly in isolated local storage for frame extraction; raw footage is never sent to external third-party cloud services. All findings are unverified drafts
         until a person reviews them; accepting one does not certify condition.
       </p>
 
@@ -179,7 +179,15 @@ export default function ViewingAssessmentPanel({ dealId, assessments, detail, ch
             <Stat label="Checks not assessed" value={`${detail.summary.checksWithoutReviewedFinding} of ${detail.summary.checklistTotal}`} />
           </dl>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              className="rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-xs hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+              disabled={busy || detail.summary.evidenceFrameCount === 0}
+              onClick={() => call(`${assessmentBase}/analysis-runs`, { idempotencyKey: newKey() })}
+            >
+              Run analysis
+            </button>
             <button
               type="button"
               className={BUTTON}
@@ -187,14 +195,6 @@ export default function ViewingAssessmentPanel({ dealId, assessments, detail, ch
               onClick={() => call(`${assessmentBase}/evidence`, { clip: { ...MOCK_CLIP, contentSha256: null }, frames: MOCK_FRAMES })}
             >
               Add simulated evidence (metadata only, no image)
-            </button>
-            <button
-              type="button"
-              className={BUTTON}
-              disabled={busy || detail.summary.evidenceFrameCount === 0}
-              onClick={() => call(`${assessmentBase}/analysis-runs`, { idempotencyKey: newKey() })}
-            >
-              Run analysis
             </button>
           </div>
           {detail.summary.evidenceFrameCount === 0 ? (
@@ -209,7 +209,19 @@ export default function ViewingAssessmentPanel({ dealId, assessments, detail, ch
             headers={headers}
           />
 
-          <VideoCapture baseUrl={assessmentBase} onSaved={() => router.refresh()} />
+          {/* Alternative In-Browser Capture Workflow (Collapsible Fallback) */}
+          <details className="group rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+            <summary className="flex cursor-pointer items-center justify-between bg-slate-50/80 px-4 py-3 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors select-none">
+              <span className="flex items-center gap-2">
+                <span className="text-slate-400">📹</span>
+                <span>Alternative In-Browser Video Capture (Client-Side Canvas Sampling)</span>
+              </span>
+              <span className="text-[11px] font-normal text-slate-500">Optional Fallback Tool</span>
+            </summary>
+            <div className="p-3 border-t border-slate-200">
+              <VideoCapture baseUrl={assessmentBase} onSaved={() => router.refresh()} />
+            </div>
+          </details>
 
           {detail.evidence.length > 0 ? (
             <details className="text-sm" data-testid="evidence-list">

@@ -269,37 +269,86 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
       {done ? <p role="status" className="mt-2 text-xs text-green-800">{done}</p> : null}
 
       <fieldset className="mt-4" aria-label="Measurements">
-        <legend className="font-medium">1. Measurements {state.measurements ? `(saved version ${state.measurements.version})` : "(none saved yet)"}</legend>
-        <p className="text-xs text-gray-600">Say how each value is known. Bedrooms and bathrooms are needed to cost anything. Unknown is a valid answer.</p>
-        <div className="mt-2 space-y-2">
+        <legend className="font-semibold text-slate-900">
+          1. Measurements {state.measurements ? `(saved version ${state.measurements.version})` : "(none saved yet)"}
+        </legend>
+        <p className="text-xs text-slate-600 mt-0.5">
+          Specify how each dimension is verified. Bedrooms and bathrooms are required for engine calculations. Measurements are entered by you, never read from video.
+        </p>
+        <div className="mt-3 space-y-2.5">
           {rows.map((r, i) => {
             const sp = spec.find((s) => s.key === r.key)
             return (
-              <div key={`${r.key}-${i}`} className="grid grid-cols-2 gap-1 rounded border border-gray-200 p-2 text-xs sm:grid-cols-6">
-                <label>{sp?.label ?? r.key}{sp && !sp.usedByEngine ? " (for builders)" : ""}
-                  {sp?.values ? (
-                    <select className="mt-1 w-full rounded border border-gray-300 px-1 py-0.5" value={r.value} aria-label={`${sp.label} value`} onChange={(e) => setRow(i, { value: e.target.value })}><option value="" />{sp.values.map((v) => <option key={v}>{v}</option>)}</select>
-                  ) : (
-                    <input className="mt-1 w-full rounded border border-gray-300 px-1 py-0.5" inputMode="decimal" value={r.value} aria-label={`${sp?.label ?? r.key} value`} onChange={(e) => setRow(i, { value: e.target.value })} />
-                  )}
-                </label>
-                {sp?.perRoom || !sp?.usedByEngine ? <label>Room<input className="mt-1 w-full rounded border border-gray-300 px-1 py-0.5" value={r.room} aria-label={`${sp?.label ?? r.key} room`} onChange={(e) => setRow(i, { room: e.target.value })} /></label> : <span />}
-                <label>Basis<select className="mt-1 w-full rounded border border-gray-300 px-1 py-0.5" value={r.basis} aria-label={`${sp?.label ?? r.key} basis`} onChange={(e) => setRow(i, { basis: e.target.value })}><option>MEASURED</option><option>OPERATOR_ESTIMATE</option><option>UNKNOWN</option></select></label>
-                <label>Source<select className="mt-1 w-full rounded border border-gray-300 px-1 py-0.5" value={r.source} disabled={r.basis === "UNKNOWN"} aria-label={`${sp?.label ?? r.key} source`} onChange={(e) => setRow(i, { source: e.target.value })}>{SOURCES.map((s) => <option key={s}>{s}</option>)}</select></label>
-                <label>Confidence<select className="mt-1 w-full rounded border border-gray-300 px-1 py-0.5" value={r.confidence} disabled={r.basis === "UNKNOWN"} aria-label={`${sp?.label ?? r.key} confidence`} onChange={(e) => setRow(i, { confidence: e.target.value })}><option>high</option><option>medium</option><option>low</option></select></label>
-                <label>Note<input className="mt-1 w-full rounded border border-gray-300 px-1 py-0.5" value={r.note} aria-label={`${sp?.label ?? r.key} note`} onChange={(e) => setRow(i, { note: e.target.value })} /></label>
-                <label className="col-span-2 flex items-center gap-1 sm:col-span-6"><input type="checkbox" checked={r.acknowledgedImplausible} onChange={(e) => setRow(i, { acknowledgedImplausible: e.target.checked })} /> I have checked this value even if it is unusual</label>
+              <div key={`${r.key}-${i}`} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 text-xs shadow-xs transition-all hover:border-slate-300">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-6 items-end">
+                  <label className="block">
+                    <span className="font-medium text-slate-700">
+                      {sp?.label ?? r.key}{sp && !sp.usedByEngine ? " (Builder Specification)" : ""}
+                    </span>
+                    {sp?.values ? (
+                      <select className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800" value={r.value} aria-label={`${sp.label} value`} onChange={(e) => setRow(i, { value: e.target.value })}>
+                        <option value="" />{sp.values.map((v) => <option key={v}>{v}</option>)}
+                      </select>
+                    ) : (
+                      <input className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800" inputMode="decimal" value={r.value} aria-label={`${sp?.label ?? r.key} value`} onChange={(e) => setRow(i, { value: e.target.value })} />
+                    )}
+                  </label>
+                  {sp?.perRoom || !sp?.usedByEngine ? (
+                    <label className="block">
+                      <span className="font-medium text-slate-700">Room</span>
+                      <input className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800" value={r.room} aria-label={`${sp?.label ?? r.key} room`} onChange={(e) => setRow(i, { room: e.target.value })} />
+                    </label>
+                  ) : <span className="hidden sm:block" />}
+                  <label className="block">
+                    <span className="font-medium text-slate-700">Basis</span>
+                    <select className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800" value={r.basis} aria-label={`${sp?.label ?? r.key} basis`} onChange={(e) => setRow(i, { basis: e.target.value })}>
+                      <option>MEASURED</option><option>OPERATOR_ESTIMATE</option><option>UNKNOWN</option>
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="font-medium text-slate-700">Source</span>
+                    <select className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800 disabled:opacity-50" value={r.source} disabled={r.basis === "UNKNOWN"} aria-label={`${sp?.label ?? r.key} source`} onChange={(e) => setRow(i, { source: e.target.value })}>
+                      {SOURCES.map((s) => <option key={s}>{s}</option>)}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="font-medium text-slate-700">Confidence</span>
+                    <select className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800 disabled:opacity-50" value={r.confidence} disabled={r.basis === "UNKNOWN"} aria-label={`${sp?.label ?? r.key} confidence`} onChange={(e) => setRow(i, { confidence: e.target.value })}>
+                      <option>high</option><option>medium</option><option>low</option>
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="font-medium text-slate-700">Note</span>
+                    <input className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-800" value={r.note} aria-label={`${sp?.label ?? r.key} note`} onChange={(e) => setRow(i, { note: e.target.value })} />
+                  </label>
+                </div>
+                <div className="mt-2 pt-2 border-t border-slate-200/60 flex items-center gap-2">
+                  <input id={`ack-impl-${i}`} type="checkbox" checked={r.acknowledgedImplausible} onChange={(e) => setRow(i, { acknowledgedImplausible: e.target.checked })} className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                  <label htmlFor={`ack-impl-${i}`} className="text-[11px] text-slate-600 cursor-pointer select-none">
+                    Confirm unusual dimension verified on site (acknowledged)
+                  </label>
+                </div>
               </div>
             )
           })}
         </div>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-          <select aria-label="Add a measurement" className="rounded border border-gray-300 px-1 py-0.5" value="" onChange={(e) => e.target.value && setRows((rs) => [...rs, blankRow(e.target.value)])}>
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+          <select aria-label="Add a measurement" className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800" value="" onChange={(e) => e.target.value && setRows((rs) => [...rs, blankRow(e.target.value)])}>
             <option value="">Add another measurement...</option>
             {extraKeys.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
           </select>
-          {state.measurements ? <input aria-label="What was wrong with the previous version" placeholder="What was wrong with the previous version?" className="min-w-64 flex-1 rounded border border-gray-300 px-1 py-0.5" value={changeNote} onChange={(e) => setChangeNote(e.target.value)} /> : null}
-          <button type="button" disabled={busy} onClick={saveMeasurements} className="rounded border border-gray-400 px-3 py-1.5 text-sm">Save measurements</button>
+          {state.measurements ? (
+            <input
+              aria-label="What was wrong with the previous version"
+              placeholder="Reason for revision (e.g. on-site re-measurement)"
+              className="min-w-64 flex-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-800"
+              value={changeNote}
+              onChange={(e) => setChangeNote(e.target.value)}
+            />
+          ) : null}
+          <button type="button" disabled={busy} onClick={saveMeasurements} className="rounded-lg bg-slate-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50 transition-colors">
+            Save measurements
+          </button>
         </div>
       </fieldset>
 
