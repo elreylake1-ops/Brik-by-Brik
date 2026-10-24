@@ -18,6 +18,9 @@ const assessmentId = "asmt-wp4b-live-01"
 
 console.log("Seeding fresh WP4B demo deal into PostgreSQL:", dealId, assessmentId)
 
+// Clear previous quote overrides for clean acceptance runs
+await pool.query("DELETE FROM brik_by_brik_engine.contractor_quote_overrides WHERE deal_id = $1", [dealId])
+
 // 1. Saved Deal
 await pool.query(
   `INSERT INTO brik_by_brik_engine.saved_deals (

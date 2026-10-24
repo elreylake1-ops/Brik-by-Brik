@@ -95,13 +95,14 @@ export const pgQuoteOverridesRepository: QuoteOverridesRepository = {
     assessmentId: string,
     input: CreateQuoteOverrideInput
   ): Promise<ContractorQuoteOverrideRecord> {
-    if (!Number.isFinite(input.approvedAmount) || input.approvedAmount < 0 || input.approvedAmount > 10_000_000) {
-      throw new Error("approvedAmount must be between 0 and 10,000,000")
+    if (!Number.isFinite(input.approvedAmount) || input.approvedAmount <= 0 || input.approvedAmount > 10_000_000) {
+      throw new Error("approvedAmount must be a positive number greater than 0 and at most 10,000,000")
     }
 
     const vatBasis: VatBasis = input.vatBasis ?? "GROSS"
 
-    return withTransaction(async (client) => {
+    try {
+      return await withTransaction(async (client) => {
       let quoteType: QuoteType = "OPERATOR_PROVISIONAL_ESTIMATE"
       let scopeVerified = false
 
@@ -165,6 +166,12 @@ export const pgQuoteOverridesRepository: QuoteOverridesRepository = {
 
       return mapRow(inserted.rows[0])
     })
+    } catch (err: unknown) {
+      if (typeof err === "object" && err !== null && "code" in err && (err as { code: string }).code === "23505") {
+        throw new Error("A conflicting active contractor quotation has already been approved for this task.")
+      }
+      throw err
+    }
   },
 }
 
@@ -184,8 +191,8 @@ export function createInMemoryQuoteOverridesRepository(
         .sort((a, b) => b.approvedAt.localeCompare(a.approvedAt))
     },
     async createAndApprove(dealId: string, assessmentId: string, input: CreateQuoteOverrideInput) {
-      if (!Number.isFinite(input.approvedAmount) || input.approvedAmount < 0 || input.approvedAmount > 10_000_000) {
-        throw new Error("approvedAmount must be between 0 and 10,000,000")
+      if (!Number.isFinite(input.approvedAmount) || input.approvedAmount <= 0 || input.approvedAmount > 10_000_000) {
+        throw new Error("approvedAmount must be a positive number greater than 0 and at most 10,000,000")
       }
       const newId = `cvr-${randomUUID()}`
       for (const r of records) {

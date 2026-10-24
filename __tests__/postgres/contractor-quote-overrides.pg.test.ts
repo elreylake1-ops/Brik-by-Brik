@@ -333,6 +333,28 @@ describeIf("PostgreSQL contractor quote overrides repository (isolated QA only)"
   })
 
   it("6. Enforces bounds checking on approved amount (rejects negative, zero, and out-of-range amounts)", async () => {
+    // Exactly £0 rejected by repository
+    await expect(
+      pgQuoteOverridesRepository.createAndApprove(dealId, assessmentId, {
+        itemId: "bathroom",
+        taskId: "bathroom-partial-unsupported",
+        quoteRef: "Zero price quote",
+        approvedAmount: 0,
+        approvedBy: "operator-wp4b",
+      })
+    ).rejects.toThrow(/approvedAmount must be a positive number greater than 0/)
+
+    // Direct PostgreSQL insert of £0 is rejected by ck_quote_override_amount
+    await expect(
+      query(
+        `INSERT INTO brik_by_brik_engine.contractor_quote_overrides (
+          id, deal_id, assessment_id, item_id, task_id, quote_ref, approved_amount, approved_by, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'APPROVED')`,
+        ["cvr-zero-direct", dealId, assessmentId, "bathroom", "bathroom-partial-unsupported", "Direct Zero", 0, "op"]
+      )
+    ).rejects.toThrow(/ck_quote_override_amount/)
+
+    // Negative amount rejected by repository
     await expect(
       pgQuoteOverridesRepository.createAndApprove(dealId, assessmentId, {
         itemId: "bathroom",
@@ -341,8 +363,19 @@ describeIf("PostgreSQL contractor quote overrides repository (isolated QA only)"
         approvedAmount: -500,
         approvedBy: "operator-wp4b",
       })
-    ).rejects.toThrow(/approvedAmount must be between 0 and 10,000,000/)
+    ).rejects.toThrow(/approvedAmount must be a positive number greater than 0/)
 
+    // Direct PostgreSQL insert of negative amount is rejected
+    await expect(
+      query(
+        `INSERT INTO brik_by_brik_engine.contractor_quote_overrides (
+          id, deal_id, assessment_id, item_id, task_id, quote_ref, approved_amount, approved_by, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'APPROVED')`,
+        ["cvr-neg-direct", dealId, assessmentId, "bathroom", "bathroom-partial-unsupported", "Direct Neg", -500, "op"]
+      )
+    ).rejects.toThrow(/ck_quote_override_amount/)
+
+    // Out-of-range (>10M) rejected by repository
     await expect(
       pgQuoteOverridesRepository.createAndApprove(dealId, assessmentId, {
         itemId: "bathroom",
@@ -351,10 +384,52 @@ describeIf("PostgreSQL contractor quote overrides repository (isolated QA only)"
         approvedAmount: 15_000_000,
         approvedBy: "operator-wp4b",
       })
-    ).rejects.toThrow(/approvedAmount must be between 0 and 10,000,000/)
+    ).rejects.toThrow(/approvedAmount must be a positive number greater than 0 and at most 10,000,000/)
+
+    // Direct PostgreSQL insert of >10M is rejected
+    await expect(
+      query(
+        `INSERT INTO brik_by_brik_engine.contractor_quote_overrides (
+          id, deal_id, assessment_id, item_id, task_id, quote_ref, approved_amount, approved_by, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'APPROVED')`,
+        ["cvr-huge-direct", dealId, assessmentId, "bathroom", "bathroom-partial-unsupported", "Direct Huge", 15000000, "op"]
+      )
+    ).rejects.toThrow(/ck_quote_override_amount/)
   })
 
-  it("7. Atomically handles concurrent / parallel quote approvals with FOR UPDATE locking", async () => {
+  it("7. Simultaneous first approvals for the same unquoted task cannot retain two active approved quotations in PostgreSQL", async () => {
+    // Unique partial index uq_contractor_quote_active_task guarantees exactly one active quote per task
+    const id1 = `cvr-concurrent-task-1`
+    const id2 = `cvr-concurrent-task-2`
+    const taskId = "task-unquoted-concurrent"
+
+    await query(
+      `INSERT INTO brik_by_brik_engine.contractor_quote_overrides (
+        id, deal_id, assessment_id, item_id, task_id, quote_ref, approved_amount, approved_by, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'APPROVED')`,
+      [id1, dealId, assessmentId, "bathroom", taskId, "Active 1", 1000, "op1"]
+    )
+
+    // Second simultaneous active insert for the exact same task must violate unique partial index
+    await expect(
+      query(
+        `INSERT INTO brik_by_brik_engine.contractor_quote_overrides (
+          id, deal_id, assessment_id, item_id, task_id, quote_ref, approved_amount, approved_by, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'APPROVED')`,
+        [id2, dealId, assessmentId, "bathroom", taskId, "Active 2", 1200, "op2"]
+      )
+    ).rejects.toThrow(/uq_contractor_quote_active_task/)
+
+    // Exactly one active quote remains in database
+    const activeRes = await query(
+      `SELECT id FROM brik_by_brik_engine.contractor_quote_overrides WHERE deal_id = $1 AND assessment_id = $2 AND task_id = $3 AND status = 'APPROVED'`,
+      [dealId, assessmentId, taskId]
+    )
+    expect(activeRes.rows.length).toBe(1)
+    expect(activeRes.rows[0].id).toBe(id1)
+  })
+
+  it("7b. Atomically handles concurrent / parallel quote approvals with FOR UPDATE locking and supersession", async () => {
     // Fire two concurrent approvals for the same task
     const [res1, res2] = await Promise.all([
       pgQuoteOverridesRepository.createAndApprove(dealId, assessmentId, {
