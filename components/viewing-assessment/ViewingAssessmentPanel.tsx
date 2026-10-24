@@ -106,7 +106,7 @@ export default function ViewingAssessmentPanel({ dealId, assessments, detail, ch
 
       <p role="note" data-testid="mock-banner" className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
         <strong>Simulated AI findings.</strong> Unless a live provider has been enabled, findings below come from a deterministic fixture, not real
-        AI video analysis. Video footage is processed directly in isolated local storage for frame extraction; raw footage is never sent to external third-party cloud services. All findings are unverified drafts
+        AI video analysis. In this demonstration environment, video footage is retained and processed in isolated local storage for frame extraction; raw footage is not transmitted to external cloud AI services without explicit configuration. Source footage and derived still frames remain subject to configured data retention policies. All findings are unverified drafts
         until a person reviews them; accepting one does not certify condition.
       </p>
 
@@ -185,8 +185,9 @@ export default function ViewingAssessmentPanel({ dealId, assessments, detail, ch
               className="rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-xs hover:bg-emerald-700 disabled:opacity-50 transition-colors"
               disabled={busy || detail.summary.evidenceFrameCount === 0}
               onClick={() => call(`${assessmentBase}/analysis-runs`, { idempotencyKey: newKey() })}
+              title="Generate simulated inspection findings for demonstration"
             >
-              Run analysis
+              <span className="sr-only">Run analysis: </span>Run Simulated Analysis
             </button>
             <button
               type="button"

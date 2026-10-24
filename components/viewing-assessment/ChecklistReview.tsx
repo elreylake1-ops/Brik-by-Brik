@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type ReactNode } from "react"
+import { useState, useEffect, type ReactNode } from "react"
 import { filterChecks, summariseChecks, type CheckFilter, type CheckState, type CheckStateRow } from "@/lib/viewing-assessment/check-states"
 
 // All checks, in checklist order, each with an explicit state. NOT ASSESSED is the default and stays the state until a
@@ -150,6 +150,7 @@ export default function ChecklistReview({ rows, meta, renderItems }: Props) {
           const groupConcerns = group.rows.filter((r) => r.state === "CONCERN").length
           const groupSpecialist = group.rows.filter((r) => r.needsSpecialist).length
           const groupAssessed = group.rows.filter((r) => r.basis === "human_reviewed").length
+          const hasActionable = groupConcerns > 0 || groupPending > 0 || groupSpecialist > 0 || filter !== "all"
 
           if (!group.name) {
             return (
@@ -164,50 +165,88 @@ export default function ChecklistReview({ rows, meta, renderItems }: Props) {
           }
 
           return (
-            <details
-              key={`${group.name}-${i}`}
-              className="group rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden"
-              open
-            >
-              <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 bg-slate-50/80 px-3.5 py-2.5 text-xs font-semibold select-none hover:bg-slate-100/70 transition-colors border-b border-slate-200">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-bold uppercase tracking-wider text-slate-800">{group.name}</h4>
-                  <span className="text-slate-400 font-normal">({groupTotal} check{groupTotal === 1 ? "" : "s"})</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {groupConcerns > 0 && (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
-                      {groupConcerns} concern{groupConcerns === 1 ? "" : "s"}
-                    </span>
-                  )}
-                  {groupSpecialist > 0 && (
-                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-900">
-                      {groupSpecialist} specialist
-                    </span>
-                  )}
-                  {groupPending > 0 && (
-                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 border border-amber-200">
-                      {groupPending} pending
-                    </span>
-                  )}
-                  <span className="text-[11px] font-medium text-slate-500">
-                    {groupAssessed}/{groupTotal} assessed
-                  </span>
-                </div>
-              </summary>
-              <div className="p-2 bg-slate-50/20">
-                <ul className="space-y-1.5">
-                  {group.rows.map((row) => (
-                    <CheckRow key={row.checkId} row={row} title={byId.get(row.checkId)?.title}>
-                      {renderItems(row, byId.get(row.checkId)?.title)}
-                    </CheckRow>
-                  ))}
-                </ul>
-              </div>
-            </details>
+            <CategoryGroupAccordion
+              key={`${group.name}-${i}-${filter}`}
+              name={group.name}
+              rows={group.rows}
+              filter={filter}
+              byId={byId}
+              renderItems={renderItems}
+            />
           )
         })}
       </div>
     </section>
+  )
+}
+
+function CategoryGroupAccordion({
+  name,
+  rows,
+  filter,
+  byId,
+  renderItems,
+}: {
+  name: string
+  rows: CheckStateRow[]
+  filter: CheckFilter
+  byId: Map<string, CheckMeta>
+  renderItems: (row: CheckStateRow, title?: string) => React.ReactNode
+}) {
+  const groupTotal = rows.length
+  const groupPending = rows.reduce((acc, r) => acc + r.pendingCount, 0)
+  const groupConcerns = rows.filter((r) => r.state === "CONCERN").length
+  const groupSpecialist = rows.filter((r) => r.needsSpecialist).length
+  const groupAssessed = rows.filter((r) => r.basis === "human_reviewed").length
+  const hasActionable = groupConcerns > 0 || groupPending > 0 || groupSpecialist > 0 || filter !== "all"
+  const [isOpen, setIsOpen] = useState(hasActionable)
+
+  useEffect(() => {
+    setIsOpen(hasActionable)
+  }, [hasActionable, filter])
+
+  return (
+    <details
+      className="group rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden"
+      open={isOpen}
+      onToggle={(e) => setIsOpen(e.currentTarget.open)}
+    >
+      <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 bg-slate-50/80 px-3.5 py-2.5 text-xs font-semibold select-none hover:bg-slate-100/70 transition-colors border-b border-slate-200">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-slate-400 group-open:rotate-90 transition-transform duration-150 inline-block">▶</span>
+          <h4 className="font-bold uppercase tracking-wider text-slate-800">{name}</h4>
+          <span className="text-slate-400 font-normal">({groupTotal} check{groupTotal === 1 ? "" : "s"})</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {groupConcerns > 0 && (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
+              {groupConcerns} concern{groupConcerns === 1 ? "" : "s"}
+            </span>
+          )}
+          {groupSpecialist > 0 && (
+            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-900">
+              {groupSpecialist} specialist
+            </span>
+          )}
+          {groupPending > 0 && (
+            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 border border-amber-200">
+              {groupPending} pending
+            </span>
+          )}
+          <span className="text-[11px] font-medium text-slate-500">
+            {groupAssessed}/{groupTotal} assessed
+          </span>
+        </div>
+      </summary>
+      <div className="p-2 bg-slate-50/20">
+        <ul className="space-y-1.5">
+          {rows.map((row) => (
+            <CheckRow key={row.checkId} row={row} title={byId.get(row.checkId)?.title}>
+              {renderItems(row, byId.get(row.checkId)?.title)}
+            </CheckRow>
+          ))}
+        </ul>
+      </div>
+    </details>
   )
 }

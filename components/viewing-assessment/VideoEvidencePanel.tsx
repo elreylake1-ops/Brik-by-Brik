@@ -559,7 +559,7 @@ export default function VideoEvidencePanel({
                 className={BUTTON_SECONDARY}
                 onClick={() => setShowContactSheet(true)}
               >
-                View Contact Sheet
+                View Contact Sheet [Derivative]
               </button>
             )}
           </div>
@@ -608,7 +608,7 @@ export default function VideoEvidencePanel({
                     <div className="relative aspect-video w-full bg-slate-100 overflow-hidden">
                       {frame.thumbnailUrl ? (
                         <img
-                          src={frame.thumbnailUrl}
+                           src={frame.thumbnailUrl}
                           alt={`Frame ${frame.sequenceNo} at ${formatMmSs(frame.sourceTimeMs)}`}
                           className="h-full w-full object-cover"
                           loading="lazy"
@@ -622,7 +622,7 @@ export default function VideoEvidencePanel({
                         F{String(frame.sequenceNo).padStart(2, "0")} · {formatMmSs(frame.sourceTimeMs)}
                       </span>
                       <span className="absolute top-1 right-1 rounded bg-slate-900/70 backdrop-blur-xs px-1.5 py-0.5 text-[8px] font-semibold text-slate-200 uppercase tracking-wide">
-                        Still
+                        Derived Still
                       </span>
                     </div>
 
