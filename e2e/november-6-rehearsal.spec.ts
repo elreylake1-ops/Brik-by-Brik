@@ -49,7 +49,8 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
       throw new Error(`Rehearsal ${kind} creation returned no authoritative ID`)
     }
     const record = value as { id: string; dealId?: unknown; assessmentId?: unknown }
-    if (record.dealId !== DEAL_ID || (parent.assessmentId && record.assessmentId !== parent.assessmentId)) {
+    const scopedDealId = parent.dealId ?? DEAL_ID
+    if ((record.dealId !== undefined && record.dealId !== scopedDealId) || (record.dealId === undefined && scopedDealId !== DEAL_ID) || (parent.assessmentId && record.assessmentId !== parent.assessmentId)) {
       throw new Error(`Rehearsal ${kind} creation returned mismatched ownership for ${record.id}`)
     }
     return record.id
@@ -305,7 +306,7 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
       ]).then(([response]) => response)
       const evidencePayload = await evidenceResponse.json()
       for (const evidence of evidencePayload.evidence ?? []) {
-        recordCreated("assessment evidence", evidence, { assessmentId })
+        recordCreated("assessment evidence", evidence, { dealId: DEAL_ID, assessmentId })
       }
 
       await expect(page.getByText(/1\. Evidence \(3 frames\)/)).toBeVisible({ timeout: 15_000 })

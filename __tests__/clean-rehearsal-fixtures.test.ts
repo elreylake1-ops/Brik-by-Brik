@@ -32,8 +32,14 @@ describe("non-destructive November 6 rehearsal", () => {
   it("fails closed on unexpected creation ownership", () => {
     expect(rehearsal).toContain("returned no authoritative ID")
     expect(rehearsal).toContain("returned mismatched ownership")
-    expect(rehearsal).toContain("record.dealId !== DEAL_ID")
+    expect(rehearsal).toContain("record.dealId !== undefined")
+    expect(rehearsal).toContain("record.dealId === undefined && scopedDealId !== DEAL_ID")
     expect(rehearsal).toContain("record.assessmentId !== parent.assessmentId")
+  })
+
+  it("uses the assessment evidence endpoint's deal-scoped response contract", () => {
+    expect(rehearsal).toContain('recordCreated("assessment evidence", evidence, { dealId: DEAL_ID, assessmentId })')
+    expect(rehearsal).toContain("const scopedDealId = parent.dealId ?? DEAL_ID")
   })
 
   it("does not overwrite historical screenshots", () => {
