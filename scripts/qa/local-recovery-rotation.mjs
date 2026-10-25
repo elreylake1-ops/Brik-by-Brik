@@ -2,7 +2,7 @@
 
 import { execFileSync, spawnSync } from "node:child_process"
 import { createHash, randomBytes } from "node:crypto"
-import { chmodSync, closeSync, copyFileSync, COPYFILE_EXCL, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync } from "node:fs"
+import { chmodSync, closeSync, copyFileSync, constants, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync } from "node:fs"
 import os from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -41,7 +41,7 @@ export function replaceConfigAtomically(target, recovery, contents, operations =
   if (path.dirname(targetPath) !== path.dirname(recoveryPath)) throw new Error("recovery copy must share the target directory")
   if (existsSync(recoveryPath)) throw new Error("recovery copy already exists")
   try {
-    copyFileSync(targetPath, recoveryPath, COPYFILE_EXCL)
+    copyFileSync(targetPath, recoveryPath, constants.COPYFILE_EXCL)
     writeFileSync(tempPath, contents, { mode: 0o600, flag: "wx" })
     chmodSync(tempPath, 0o600)
     const fd = openSync(tempPath, "r+")

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { spawnSync } from "node:child_process"
 import os from "node:os"
 import path from "node:path"
 
@@ -30,6 +31,15 @@ describe("local recovery and rotation safety", () => {
   it("does not expose real rotation as a CLI command", () => {
     expect(tool.COMMANDS).toEqual(["preflight", "backup", "verify-backup", "restore-test", "test-rotation"])
     expect(tool.ROTATION_ENABLED).toBe(false)
+  })
+
+  it("loads successfully through the real Node.js ESM runtime", () => {
+    const result = spawnSync(process.execPath, ["scripts/qa/local-recovery-rotation.mjs", "test-rotation"], {
+      cwd: process.cwd(), encoding: "utf8",
+    })
+    expect(result.status).toBe(0)
+    expect(result.stdout).toContain('"realRotation":"disabled"')
+    expect(result.stderr).not.toContain("SyntaxError")
   })
 
   it("refuses to claim success when rollback fails", async () => {
