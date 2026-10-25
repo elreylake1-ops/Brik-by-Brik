@@ -12,7 +12,7 @@ import { pgViewingAssessmentRepository } from "../lib/viewing-assessment/pg-view
 
 import { assertRehearsalFixtureAbsent } from "./clean-rehearsal-fixtures"
 import { verifyRehearsalEvidenceOwnership } from "./rehearsal-evidence-ownership"
-import { financialProposalFailureCategory, validateFinancialProposalResponse } from "./financial-proposal-response"
+import { calculateFinancialProposalWaitBudget, runFinancialProposalInteraction, validateFinancialProposalResponse } from "./financial-proposal-response"
 
 const root = path.resolve(__dirname, "..")
 const SCHEMA = "brik_by_brik_engine"
@@ -479,29 +479,32 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
       // Generate financial proposal from confirmed scope with approved quote
       const proposalUrl = `${baseUrl}/api/saved-deals/${DEAL_ID}/viewing-assessments/${assessmentId}/financial-proposal`
       const stepStarted = Date.now()
-      const remainingBudget = Math.max(1_000, test.info().timeout - test.info().elapsed - 1_000)
-      const waitBudget = Math.min(30_000, remainingBudget)
+      const waitBudget = calculateFinancialProposalWaitBudget({ timeoutMs: test.info().timeout, elapsedMs: test.info().duration })
       let requestObserved = false
       let responseObserved = false
+      let clickCompleted = false
+      let requestFailed = false
+      const onRequestFailed = (request: { url: () => string }) => {
+        if (request.url() === proposalUrl) requestFailed = true
+      }
+      page.on("requestfailed", onRequestFailed)
       try {
-        const requestPromise = page.waitForRequest((request) => request.url() === proposalUrl && request.method() === "POST", { timeout: waitBudget })
-        const responsePromise = page.waitForResponse((response) => response.url() === proposalUrl, { timeout: waitBudget })
-        const [, proposalResponse] = await Promise.all([
-          Promise.resolve(refurbPanel.getByRole("button", { name: "Create proposal from the confirmed scope" }).click()),
-          (async () => {
-            const request = await requestPromise
-            requestObserved = request.method() === "POST"
-            const response = await responsePromise
-            responseObserved = true
-            return response
-          })(),
-        ])
+        const proposalResponse = await runFinancialProposalInteraction({
+          click: (timeout) => refurbPanel.getByRole("button", { name: "Create proposal from the confirmed scope" }).click({ timeout }),
+          waitForRequest: (timeout) => page.waitForRequest((request) => request.url() === proposalUrl && request.method() === "POST", { timeout }).then(() => { requestObserved = true }),
+          waitForResponse: (timeout) => page.waitForResponse((response) => response.url() === proposalUrl, { timeout }).then((response) => { responseObserved = true; return response }),
+          clickTimeoutMs: Math.min(waitBudget, 15_000),
+          responseTimeoutMs: waitBudget,
+        })
+        clickCompleted = true
         const proposalPayload = validateFinancialProposalResponse(proposalUrl, proposalResponse.status(), await proposalResponse.json(), proposalUrl, DEAL_ID, assessmentId)
         recordCreated("financial proposal", proposalPayload.proposal, { assessmentId, dealId: DEAL_ID })
       } catch (error) {
         const elapsedMs = Date.now() - stepStarted
-        const category = financialProposalFailureCategory(requestObserved, responseObserved)
-        throw new Error(`Financial proposal diagnostic: category=${category}; requestObserved=${requestObserved}; responseObserved=${responseObserved}; elapsedMs=${elapsedMs}; waitBudgetMs=${waitBudget}; ${error instanceof Error ? error.message : "unknown failure"}`)
+        const category = requestFailed ? "request-failed" : !clickCompleted ? "click-not-completed" : !requestObserved ? "request-not-observed" : !responseObserved ? "response-timeout" : "response-validation"
+        throw new Error(`Financial proposal diagnostic: category=${category}; clickCompleted=${clickCompleted}; requestObserved=${requestObserved}; responseObserved=${responseObserved}; elapsedMs=${elapsedMs}; waitBudgetMs=${waitBudget}; ${error instanceof Error ? error.message : "unknown failure"}`)
+      } finally {
+        page.off("requestfailed", onRequestFailed)
       }
 
       await expect(refurbPanel.getByText(/Proposal version 1 created/)).toBeVisible({ timeout: 15_000 })
