@@ -91,8 +91,11 @@ describe.skipIf(!gate.enabled || !built)("Local sign-in rehearsal against the pr
   afterAll(async () => {
     app?.kill()
     if (db) {
+      const testSubjects = Object.values(sim?.accounts ?? {}).map((a) => a.subject)
       await db.query(`DELETE FROM ${S}.saved_deals WHERE address LIKE 'QA e2e %'`)
-      await db.query(`DELETE FROM ${S}.operator_sessions WHERE subject LIKE 'sim-%'`)
+      if (testSubjects.length > 0) {
+        await db.query(`DELETE FROM ${S}.operator_sessions WHERE subject = ANY($1)`, [testSubjects])
+      }
       await db.getPostgresPool().end()
     }
     await sim?.close()
@@ -148,7 +151,11 @@ describe.skipIf(!gate.enabled || !built)("Local sign-in rehearsal against the pr
       const r = await signIn(email, password, { ip: `10.1.0.${attempts.findIndex((a) => a[0] === email)}` })
       expect([email, r.status, r.body, r.setCookie]).toEqual([email, 401, '{"success":false,"error":"SIGN_IN_FAILED"}', []])
     }
-    const sessions = await db.query(`SELECT 1 FROM ${S}.operator_sessions WHERE subject LIKE 'sim-%'`)
+    const testSubjects = Object.values(sim.accounts).map((a) => a.subject)
+    const sessions = await db.query(
+      `SELECT 1 FROM ${S}.operator_sessions WHERE subject = ANY($1)`,
+      [testSubjects]
+    )
     expect(sessions.rowCount).toBe(0)
   })
 

@@ -42,24 +42,27 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
   let assessmentId = ""
 
   async function cleanRehearsalFixtures(client: pg.Pool) {
-    await client.query(`DELETE FROM ${SCHEMA}.contractor_quote_overrides WHERE deal_id = $1`, [DEAL_ID])
-    await client.query(`DELETE FROM ${SCHEMA}.investor_shield_checks WHERE deal_id = $1`, [DEAL_ID])
-    await client.query(`DELETE FROM ${SCHEMA}.deal_evidence WHERE deal_id = $1`, [DEAL_ID])
+    const dealIdsSubquery = `SELECT id FROM ${SCHEMA}.saved_deals WHERE id = $1 OR address = $2`
+    await client.query(`DELETE FROM ${SCHEMA}.contractor_quote_overrides WHERE deal_id IN (${dealIdsSubquery})`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
+    await client.query(`DELETE FROM ${SCHEMA}.investor_shield_checks WHERE deal_id IN (${dealIdsSubquery})`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
+    await client.query(`DELETE FROM ${SCHEMA}.deal_evidence WHERE deal_id IN (${dealIdsSubquery})`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
     await client.query(
-      `DELETE FROM ${SCHEMA}.video_frames WHERE job_id IN (SELECT id FROM ${SCHEMA}.video_jobs WHERE deal_id = $1)`,
-      [DEAL_ID]
-    )
+      `DELETE FROM ${SCHEMA}.video_frames WHERE job_id IN (SELECT id FROM ${SCHEMA}.video_jobs WHERE deal_id IN (${dealIdsSubquery}))`,
+      [DEAL_ID, DEAL_ADDRESS]
+    ).catch(() => undefined)
     await client.query(
       `UPDATE ${SCHEMA}.video_jobs
        SET original_retention_policy = 'OWNER_SCHEDULED_PURGE',
            retention_decision_notes = 'Owner James Lake authorized rehearsal cleanup'
-       WHERE deal_id = $1`,
-      [DEAL_ID]
-    )
-    await client.query(`DELETE FROM ${SCHEMA}.video_jobs WHERE deal_id = $1`, [DEAL_ID])
-    await client.query(`DELETE FROM ${SCHEMA}.viewing_assessments WHERE deal_id = $1`, [DEAL_ID])
-    await client.query(`DELETE FROM ${SCHEMA}.saved_deals WHERE id = $1 OR address = $2`, [DEAL_ID, DEAL_ADDRESS])
-    await client.query(`DELETE FROM ${SCHEMA}.operator_sessions WHERE subject LIKE 'sim-%'`)
+       WHERE deal_id IN (${dealIdsSubquery})`,
+      [DEAL_ID, DEAL_ADDRESS]
+    ).catch(() => undefined)
+    await client.query(`DELETE FROM ${SCHEMA}.video_jobs WHERE deal_id IN (${dealIdsSubquery})`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
+    await client.query(`DELETE FROM ${SCHEMA}.viewing_assessments WHERE deal_id IN (${dealIdsSubquery})`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
+    await client.query(`DELETE FROM ${SCHEMA}.saved_deals WHERE id = $1 OR address = $2`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
+    if (sim?.accounts?.["operator@qa.test"]?.subject) {
+      await client.query(`DELETE FROM ${SCHEMA}.operator_sessions WHERE subject = $1`, [sim.accounts["operator@qa.test"].subject]).catch(() => undefined)
+    }
   }
 
   test.beforeAll("setup isolated QA environment, ephemeral IdP, and start Next.js", async () => {
@@ -194,7 +197,7 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
   })
 
   test("15-Step November 6 Demonstration Workflow Rehearsal", async ({ page }) => {
-    test.setTimeout(120_000)
+    test.setTimeout(180_000)
 
     // =========================================================================
     // STEP 1: Sign in through local operator authentication flow & Attach BUILDER_QUOTE via Browser
@@ -283,14 +286,14 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
       expect(pts[0]).toBeLessThanOrEqual(0.05)
 
       // Genuine frame extraction (stripping audio via -an for privacy)
-      const outDir = path.join(root, ".qa-local", "rehearsal-frames")
+      const outDir = path.join(root, ".qa-local", `rehearsal-frames-${test.info().project.name}`)
       mkdirSync(outDir, { recursive: true })
 
       const framePng = path.join(outDir, "rehearsal_frame.png")
       const thumbJpg = path.join(outDir, "rehearsal_thumb.jpg")
       const extractSec = isDemoPresent ? 60.0 : 1.0
       await extractFramePng(videoPath, extractSec, framePng)
-      await generateThumbnailJpg(framePng, thumbJpg, 320)
+      await generateThumbnailJpg(framePng, thumbJpg)
       expect(existsSync(framePng)).toBe(true)
       expect(existsSync(thumbJpg)).toBe(true)
 

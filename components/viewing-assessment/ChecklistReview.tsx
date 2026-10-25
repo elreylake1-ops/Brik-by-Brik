@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, type ReactNode } from "react"
+import { useState, type ReactNode } from "react"
 import { filterChecks, summariseChecks, type CheckFilter, type CheckState, type CheckStateRow } from "@/lib/viewing-assessment/check-states"
 
 // All checks, in checklist order, each with an explicit state. NOT ASSESSED is the default and stays the state until a
@@ -200,10 +200,13 @@ function CategoryGroupAccordion({
   const groupAssessed = rows.filter((r) => r.basis === "human_reviewed").length
   const hasActionable = groupConcerns > 0 || groupPending > 0 || groupSpecialist > 0 || filter !== "all"
   const [isOpen, setIsOpen] = useState(hasActionable)
-
-  useEffect(() => {
-    setIsOpen(hasActionable)
-  }, [hasActionable, filter])
+  // Re-open when the group gains concerns/pending/specialist items (e.g. after an analysis run), so a collapsed
+  // category never hides work that needs review. Filter changes remount this component via its key.
+  const [wasActionable, setWasActionable] = useState(hasActionable)
+  if (hasActionable !== wasActionable) {
+    setWasActionable(hasActionable)
+    if (hasActionable) setIsOpen(true)
+  }
 
   return (
     <details

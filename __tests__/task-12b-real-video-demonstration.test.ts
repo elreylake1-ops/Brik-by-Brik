@@ -67,10 +67,17 @@ vi.mock("@/lib/operator-command/saved-deals-repository", () => ({
   getSavedDealById: async (id: string) => h.deals.get(id) ?? null,
 }))
 
-describe("Task 12B: Real MP4 Local Video Demonstration", () => {
+const VIDEO_REL_PATH = ".demonstration-evidence/17408-Blue-Jay-SnapYT.App.mp4"
+const hasRealMedia = fs.existsSync(path.resolve(process.cwd(), VIDEO_REL_PATH))
+
+// OPTIONAL REAL-MEDIA ACCEPTANCE TEST. Its assertions are bound to one specific third-party file (SHA-256, exact
+// byte length, 328.14s duration, 9,840 packets, frames at 10/60/240s), so no synthetic fixture can satisfy them.
+// The same end-to-end workflow is covered with the tracked, rights-cleared __tests__/fixtures/synthetic-video.mp4
+// by task-12a-video-demonstration.test.ts. When the Git-ignored authorised media is absent this suite is reported
+// as SKIPPED (never as passed). Do not download or commit the footage to make it run.
+describe.skipIf(!hasRealMedia)("Task 12B: Real MP4 Local Video Demonstration", () => {
   const DEAL_ID = "deal-17408-blue-jay"
   const EXPECTED_VIDEO_SHA256 = "80111ddebc823d52245802733897b9ed10ba4484a8e652785a7e07b079fb3648"
-  const VIDEO_REL_PATH = ".demonstration-evidence/17408-Blue-Jay-SnapYT.App.mp4"
 
   let blobDir: string
   let framesTempDir: string

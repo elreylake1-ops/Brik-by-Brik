@@ -101,8 +101,11 @@ export function createResumableTusUpload(options: TusUploadOptions): TusUploadCo
     if (location.startsWith("http")) {
       return location
     }
-    const base = resumable.endpoint.replace(/\/storage\/v1\/upload\/resumable.*$/, "")
-    return `${base}${location.startsWith("/") ? "" : "/"}${location}`
+    if (resumable.endpoint.startsWith("http")) {
+      const base = resumable.endpoint.replace(/\/storage\/v1\/upload\/resumable.*$/, "")
+      return `${base}${location.startsWith("/") ? "" : "/"}${location}`
+    }
+    return location
   }
 
   async function uploadChunks(signal: AbortSignal): Promise<void> {

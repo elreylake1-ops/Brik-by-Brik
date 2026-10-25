@@ -51,8 +51,9 @@ export async function POST(request: Request) {
   await fs.promises.writeFile(path.join(sessionsDir, "session.json"), JSON.stringify(sessionMeta, null, 2))
   await fs.promises.writeFile(path.join(sessionsDir, "data.part"), Buffer.alloc(0))
 
-  const url = new URL(request.url)
-  const locationUrl = `${url.origin}/api/qa/video-storage/resumable/${sessionId}`
+  // Same-origin relative Location: the browser resolves it against the page origin, so no CORS is needed
+  // regardless of whether the page was opened as localhost or 127.0.0.1.
+  const locationUrl = `/api/qa/video-storage/resumable/${sessionId}`
 
   return new NextResponse(null, {
     status: 201,

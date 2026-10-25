@@ -41,7 +41,9 @@ test.describe.serial("Local Browser Video Upload & Extraction Acceptance (Genuin
   let assessmentId = ""
 
   async function cleanFixtures(client: pg.Pool) {
-    await client.query(`DELETE FROM ${SCHEMA}.operator_sessions WHERE subject LIKE 'sim-%'`).catch(() => undefined)
+    if (sim?.accounts?.["operator@qa.test"]?.subject) {
+      await client.query(`DELETE FROM ${SCHEMA}.operator_sessions WHERE subject = $1`, [sim.accounts["operator@qa.test"].subject]).catch(() => undefined)
+    }
     await client.query(`DELETE FROM ${SCHEMA}.contractor_quote_overrides WHERE deal_id = $1`, [DEAL_ID]).catch(() => undefined)
     await client.query(`DELETE FROM ${SCHEMA}.investor_shield_checks WHERE deal_id = $1`, [DEAL_ID]).catch(() => undefined)
     await client.query(`DELETE FROM ${SCHEMA}.deal_evidence WHERE deal_id = $1`, [DEAL_ID]).catch(() => undefined)
@@ -118,14 +120,14 @@ test.describe.serial("Local Browser Video Upload & Extraction Acceptance (Genuin
         s.close(() => resolve(p))
       })
     })
-    baseUrl = `http://localhost:${appPort}`
+    baseUrl = `http://127.0.0.1:${appPort}`
 
     app = spawn(
       process.execPath,
-      [path.join(root, "node_modules", "next", "dist", "bin", "next"), "dev", "-H", "localhost", "-p", String(appPort)],
+      [path.join(root, "node_modules", "next", "dist", "bin", "next"), "dev", "-H", "127.0.0.1", "-p", String(appPort)],
       {
         cwd: root,
-        stdio: ["ignore", "ignore", "ignore"],
+        stdio: ["ignore", "ignore", "inherit"],
         env: {
           ...scrubbedEnv(),
           NODE_ENV: "development",
