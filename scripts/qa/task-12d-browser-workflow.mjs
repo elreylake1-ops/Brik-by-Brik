@@ -2,6 +2,10 @@ import { chromium } from "@playwright/test"
 import * as fs from "node:fs"
 import path from "node:path"
 import { createHash } from "node:crypto"
+import { assertLocalQaTarget, buildLocalQaUrl } from "./local-qa-target.mjs"
+
+void assertLocalQaTarget
+void buildLocalQaUrl
 
 const DEAL_ID = "deal-17408-blue-jay"
 const BASE_URL = "http://localhost:3000"
@@ -34,29 +38,9 @@ async function runTask12DWorkflow() {
   console.log(`  SHA-256: ${videoSha}`)
   console.log(`  Duration limit: <= 300s (Demo clip is 240.03s losslessly trimmed)`)
 
-  // Step 1: Connect to DB and reset demo deal video state for pristine upload demonstration
+  // Step 1: Connect to the local browser workflow without mutating unrelated video jobs.
   console.log("\n[Step 1] Connecting to local Next.js server & QA PostgreSQL...")
-  const { assertLocalQaTarget, buildLocalQaUrl } = await import("./local-qa-target.mjs")
-  const envFile = path.resolve(".qa-local", "pg.env")
-  if (!fs.existsSync(envFile)) {
-    throw new Error("Missing .qa-local/pg.env. Start local QA PostgreSQL first.")
-  }
-  const line = fs.readFileSync(envFile, "utf8").split(/\r?\n/).find((l) => l.startsWith("POSTGRES_PASSWORD="))
-  if (!line) {
-    throw new Error("POSTGRES_PASSWORD missing in .qa-local/pg.env")
-  }
-  const password = line.slice("POSTGRES_PASSWORD=".length)
-  const dbUrl = buildLocalQaUrl(password)
-  assertLocalQaTarget(dbUrl)
-
-  const pg = (await import("pg")).default
-  const dbClient = new pg.Client({
-    connectionString: dbUrl,
-  })
-  await dbClient.connect()
-  await dbClient.query("UPDATE brik_by_brik_engine.video_jobs SET state = 'failed', failure_code = 'TEST_CLEANUP' WHERE deal_id != $1 AND state IN ('queued', 'processing')", [DEAL_ID])
-  await dbClient.end()
-  console.log("  Pristine state confirmed: queue cleaned of old synthetic jobs.")
+  console.log("  No database cleanup is performed by this workflow.")
 
   const asmtListRes = await fetch(`${BASE_URL}/api/saved-deals/${DEAL_ID}/viewing-assessments`)
   if (!asmtListRes.ok) {
