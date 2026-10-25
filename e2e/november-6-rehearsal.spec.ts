@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test"
 import { spawn, type ChildProcess } from "node:child_process"
+import { randomUUID } from "node:crypto"
 import { existsSync, mkdirSync, readFileSync } from "node:fs"
 import net from "node:net"
 import path from "node:path"
@@ -9,18 +10,19 @@ import { extractFramePng, generateThumbnailJpg } from "../lib/viewing-assessment
 import { exportEvaluationDataset } from "../lib/viewing-assessment/viewing-assessment-service"
 import { pgViewingAssessmentRepository } from "../lib/viewing-assessment/pg-viewing-assessment-repository"
 
-import { cleanRehearsalFixtures } from "./clean-rehearsal-fixtures"
+import { assertRehearsalFixtureAbsent } from "./clean-rehearsal-fixtures"
 
 const root = path.resolve(__dirname, "..")
 const SCHEMA = "brik_by_brik_engine"
-const DEAL_ID = "deal-rehearsal-nov6-01"
+const DEAL_ID = `deal-rehearsal-nov6-${randomUUID()}`
 const DEAL_ADDRESS = "14 Victoria Promenade, Harrogate HG1 5ED (Rehearsal)"
 const INITIAL_PURCHASE = 450000
 const INITIAL_REFURB = 50000
 const INITIAL_GDV = 750000
 
-const screenshotsDir = path.join(root, "docs", "option2", "screenshots", "rehearsal-nov6")
-mkdirSync(screenshotsDir, { recursive: true })
+const screenshotsDir = path.join(root, "docs", "option2", "screenshots", "rehearsal-nov6", randomUUID())
+if (existsSync(screenshotsDir)) throw new Error(`Rehearsal evidence directory already exists: ${screenshotsDir}`)
+mkdirSync(screenshotsDir)
 
 type SimHandle = {
   accounts: Record<string, { subject: string; password: string }>
@@ -42,11 +44,16 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
   let savedDealBaseline: string
   let shieldBaseline: string
   let assessmentId = ""
-
-  async function cleanRehearsal(client: pg.Pool) {
-    await cleanRehearsalFixtures(client, DEAL_ID, sim?.accounts?.["operator@qa.test"]?.subject, SCHEMA)
+  const recordCreated = (kind: string, value: unknown, parent: Record<string, unknown>) => {
+    if (!value || typeof value !== "object" || typeof (value as { id?: unknown }).id !== "string") {
+      throw new Error(`Rehearsal ${kind} creation returned no authoritative ID`)
+    }
+    const record = value as { id: string; dealId?: unknown; assessmentId?: unknown }
+    if (record.dealId !== DEAL_ID || (parent.assessmentId && record.assessmentId !== parent.assessmentId)) {
+      throw new Error(`Rehearsal ${kind} creation returned mismatched ownership for ${record.id}`)
+    }
+    return record.id
   }
-
   test.beforeAll("setup isolated QA environment, ephemeral IdP, and start Next.js", async () => {
     test.setTimeout(90_000)
     const { assertLocalQaTarget, buildLocalQaUrl, LOCAL_QA, scrubbedEnv } = await import("../scripts/qa/local-qa-target.mjs")
@@ -76,8 +83,8 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
     sim = await startIdentitySimulator()
     operatorPassword = sim.accounts["operator@qa.test"].password
 
-    // 3. Clean any existing rehearsal fixtures & seed isolated test deal
-    await cleanRehearsal(pool)
+    // 3. Reject collisions, then seed a uniquely identified fixture. No upsert or cleanup.
+    await assertRehearsalFixtureAbsent(pool, DEAL_ID, SCHEMA)
 
     const engineResult = {
       deal: { purchasePrice: INITIAL_PURCHASE, refurbCost: INITIAL_REFURB, gdv: INITIAL_GDV, profit: 120000, trueMao: { twentyPercent: 450875 } },
@@ -91,12 +98,10 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
       ) VALUES ($1, $2, $3, $4, $5, 'RESIDENTIAL', 'PENDING_REVIEW', 'ACTIVE', 'EVALUATION', $6, $7, NOW(), NOW())`,
       [DEAL_ID, DEAL_ADDRESS, INITIAL_PURCHASE, INITIAL_GDV, INITIAL_REFURB, JSON.stringify(engineResult), JSON.stringify(riskSummary)]
     )
-
-
     await pool.query(
       `INSERT INTO ${SCHEMA}.investor_shield_checks (id, deal_id, gate_key, status, severity, confidence, summary, updated_at)
        VALUES ($1, $2, 'REFURB_CERTAINTY', 'CAUTION', 'MEDIUM', 'MEDIUM', 'Awaiting verified contractor quotation and unpriced scope resolution', NOW())
-       ON CONFLICT (id) DO UPDATE SET status = 'CAUTION'`,
+      `,
       [`isc-${DEAL_ID}-refurb`, DEAL_ID]
     )
 
@@ -172,7 +177,6 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
   test.afterAll(async () => {
     if (app) app.kill()
     if (pool) {
-      await cleanRehearsal(pool)
       await pool.end()
     }
     if (sim) await sim.close()
@@ -211,10 +215,11 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
       )
       await page.getByTestId("evidence-field-review-state").locator("select").selectOption("REVIEWED_BY_OPERATOR")
 
-      await Promise.all([
+      const evidenceResponse = await Promise.all([
         page.waitForResponse((r) => r.url().includes("/evidence") && r.status() === 201),
         page.getByRole("button", { name: "Save evidence" }).click(),
-      ])
+      ]).then(([response]) => response)
+      recordCreated("deal evidence", (await evidenceResponse.json()).evidence, {})
 
       await expect(page.getByText("Evidence Command saved and added to the panel.")).toBeVisible({ timeout: 10_000 })
       await expect(evidencePanel.getByText("Apex Contractors Ltd - Written Quotation #APX-3500")).toBeVisible()
@@ -268,7 +273,7 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
       expect(pts[0]).toBeLessThanOrEqual(0.05)
 
       // Genuine frame extraction (stripping audio via -an for privacy)
-      const outDir = path.join(root, ".qa-local", `rehearsal-frames-${test.info().project.name}`)
+      const outDir = path.join(screenshotsDir, "media")
       mkdirSync(outDir, { recursive: true })
 
       const framePng = path.join(outDir, "rehearsal_frame.png")
@@ -294,10 +299,14 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
       // Add evidence frames to the assessment through the UI button to proceed with viewing review
       const addSimulatedEvidenceBtn = page.getByRole("button", { name: "Add simulated evidence (metadata only, no image)" })
       await expect(addSimulatedEvidenceBtn).toBeVisible({ timeout: 15_000 })
-      await Promise.all([
+      const evidenceResponse = await Promise.all([
         page.waitForResponse((r) => r.url().includes("/evidence") && r.status() === 201),
         addSimulatedEvidenceBtn.click(),
-      ])
+      ]).then(([response]) => response)
+      const evidencePayload = await evidenceResponse.json()
+      for (const evidence of evidencePayload.evidence ?? []) {
+        recordCreated("assessment evidence", evidence, { assessmentId })
+      }
 
       await expect(page.getByText(/1\. Evidence \(3 frames\)/)).toBeVisible({ timeout: 15_000 })
       await page.screenshot({ path: path.join(screenshotsDir, "step-04-frames-registered.png"), fullPage: true })
@@ -407,10 +416,12 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
       ])
 
       // Confirm
-      await Promise.all([
+      const planResponse = await Promise.all([
         page.waitForResponse((r) => r.url().endsWith("/refurb-plan") && r.status() === 201),
         refurbPanel.getByRole("button", { name: "Confirm selected scope" }).click(),
-      ])
+      ]).then(([response]) => response)
+      const planPayload = await planResponse.json()
+      recordCreated("refurbishment plan", planPayload.plan, { assessmentId })
       await expect(refurbPanel.getByText(/Scope confirmed \(version 1\)/)).toBeVisible({ timeout: 15_000 })
       await page.screenshot({ path: path.join(screenshotsDir, "step-07-scope-confirmed.png"), fullPage: true })
     })
@@ -455,10 +466,12 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
       const refurbPanel = page.locator('section[aria-label="Refurbishment scope"]')
 
       // Generate financial proposal from confirmed scope with approved quote
-      await Promise.all([
+      const proposalResponse = await Promise.all([
         page.waitForResponse((r) => r.url().endsWith("/financial-proposal") && r.status() === 201),
         refurbPanel.getByRole("button", { name: "Create proposal from the confirmed scope" }).click(),
-      ])
+      ]).then(([response]) => response)
+      const proposalPayload = await proposalResponse.json()
+      recordCreated("financial proposal", proposalPayload.proposal, { assessmentId })
 
       await expect(refurbPanel.getByText(/Proposal version 1 created/)).toBeVisible({ timeout: 15_000 })
       await expect(refurbPanel.getByRole("columnheader", { name: "Saved Deal (stored)" })).toBeVisible()
