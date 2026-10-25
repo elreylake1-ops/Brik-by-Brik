@@ -3,6 +3,7 @@ import path from "node:path"
 import { describe, expect, it, vi } from "vitest"
 import type pg from "pg"
 import { assertRehearsalDealTarget, assertRehearsalFixtureAbsent } from "../e2e/clean-rehearsal-fixtures"
+import { verifyRehearsalEvidenceOwnership } from "../e2e/rehearsal-evidence-ownership"
 
 const rehearsal = readFileSync(path.resolve(__dirname, "../e2e/november-6-rehearsal.spec.ts"), "utf8")
 
@@ -38,8 +39,26 @@ describe("non-destructive November 6 rehearsal", () => {
   })
 
   it("uses the assessment evidence endpoint's deal-scoped response contract", () => {
-    expect(rehearsal).toContain('recordCreated("assessment evidence", evidence, { dealId: DEAL_ID, assessmentId })')
-    expect(rehearsal).toContain("const scopedDealId = parent.dealId ?? DEAL_ID")
+    expect(rehearsal).toContain("verifyRehearsalEvidenceOwnership(evidence, DEAL_ID, assessmentId")
+    expect(rehearsal).toContain('e.assessment_id AS "assessmentId"')
+  })
+
+  it("verifies response IDs against persisted assessment and deal ownership", async () => {
+    const records = [{ id: "ev-1", assetId: "asset-1", timestampSeconds: 1 }]
+    await expect(
+      verifyRehearsalEvidenceOwnership(records, "deal-1", "assessment-1", async () => [
+        { id: "ev-1", assessmentId: "assessment-1", dealId: "deal-1" },
+      ])
+    ).resolves.toEqual(["ev-1"])
+  })
+
+  it("rejects missing, duplicate, contradictory, wrong, and ambiguous ownership", async () => {
+    const lookup = async () => [{ id: "ev-1", assessmentId: "assessment-2", dealId: "deal-1" }]
+    await expect(verifyRehearsalEvidenceOwnership([{}], "deal-1", "assessment-1", lookup)).rejects.toThrow(/missing authoritative ID/)
+    await expect(verifyRehearsalEvidenceOwnership([{ id: "ev-1" }, { id: "ev-1" }], "deal-1", "assessment-1", lookup)).rejects.toThrow(/duplicate IDs/)
+    await expect(verifyRehearsalEvidenceOwnership([{ id: "ev-1", assessmentId: "assessment-2" }], "deal-1", "assessment-1", lookup)).rejects.toThrow(/mismatched assessment ownership/)
+    await expect(verifyRehearsalEvidenceOwnership([{ id: "ev-1" }], "deal-1", "assessment-1", lookup)).rejects.toThrow(/persisted ownership mismatch/)
+    await expect(verifyRehearsalEvidenceOwnership([{ id: "ev-1" }], "deal-1", "assessment-1", async () => [])).rejects.toThrow(/missing or ambiguous/)
   })
 
   it("does not overwrite historical screenshots", () => {

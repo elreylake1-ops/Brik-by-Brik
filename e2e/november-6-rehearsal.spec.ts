@@ -11,6 +11,7 @@ import { exportEvaluationDataset } from "../lib/viewing-assessment/viewing-asses
 import { pgViewingAssessmentRepository } from "../lib/viewing-assessment/pg-viewing-assessment-repository"
 
 import { assertRehearsalFixtureAbsent } from "./clean-rehearsal-fixtures"
+import { verifyRehearsalEvidenceOwnership } from "./rehearsal-evidence-ownership"
 
 const root = path.resolve(__dirname, "..")
 const SCHEMA = "brik_by_brik_engine"
@@ -305,9 +306,17 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
         addSimulatedEvidenceBtn.click(),
       ]).then(([response]) => response)
       const evidencePayload = await evidenceResponse.json()
-      for (const evidence of evidencePayload.evidence ?? []) {
-        recordCreated("assessment evidence", evidence, { dealId: DEAL_ID, assessmentId })
-      }
+      const evidence = evidencePayload.evidence ?? []
+      await verifyRehearsalEvidenceOwnership(evidence, DEAL_ID, assessmentId, async (ids) => {
+        const result = await pool.query(
+          `SELECT e.id, e.assessment_id AS "assessmentId", a.deal_id AS "dealId"
+           FROM ${SCHEMA}.viewing_evidence e
+           JOIN ${SCHEMA}.viewing_assessments a ON a.id = e.assessment_id
+           WHERE e.id = ANY($1::text[])`,
+          [ids]
+        )
+        return result.rows
+      })
 
       await expect(page.getByText(/1\. Evidence \(3 frames\)/)).toBeVisible({ timeout: 15_000 })
       await page.screenshot({ path: path.join(screenshotsDir, "step-04-frames-registered.png"), fullPage: true })
