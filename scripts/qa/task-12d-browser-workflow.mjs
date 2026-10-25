@@ -36,9 +36,22 @@ async function runTask12DWorkflow() {
 
   // Step 1: Connect to DB and reset demo deal video state for pristine upload demonstration
   console.log("\n[Step 1] Connecting to local Next.js server & QA PostgreSQL...")
+  const { assertLocalQaTarget, buildLocalQaUrl } = await import("./local-qa-target.mjs")
+  const envFile = path.resolve(".qa-local", "pg.env")
+  if (!fs.existsSync(envFile)) {
+    throw new Error("Missing .qa-local/pg.env. Start local QA PostgreSQL first.")
+  }
+  const line = fs.readFileSync(envFile, "utf8").split(/\r?\n/).find((l) => l.startsWith("POSTGRES_PASSWORD="))
+  if (!line) {
+    throw new Error("POSTGRES_PASSWORD missing in .qa-local/pg.env")
+  }
+  const password = line.slice("POSTGRES_PASSWORD=".length)
+  const dbUrl = buildLocalQaUrl(password)
+  assertLocalQaTarget(dbUrl)
+
   const pg = (await import("pg")).default
   const dbClient = new pg.Client({
-    connectionString: "postgresql://brik_qa:577c65b75921ef836d117fd1efb05715008a2485d6ddd423@127.0.0.1:54339/brik_viewing_qa_local",
+    connectionString: dbUrl,
   })
   await dbClient.connect()
   await dbClient.query("UPDATE brik_by_brik_engine.video_jobs SET state = 'failed', failure_code = 'TEST_CLEANUP' WHERE deal_id != $1 AND state IN ('queued', 'processing')", [DEAL_ID])

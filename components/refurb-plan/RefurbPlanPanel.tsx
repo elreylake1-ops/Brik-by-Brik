@@ -555,19 +555,51 @@ export default function RefurbPlanPanel({ dealId, assessmentId, initial, spec, f
           <div className="mt-3 text-xs">
             <p className="text-gray-600">Proposal version {financial.latest!.version}, made by {financial.latest!.createdBy}. Built from scope version {content.plan.planVersion} confirmed by {content.plan.confirmedBy}; findings reviewed by {content.plan.sourceReviewers.join(", ") || "n/a"}. Not authoritative: the Saved Deal figures are.</p>
             {financial.outdatedReasons.map((r) => <p key={r} className="text-red-700">{r}</p>)}
+            {content.completeness === "HAS_EXCLUSIONS_OR_UNRESOLVED_QUANTITIES" && (
+              <div
+                className="mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-950"
+                role="alert"
+                aria-label="Provisional partial estimate warning"
+              >
+                <div className="flex items-center gap-1.5 font-semibold text-amber-900">
+                  <span>⚠️</span>
+                  <span>Provisional Partial Refurbishment Estimate — Unpriced Scope Excluded</span>
+                </div>
+                <p className="mt-1">
+                  The proposed refurbishment estimate ({money(content.proposed?.refurbCost)}) contains currently priced work items only.
+                  {content.exclusions.length > 0 && (
+                    <> Currently unpriced / excluded items: <strong>{content.exclusions.map((e) => e.label).join("; ")}</strong>.</>
+                  )}
+                </p>
+                <p className="mt-1">
+                  Apparent cost reduction from baseline is <strong>provisional and not verified savings</strong>. Proposed total investment, profit, True MAO, and informational GO verdict remain provisional until contractor quotes are obtained for all unpriced scope.
+                </p>
+              </div>
+            )}
             <table className="mt-2 w-full max-w-2xl text-left">
               <thead><tr><th></th><th>Saved Deal (stored)</th><th>Saved Deal (recalculated)</th><th>Proposed</th></tr></thead>
               <tbody>
-                <tr><td>Refurbishment cost</td><td>{money(content.authoritative.refurbCost)}</td><td>{money(content.recalculatedBaseline?.refurbCost)}</td><td>{money(content.proposed?.refurbCost)}</td></tr>
-                <tr><td>Total cost</td><td>{money(content.authoritative.storedEngineResult?.totalCost)}</td><td>{money(content.recalculatedBaseline?.totalCost)}</td><td>{money(content.proposed?.totalCost)}</td></tr>
-                <tr><td>Profit</td><td>{money(content.authoritative.storedEngineResult?.profit)}</td><td>{money(content.recalculatedBaseline?.profit)}</td><td>{money(content.proposed?.profit)}</td></tr>
-                <tr><td>Engine verdict (informational)</td><td>{content.authoritative.storedEngineResult?.verdictStatus ?? "n/a"}</td><td>{content.recalculatedBaseline?.verdictStatus ?? "n/a"}</td><td>{content.proposed?.verdictStatus ?? "n/a"}</td></tr>
+                <tr><td>Refurbishment cost</td><td>{money(content.authoritative.refurbCost)}</td><td>{money(content.recalculatedBaseline?.refurbCost)}</td><td>{money(content.proposed?.refurbCost)}{content.completeness === "HAS_EXCLUSIONS_OR_UNRESOLVED_QUANTITIES" ? " (partial scope)*" : ""}</td></tr>
+                <tr><td>Total cost</td><td>{money(content.authoritative.storedEngineResult?.totalCost)}</td><td>{money(content.recalculatedBaseline?.totalCost)}</td><td>{money(content.proposed?.totalCost)}{content.completeness === "HAS_EXCLUSIONS_OR_UNRESOLVED_QUANTITIES" ? " (provisional)*" : ""}</td></tr>
+                <tr><td>Profit</td><td>{money(content.authoritative.storedEngineResult?.profit)}</td><td>{money(content.recalculatedBaseline?.profit)}</td><td>{money(content.proposed?.profit)}{content.completeness === "HAS_EXCLUSIONS_OR_UNRESOLVED_QUANTITIES" ? " (provisional)*" : ""}</td></tr>
+                <tr><td>True MAO (20%)</td><td>{money(content.authoritative.storedEngineResult?.trueMao?.twentyPercent)}</td><td>{money(content.recalculatedBaseline?.trueMao?.twentyPercent)}</td><td>{money(content.proposed?.trueMao?.twentyPercent)}{content.completeness === "HAS_EXCLUSIONS_OR_UNRESOLVED_QUANTITIES" ? " (provisional)*" : ""}</td></tr>
+                <tr><td>Engine verdict (informational)</td><td>{content.authoritative.storedEngineResult?.verdictStatus ?? "n/a"}</td><td>{content.recalculatedBaseline?.verdictStatus ?? "n/a"}</td><td>{content.proposed?.verdictStatus ?? "n/a"}{content.completeness === "HAS_EXCLUSIONS_OR_UNRESOLVED_QUANTITIES" && content.proposed?.verdictStatus === "GO" ? " (provisional)*" : ""}</td></tr>
               </tbody>
             </table>
             {content.blockedBy.length ? <p className="mt-1 text-red-700">Not computable: {content.blockedBy.join(", ")}.</p> : null}
             <p className="mt-2 font-medium">What changed</p><ul className="list-disc pl-5">{content.changedAssumptions.map((a) => <li key={a}>{a}</li>)}</ul>
             {content.exclusions.length ? (<><p className="mt-1 font-medium">Excluded from these figures</p><ul className="list-disc pl-5">{content.exclusions.map((e) => <li key={e.itemId}>{e.label}: {e.reason}</li>)}</ul></>) : null}
             {content.unresolvedQuantities.length ? (<><p className="mt-1 font-medium">Unresolved quantities</p><ul className="list-disc pl-5">{content.unresolvedQuantities.map((u) => <li key={u}>{u}</li>)}</ul></>) : null}
+            {content.notes && content.notes.length > 0 ? (
+              <div className="mt-2 rounded border border-gray-200 bg-gray-50 p-2 text-gray-700">
+                <p className="font-medium text-gray-900">Proposal notes & disclaimers</p>
+                <ul className="mt-1 list-disc pl-5 space-y-0.5">
+                  {content.notes.map((n, i) => (
+                    <li key={i}>{n}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             {content.storedVersusRecalculated.differences.map((d) => <p key={d} className="mt-1 text-amber-900">{d}</p>)}
 
             {financial.decision ? (
