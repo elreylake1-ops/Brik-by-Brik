@@ -2,7 +2,7 @@
 
 import { execFileSync, spawnSync } from "node:child_process"
 import { createHash, randomBytes } from "node:crypto"
-import { chmodSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs"
+import { chmodSync, closeSync, copyFileSync, COPYFILE_EXCL, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync } from "node:fs"
 import os from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -29,6 +29,30 @@ export function validateDatabaseUrl(url) {
 
 export function generateReplacementPassword() {
   return randomBytes(32).toString("hex")
+}
+
+export function replaceConfigAtomically(target, recovery, contents, operations = {}) {
+  const targetPath = path.resolve(target)
+  const recoveryPath = path.resolve(recovery)
+  const tempPath = path.join(path.dirname(targetPath), `.${path.basename(targetPath)}.${randomBytes(8).toString("hex")}.tmp`)
+  const rename = operations.rename || renameSync
+  const flush = operations.flush || fsyncSync
+  if (!existsSync(targetPath)) throw new Error("configuration target is missing")
+  if (path.dirname(targetPath) !== path.dirname(recoveryPath)) throw new Error("recovery copy must share the target directory")
+  if (existsSync(recoveryPath)) throw new Error("recovery copy already exists")
+  try {
+    copyFileSync(targetPath, recoveryPath, COPYFILE_EXCL)
+    writeFileSync(tempPath, contents, { mode: 0o600, flag: "wx" })
+    chmodSync(tempPath, 0o600)
+    const fd = openSync(tempPath, "r+")
+    flush(fd)
+    closeSync(fd)
+    rename(tempPath, targetPath)
+    return { target: targetPath, recovery: recoveryPath }
+  } catch (error) {
+    if (existsSync(tempPath)) unlinkSync(tempPath)
+    throw new Error(`configuration replacement failed: ${redact(error.message || error)}`)
+  }
 }
 
 export function assertDisposableContainer(name, port) {

@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest"
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import os from "node:os"
+import path from "node:path"
 
 const tool = await import("../scripts/qa/local-recovery-rotation.mjs")
 
@@ -36,5 +39,71 @@ describe("local recovery and rotation safety", () => {
       verifyNewPassword: async () => true,
       rollbackDatabase: async () => { throw new Error("rollback failed") },
     })).rejects.toThrow(/rollback failed/i)
+  })
+
+  it("replaces a disposable file atomically and preserves recovery contents", () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "brik-qa-config-test-"))
+    try {
+      const target = path.join(dir, "config.env")
+      const recovery = path.join(dir, "config.env.recovery")
+      writeFileSync(target, "OLD_MOCK_SECRET\n")
+      const result = tool.replaceConfigAtomically(target, recovery, "NEW_MOCK_SECRET\n")
+      expect(result).toEqual({ target, recovery })
+      expect(readFileSync(target, "utf8")).toBe("NEW_MOCK_SECRET\n")
+      expect(readFileSync(recovery, "utf8")).toBe("OLD_MOCK_SECRET\n")
+    } finally { rmSync(dir, { recursive: true, force: true }) }
+  })
+
+  it("preserves the target when replacement fails", () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "brik-qa-config-failure-"))
+    try {
+      const target = path.join(dir, "config.env")
+      const recovery = path.join(dir, "config.env.recovery")
+      writeFileSync(target, "ORIGINAL_MOCK_SECRET\n")
+      expect(() => tool.replaceConfigAtomically(target, recovery, "REPLACEMENT_MOCK_SECRET\n", {
+        rename: () => { throw new Error("simulated replacement failure") },
+      })).toThrow(/replacement failure/)
+      expect(readFileSync(target, "utf8")).toBe("ORIGINAL_MOCK_SECRET\n")
+      expect(readFileSync(recovery, "utf8")).toBe("ORIGINAL_MOCK_SECRET\n")
+    } finally { rmSync(dir, { recursive: true, force: true }) }
+  })
+
+  it("rejects recovery collisions, permission failures, and flush failures safely", () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "brik-qa-config-injection-"))
+    try {
+      const target = path.join(dir, "config.env")
+      const recovery = path.join(dir, "config.env.recovery")
+      writeFileSync(target, "ORIGINAL_MOCK_SECRET\n")
+      writeFileSync(recovery, "RECOVERY_MOCK_SECRET\n")
+      expect(() => tool.replaceConfigAtomically(target, recovery, "NEW_MOCK_SECRET\n")).toThrow(/already exists/)
+      rmSync(recovery)
+      expect(() => tool.replaceConfigAtomically(target, recovery, "NEW_MOCK_SECRET\n", {
+        rename: () => { throw Object.assign(new Error("access denied"), { code: "EACCES" }) },
+      })).toThrow(/access denied/)
+      expect(readFileSync(target, "utf8")).toBe("ORIGINAL_MOCK_SECRET\n")
+      rmSync(recovery)
+      expect(() => tool.replaceConfigAtomically(target, recovery, "NEW_MOCK_SECRET\n", {
+        flush: () => { throw Object.assign(new Error("flush denied"), { code: "EPERM" }) },
+      })).toThrow(/flush denied/)
+      expect(readFileSync(target, "utf8")).toBe("ORIGINAL_MOCK_SECRET\n")
+      expect(existsSync(recovery)).toBe(true)
+    } finally { rmSync(dir, { recursive: true, force: true }) }
+  })
+
+  it("connects the orchestration writer to the atomic replacement primitive", async () => {
+    const dir = mkdtempSync(path.join(os.tmpdir(), "brik-qa-config-orchestration-"))
+    try {
+      const target = path.join(dir, "config.env")
+      const recovery = path.join(dir, "config.env.recovery")
+      writeFileSync(target, "OLD_MOCK_SECRET\n")
+      const result = await tool.runRotationScenario({
+        updateDatabase: async () => {},
+        writeConfig: async () => tool.replaceConfigAtomically(target, recovery, "NEW_MOCK_SECRET\n"),
+        verifyNewPassword: async () => true,
+        rollbackDatabase: async () => {},
+      })
+      expect(result).toEqual({ status: "validated" })
+      expect(readFileSync(target, "utf8")).toBe("NEW_MOCK_SECRET\n")
+    } finally { rmSync(dir, { recursive: true, force: true }) }
   })
 })
