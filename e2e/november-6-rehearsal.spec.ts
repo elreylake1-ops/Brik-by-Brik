@@ -9,10 +9,12 @@ import { extractFramePng, generateThumbnailJpg } from "../lib/viewing-assessment
 import { exportEvaluationDataset } from "../lib/viewing-assessment/viewing-assessment-service"
 import { pgViewingAssessmentRepository } from "../lib/viewing-assessment/pg-viewing-assessment-repository"
 
+import { cleanRehearsalFixtures } from "./clean-rehearsal-fixtures"
+
 const root = path.resolve(__dirname, "..")
 const SCHEMA = "brik_by_brik_engine"
 const DEAL_ID = "deal-rehearsal-nov6-01"
-const DEAL_ADDRESS = "14 Victoria Promenade, Harrogate HG1 5ED"
+const DEAL_ADDRESS = "14 Victoria Promenade, Harrogate HG1 5ED (Rehearsal)"
 const INITIAL_PURCHASE = 450000
 const INITIAL_REFURB = 50000
 const INITIAL_GDV = 750000
@@ -41,28 +43,8 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
   let shieldBaseline: string
   let assessmentId = ""
 
-  async function cleanRehearsalFixtures(client: pg.Pool) {
-    const dealIdsSubquery = `SELECT id FROM ${SCHEMA}.saved_deals WHERE id = $1 OR address = $2`
-    await client.query(`DELETE FROM ${SCHEMA}.contractor_quote_overrides WHERE deal_id IN (${dealIdsSubquery})`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.investor_shield_checks WHERE deal_id IN (${dealIdsSubquery})`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.deal_evidence WHERE deal_id IN (${dealIdsSubquery})`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
-    await client.query(
-      `DELETE FROM ${SCHEMA}.video_frames WHERE job_id IN (SELECT id FROM ${SCHEMA}.video_jobs WHERE deal_id IN (${dealIdsSubquery}))`,
-      [DEAL_ID, DEAL_ADDRESS]
-    ).catch(() => undefined)
-    await client.query(
-      `UPDATE ${SCHEMA}.video_jobs
-       SET original_retention_policy = 'OWNER_SCHEDULED_PURGE',
-           retention_decision_notes = 'Owner James Lake authorized rehearsal cleanup'
-       WHERE deal_id IN (${dealIdsSubquery})`,
-      [DEAL_ID, DEAL_ADDRESS]
-    ).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.video_jobs WHERE deal_id IN (${dealIdsSubquery})`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.viewing_assessments WHERE deal_id IN (${dealIdsSubquery})`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.saved_deals WHERE id = $1 OR address = $2`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
-    if (sim?.accounts?.["operator@qa.test"]?.subject) {
-      await client.query(`DELETE FROM ${SCHEMA}.operator_sessions WHERE subject = $1`, [sim.accounts["operator@qa.test"].subject]).catch(() => undefined)
-    }
+  async function cleanRehearsal(client: pg.Pool) {
+    await cleanRehearsalFixtures(client, DEAL_ID, sim?.accounts?.["operator@qa.test"]?.subject, SCHEMA)
   }
 
   test.beforeAll("setup isolated QA environment, ephemeral IdP, and start Next.js", async () => {
@@ -95,7 +77,7 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
     operatorPassword = sim.accounts["operator@qa.test"].password
 
     // 3. Clean any existing rehearsal fixtures & seed isolated test deal
-    await cleanRehearsalFixtures(pool)
+    await cleanRehearsal(pool)
 
     const engineResult = {
       deal: { purchasePrice: INITIAL_PURCHASE, refurbCost: INITIAL_REFURB, gdv: INITIAL_GDV, profit: 120000, trueMao: { twentyPercent: 450875 } },
@@ -190,7 +172,7 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
   test.afterAll(async () => {
     if (app) app.kill()
     if (pool) {
-      await cleanRehearsalFixtures(pool)
+      await cleanRehearsal(pool)
       await pool.end()
     }
     if (sim) await sim.close()

@@ -65,7 +65,7 @@ test.describe.serial("Local Browser Video Upload & Extraction Acceptance (Genuin
     ).catch(() => undefined)
     await client.query(`DELETE FROM ${SCHEMA}.video_jobs WHERE deal_id = $1`, [DEAL_ID]).catch(() => undefined)
     await client.query(`DELETE FROM ${SCHEMA}.viewing_assessments WHERE deal_id = $1`, [DEAL_ID]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.saved_deals WHERE id = $1 OR address = $2`, [DEAL_ID, DEAL_ADDRESS]).catch(() => undefined)
+    await client.query(`DELETE FROM ${SCHEMA}.saved_deals WHERE id = $1`, [DEAL_ID]).catch(() => undefined)
   }
 
   test.beforeAll("setup isolated local development runtime, ephemeral IdP, and start Next.js dev", async () => {
