@@ -1,4 +1,5 @@
 import type { FinancialSnapshot } from "@/types/refurb-integration"
+import type { ComparableEvidenceClassification } from "@/lib/financial/verified-comparable-evidence"
 
 // A versioned PROPOSAL of the financial effect of a confirmed refurbishment scope, and the auditable decision about it.
 //
@@ -48,6 +49,7 @@ export type FinancialProposalContent = {
     acceptedItems: { itemId: string; label: string; kind: string; checkIds: string[]; proposalIds: string[] }[]
   }
   authoritative: AuthoritativeFigures
+  gdvEvidence: ComparableEvidenceClassification
   /** The engine re-run on the Saved Deal's stored figures plus the operator's assumptions (like-for-like baseline). */
   recalculatedBaseline: FinancialSnapshot | null
   proposed: FinancialSnapshot | null

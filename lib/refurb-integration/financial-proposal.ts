@@ -13,6 +13,7 @@ import type { MeasurementSetRecord } from "@/types/refurb-measurements"
 import { basicsFromMeasurements } from "./measurements"
 import type { CostOverride } from "@/types/overrides"
 import { computePlan, type DealFigures } from "./plan-compute"
+import { classifyVerifiedComparableEvidence, type VerifiedComparableEvidence } from "@/lib/financial/verified-comparable-evidence"
 
 // Builds the financial-impact PROPOSAL for a confirmed refurbishment scope.
 //
@@ -70,7 +71,7 @@ export const baselineFingerprint = (figures: AuthoritativeFigures): string => sh
 
 export type BuiltProposal = { content: FinancialProposalContent; contentHash: string; baselineFingerprint: string }
 
-export function buildFinancialProposal(input: { plan: ConfirmedPlanRecord; measurementSet: MeasurementSetRecord | null; deal: SavedDealRecord; overrides?: CostOverride[] }): BuiltProposal {
+export function buildFinancialProposal(input: { plan: ConfirmedPlanRecord; measurementSet: MeasurementSetRecord | null; deal: SavedDealRecord; overrides?: CostOverride[]; comparableEvidence?: readonly VerifiedComparableEvidence[] }): BuiltProposal {
   const { plan, deal, overrides = [] } = input
   const authoritative = authoritativeFigures(deal)
   const figures: DealFigures = { purchasePrice: authoritative.purchasePrice, gdv: authoritative.gdvRealistic, refurbCost: authoritative.refurbCost }
@@ -128,6 +129,7 @@ export function buildFinancialProposal(input: { plan: ConfirmedPlanRecord; measu
       acceptedItems: plan.acceptedItems.map((i) => ({ itemId: i.itemId, label: i.label, kind: i.kind, checkIds: [...new Set(i.sources.map((s) => s.checkId))].sort(), proposalIds: [...new Set(i.sources.map((s) => s.proposalId))].sort() })),
     },
     authoritative,
+    gdvEvidence: classifyVerifiedComparableEvidence(input.comparableEvidence ?? [], deal.updated_at),
     recalculatedBaseline: baseline,
     proposed: impact.scenario,
     delta: impact.delta,
