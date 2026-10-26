@@ -346,9 +346,10 @@ describe("provider selection fails closed", () => {
     }
   })
 
-  it("selects the live provider only when everything is satisfied, and constructing it makes no call", () => {
+  it("keeps live AI blocked until atomic budget reservation is implemented", () => {
     const sel = selectAnalysisProvider(paid, { client: fakeClient })
-    expect(sel.ok && sel.provider).toMatchObject({ id: "claude", simulated: false, modelVersion: "claude-opus-5-5", needsImages: true })
+    expect(sel.ok).toBe(false)
+    if (!sel.ok) expect(sel.reasons).toContain("atomic budget reservation is not available")
     expect(fakeClient.messages.stream).not.toHaveBeenCalled()
   })
 

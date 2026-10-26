@@ -23,6 +23,7 @@ export type ProviderSelection =
   | { ok: false; reasons: string[] }
 
 const SCENARIOS: readonly FixtureScenario[] = ["default", "complete_flow", "refusal", "timeout", "malformed", "error", "phantom_frames", "duplicates", "overreach"]
+const positiveBudget = (value: string | undefined): boolean => value !== undefined && Number.isFinite(Number(value)) && Number(value) > 0
 
 export function selectAnalysisProvider(
   env: Record<string, string | undefined> = process.env,
@@ -47,6 +48,11 @@ export function selectAnalysisProvider(
     if (!model) reasons.push("VIEWING_AI_MODEL is not set")
     else if (!hasPrice(model)) reasons.push("VIEWING_AI_MODEL has no verified price")
     if (env.VIEWING_CHECKLIST_WORDING_APPROVED !== "true") reasons.push("VIEWING_CHECKLIST_WORDING_APPROVED is not true (checklist reuse rights unconfirmed)")
+    if (env.VIEWING_AI_OWNER_APPROVED !== "true") reasons.push("owner authorization is not approved")
+    if (!positiveBudget(env.VIEWING_AI_APPROVED_MONTHLY_CEILING_USD)) reasons.push("approved monthly budget ceiling is missing or invalid")
+    if (!positiveBudget(env.VIEWING_AI_APPROVED_PER_RUN_CEILING_USD)) reasons.push("approved per-run budget ceiling is missing or invalid")
+    // The current usage check is a read-before-run check. Until reservation is atomic, paid selection stays blocked.
+    reasons.push("atomic budget reservation is not available")
     if (reasons.length > 0 || !model) return { ok: false, reasons }
 
     // Client construction does not touch the network. A test passes a fake; production code lets the SDK read its key.
