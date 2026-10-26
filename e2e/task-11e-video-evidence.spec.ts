@@ -57,7 +57,6 @@ test.describe.serial("Task 11E Video-to-Evidence Viewing Assessment E2E", () => 
     }
 
     // 2. Start ephemeral Identity Provider simulator
-    process.env.VIEWING_QA_CONFIRM_ISOLATED = "I_CONFIRM_THIS_IS_NOT_PRODUCTION"
     sim = await startIdentitySimulator()
     operatorPassword = sim.accounts["operator@qa.test"].password
     const operatorSubject = sim.accounts["operator@qa.test"].subject
@@ -178,14 +177,10 @@ test.describe.serial("Task 11E Video-to-Evidence Viewing Assessment E2E", () => 
   test.afterAll(async () => {
     if (app) app.kill()
     if (pool) {
-      await pool.query(`DELETE FROM ${SCHEMA}.video_frames WHERE job_id = $1`, [JOB_ID]).catch(() => undefined)
-      await pool.query(`DELETE FROM ${SCHEMA}.video_jobs WHERE id = $1`, [JOB_ID]).catch(() => undefined)
-      await pool.query(`DELETE FROM ${SCHEMA}.viewing_assessments WHERE id = $1`, [ASSESSMENT_ID]).catch(() => undefined)
-      await pool.query(`DELETE FROM ${SCHEMA}.saved_deals WHERE id = $1`, [DEAL_ID]).catch(() => undefined)
-      await pool.query(`DELETE FROM ${SCHEMA}.operator_sessions WHERE subject LIKE 'sim-%'`).catch(() => undefined)
       await pool.end()
     }
     if (sim) await sim.close()
+    console.log(`[Task 11E fixture cleanup requires isolated QA baseline recovery: ${DEAL_ID}]`)
   })
 
   test("operator video-to-evidence viewing assessment panel flow and screenshots", async ({ page }, testInfo) => {
@@ -220,7 +215,9 @@ test.describe.serial("Task 11E Video-to-Evidence Viewing Assessment E2E", () => 
     const attachBtn = page.getByRole("button", { name: "Attach" }).first()
     await attachBtn.click()
     await expect(page.getByText(/Attach Frame F00/)).toBeVisible()
-    await expect(page.getByText("Target Checklist Item (Unapproved Working Draft)")).toBeVisible()
+    await expect(
+      page.getByTestId("video-evidence-panel").getByText("Working draft wording pending final owner approval.")
+    ).toBeVisible()
 
     // 7. Capture Viewport Screenshot (Desktop or Android Mobile Viewport)
     const screenshotPath = path.join(screenshotsDir, `task-11e-video-evidence-${deviceName}.png`)

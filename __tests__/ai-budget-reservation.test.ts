@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest"
 import {
   BudgetReservationModel,
   ReservationStateError,
+  claimDispatch,
+  markDispatchUncertain,
+  monthlyConsumptionMicros,
   createReservation,
   monthStartUtc,
   settleReservation,
@@ -46,7 +49,7 @@ describe("pure AI budget reservations", () => {
     const reservation = createReservation(base)
     const settled = settleReservation(reservation, { kind: "known", actualCostMicros: 400_000 })
     expect(settled.state).toBe("SETTLED")
-    expect(settleReservation(reservation, { kind: "timeout" }).state).toBe("SETTLED")
+    expect(settleReservation(reservation, { kind: "timeout" }).state).toBe("UNKNOWN")
     expect(() => settleReservation(settled, { kind: "known", actualCostMicros: 500_000 })).toThrow(ReservationStateError)
   })
 
@@ -59,10 +62,32 @@ describe("pure AI budget reservations", () => {
   })
 
   it("retains holds for timeout, unknown billing, expiry, and overage", () => {
-    expect(settleReservation(createReservation(base), { kind: "timeout" }).actualCostMicros).toBe(1_000_000)
+    expect(settleReservation(createReservation(base), { kind: "timeout" }).state).toBe("UNKNOWN")
     expect(settleReservation(createReservation(base), { kind: "unknown" }).state).toBe("UNKNOWN")
     expect(settleReservation({ ...createReservation(base), expiresAt: "2026-10-25T00:00:00.000Z" }, { kind: "expired" }).state).toBe("EXPIRED")
     expect(() => settleReservation(createReservation(base), { kind: "known", actualCostMicros: 1_000_001 })).toThrow()
+  })
+
+  it("separates idempotent reservation retrieval from single-dispatch ownership", () => {
+    const reservation = createReservation(base)
+    const claimed = claimDispatch(reservation, "owner-a", "2026-10-26T10:01:00.000Z", "2026-10-26T10:02:00.000Z")
+    expect(claimed.dispatchOwnerToken).toBe("owner-a")
+    expect(claimDispatch(claimed, "owner-a", "2026-10-26T10:01:30.000Z", "2026-10-26T10:02:30.000Z")).toEqual(claimed)
+    expect(() => claimDispatch(claimed, "owner-b", "2026-10-26T10:01:30.000Z", "2026-10-26T10:02:30.000Z")).toThrow(ReservationStateError)
+    expect(markDispatchUncertain(claimed, "owner-a").dispatchState).toBe("UNKNOWN")
+  })
+
+  it("keeps an expired lease from granting a new dispatch owner", () => {
+    const reservation = createReservation(base)
+    const claimed = claimDispatch(reservation, "owner-a", "2026-10-26T10:01:00.000Z", "2026-10-26T10:02:00.000Z")
+    expect(() => claimDispatch(claimed, "owner-b", "2026-10-26T10:03:00.000Z", "2026-10-26T10:04:00.000Z")).toThrow(ReservationStateError)
+  })
+
+  it("counts linked settled usage once and retains only active conservative holds", () => {
+    const settled = settleReservation(createReservation(base), { kind: "known", actualCostMicros: 400_000 })
+    const unknown = settleReservation(createReservation({ ...base, reservationId: "res-2", runId: "run-2" }), { kind: "unknown" })
+    const released = settleReservation(createReservation({ ...base, reservationId: "res-3", runId: "run-3" }), { kind: "no_dispatch" })
+    expect(monthlyConsumptionMicros(100_000, 400_000, [settled, unknown, released])).toBe(1_500_000)
   })
 
   it("releases only a proven no-dispatch reservation", () => {

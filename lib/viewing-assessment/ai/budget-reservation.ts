@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 
 export const RESERVATION_STATES = ["RESERVED", "SETTLED", "RELEASED", "UNKNOWN", "EXPIRED"] as const
 export type ReservationState = typeof RESERVATION_STATES[number]
+export type DispatchState = "UNCLAIMED" | "CLAIMED" | "UNKNOWN"
 
 export type ReservationRequest = {
   reservationId?: string
@@ -21,6 +22,9 @@ export type BudgetReservation = Omit<ReservationRequest, "reservationId"> & {
   actualCostMicros: number | null
   state: ReservationState
   settledAt: string | null
+  dispatchState: DispatchState
+  dispatchOwnerToken: string | null
+  dispatchLeaseExpiresAt: string | null
 }
 
 export type ApprovedBudgetLimits = { monthlyCeilingMicros: number; perRunCeilingMicros: number }
@@ -65,12 +69,15 @@ export function createReservation(input: ReservationRequest): BudgetReservation 
     actualCostMicros: null,
     state: "RESERVED",
     settledAt: null,
+    dispatchState: "UNCLAIMED",
+    dispatchOwnerToken: null,
+    dispatchLeaseExpiresAt: null,
   }
 }
 
 function sameSettlement(reservation: BudgetReservation, settlement: Settlement): boolean {
   if (settlement.kind === "known") return reservation.state === "SETTLED" && reservation.actualCostMicros === settlement.actualCostMicros
-  if (settlement.kind === "timeout") return reservation.state === "SETTLED" && reservation.actualCostMicros === reservation.reservedCostMicros
+  if (settlement.kind === "timeout") return reservation.state === "UNKNOWN"
   if (settlement.kind === "unknown") return reservation.state === "UNKNOWN"
   if (settlement.kind === "no_dispatch") return reservation.state === "RELEASED"
   return reservation.state === "EXPIRED"
@@ -86,10 +93,42 @@ export function settleReservation(reservation: BudgetReservation, settlement: Se
     if (settlement.actualCostMicros > reservation.reservedCostMicros) throw new ReservationStateError("actual cost exceeds reserved cost")
     return { ...reservation, state: "SETTLED", actualCostMicros: settlement.actualCostMicros, settledAt }
   }
-  if (settlement.kind === "timeout") return { ...reservation, state: "SETTLED", actualCostMicros: reservation.reservedCostMicros, settledAt }
-  if (settlement.kind === "unknown") return { ...reservation, state: "UNKNOWN", settledAt }
-  if (settlement.kind === "no_dispatch") return { ...reservation, state: "RELEASED", actualCostMicros: 0, settledAt }
-  return { ...reservation, state: "EXPIRED", actualCostMicros: reservation.reservedCostMicros, settledAt }
+  if (settlement.kind === "timeout") return { ...reservation, state: "UNKNOWN", actualCostMicros: null, settledAt, dispatchState: "UNKNOWN" }
+  if (settlement.kind === "unknown") return { ...reservation, state: "UNKNOWN", settledAt, dispatchState: "UNKNOWN" }
+  if (settlement.kind === "no_dispatch") {
+    if (reservation.dispatchState !== "UNCLAIMED") throw new ReservationStateError("dispatch was not proven absent")
+    return { ...reservation, state: "RELEASED", actualCostMicros: 0, settledAt }
+  }
+  return { ...reservation, state: "EXPIRED", actualCostMicros: reservation.reservedCostMicros, settledAt, dispatchState: "UNKNOWN" }
+}
+
+export function claimDispatch(reservation: BudgetReservation, ownerToken: string, claimedAt: string, leaseExpiresAt: string): BudgetReservation {
+  if (!ownerToken || reservation.state !== "RESERVED") throw new ReservationStateError("reservation cannot be dispatched")
+  const now = new Date(claimedAt)
+  const expiry = new Date(leaseExpiresAt)
+  if (Number.isNaN(now.valueOf()) || Number.isNaN(expiry.valueOf()) || expiry <= now) throw new RangeError("dispatch lease is invalid")
+  if (reservation.dispatchState !== "UNCLAIMED") {
+    if (reservation.dispatchState === "CLAIMED" && reservation.dispatchOwnerToken === ownerToken) return reservation
+    throw new ReservationStateError("dispatch ownership is already claimed or uncertain")
+  }
+  return { ...reservation, dispatchState: "CLAIMED", dispatchOwnerToken: ownerToken, dispatchLeaseExpiresAt: expiry.toISOString() }
+}
+
+export function markDispatchUncertain(reservation: BudgetReservation, ownerToken: string): BudgetReservation {
+  if (reservation.dispatchState !== "CLAIMED" || reservation.dispatchOwnerToken !== ownerToken) throw new ReservationStateError("dispatch ownership mismatch")
+  return { ...reservation, dispatchState: "UNKNOWN" }
+}
+
+export function monthlyConsumptionMicros(legacyPaidMicros: number, linkedUsageMicros: number, reservations: readonly BudgetReservation[]): number {
+  requireSafeMicros(legacyPaidMicros, "legacy paid cost")
+  requireSafeMicros(linkedUsageMicros, "linked usage cost")
+  const holds = reservations.reduce((sum, reservation) => {
+    const amount = reservation.state === "SETTLED" || reservation.state === "RELEASED" ? 0 : reservation.reservedCostMicros
+    return sum + amount
+  }, 0)
+  const total = legacyPaidMicros + linkedUsageMicros + holds
+  requireSafeMicros(total, "monthly consumption")
+  return total
 }
 
 export type ReserveResult =

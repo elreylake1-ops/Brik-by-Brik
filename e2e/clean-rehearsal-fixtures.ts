@@ -1,5 +1,17 @@
 import type pg from "pg"
 
+export type RehearsalOwnershipManifest = {
+  dealId: string
+  operatorSubject?: string
+  createdDeal: boolean
+  assessmentIds: string[]
+  evidenceIds: string[]
+  proposalIds: string[]
+  planIds: string[]
+  videoJobIds: string[]
+  screenshotDirectory: string
+}
+
 const PROTECTED_DEMO_DEALS = new Set([
   "deal-wp4b-live-01",
   "deal-17408-blue-jay",
@@ -38,6 +50,18 @@ export function assertRehearsalOperatorSubject(subject: string): void {
   }
 }
 
+export async function assertRehearsalFixtureAbsent(
+  client: pg.Pool | pg.Client,
+  dealId: string,
+  schema = "brik_by_brik_engine"
+): Promise<void> {
+  assertRehearsalDealTarget(dealId)
+  const result = await client.query(`SELECT 1 FROM ${schema}.saved_deals WHERE id = $1`, [dealId])
+  if (result.rowCount) {
+    throw new Error(`Rehearsal fixture collision: ${dealId} already exists; refusing pre-run cleanup or adoption`)
+  }
+}
+
 /**
  * Isolated cleanup for rehearsal test fixtures.
  * Strictly scopes all deletions to the specified test deal ID and optional operator subject.
@@ -46,57 +70,80 @@ export function assertRehearsalOperatorSubject(subject: string): void {
  */
 export async function cleanRehearsalFixtures(
   client: pg.Pool | pg.Client,
-  dealId: string,
-  operatorSubject?: string,
-  schema = "brik_by_brik_engine"
+  ownership: RehearsalOwnershipManifest | string,
+  legacyOperatorSubjectOrSchema = "brik_by_brik_engine",
+  legacySchema?: string
 ): Promise<void> {
+  if (typeof ownership === "string") {
+    throw new Error(`Rehearsal cleanup refused for ${ownership}: ownership manifest required`)
+  }
+  const schema = legacySchema ?? legacyOperatorSubjectOrSchema
+  const { dealId, operatorSubject } = ownership
+  if (!ownership.createdDeal || !ownership.screenshotDirectory) {
+    throw new Error(`Rehearsal cleanup retained ${dealId}: incomplete ownership manifest; manual recovery required`)
+  }
   assertRehearsalDealTarget(dealId)
   if (operatorSubject) {
     assertRehearsalOperatorSubject(operatorSubject)
   }
 
-  // 1. Contractor quote overrides, investor shield checks, and evidence strictly for this deal
-  await client.query(`DELETE FROM ${schema}.contractor_quote_overrides WHERE deal_id = $1`, [dealId]).catch(() => undefined)
-  await client.query(`DELETE FROM ${schema}.investor_shield_checks WHERE deal_id = $1`, [dealId]).catch(() => undefined)
-  await client.query(`DELETE FROM ${schema}.deal_evidence WHERE deal_id = $1`, [dealId]).catch(() => undefined)
+  const run = async (label: string, text: string, values: unknown[]) => {
+    try {
+      return await client.query(text, values)
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error)
+      throw new Error(`Rehearsal cleanup failed at ${label} for ${dealId}: ${detail}`)
+    }
+  }
 
-  // 2. Video frames & video jobs strictly for this deal
-  await client.query(
-    `DELETE FROM ${schema}.video_frames WHERE job_id IN (SELECT id FROM ${schema}.video_jobs WHERE deal_id = $1)`,
-    [dealId]
-  ).catch(() => undefined)
-  await client.query(
-    `UPDATE ${schema}.video_jobs
-     SET original_retention_policy = 'OWNER_SCHEDULED_PURGE',
-         retention_decision_notes = 'Owner James Lake authorized rehearsal cleanup'
-     WHERE deal_id = $1`,
-    [dealId]
-  ).catch(() => undefined)
-  await client.query(`DELETE FROM ${schema}.video_jobs WHERE deal_id = $1`, [dealId]).catch(() => undefined)
+  if (ownership.evidenceIds.length === 0 || ownership.assessmentIds.length === 0) {
+    throw new Error(`Rehearsal cleanup retained ${dealId}: child ownership is incomplete; manual recovery required`)
+  }
 
-  // 3. Child viewing assessment entities strictly for this deal
-  const asmtSubquery = `SELECT id FROM ${schema}.viewing_assessments WHERE deal_id = $1`
-  await client.query(`DELETE FROM ${schema}.viewing_proposals WHERE assessment_id IN (${asmtSubquery})`, [dealId]).catch(() => undefined)
-  await client.query(
-    `DELETE FROM ${schema}.viewing_evidence_blobs WHERE evidence_id IN (
-       SELECT id FROM ${schema}.viewing_evidence WHERE assessment_id IN (${asmtSubquery})
-     )`,
-    [dealId]
-  ).catch(() => undefined)
-  await client.query(`DELETE FROM ${schema}.viewing_evidence WHERE assessment_id IN (${asmtSubquery})`, [dealId]).catch(() => undefined)
-  await client.query(`DELETE FROM ${schema}.viewing_analysis_runs WHERE assessment_id IN (${asmtSubquery})`, [dealId]).catch(() => undefined)
-  await client.query(`DELETE FROM ${schema}.viewing_assets WHERE assessment_id IN (${asmtSubquery})`, [dealId]).catch(() => undefined)
-  await client.query(`DELETE FROM ${schema}.refurb_plans WHERE assessment_id IN (${asmtSubquery})`, [dealId]).catch(() => undefined)
-  await client.query(`DELETE FROM ${schema}.financial_proposals WHERE assessment_id IN (${asmtSubquery})`, [dealId]).catch(() => undefined)
+  // Only exact identifiers recorded after successful creation are eligible.
+  await run("deal evidence", `DELETE FROM ${schema}.deal_evidence WHERE id = ANY($1) AND deal_id = $2`, [ownership.evidenceIds, dealId])
+
+  // 2. Video frames & video jobs only when the current run owner is known.
+  if (!operatorSubject) {
+    console.warn(`Rehearsal cleanup retained video jobs for ${dealId}: run owner unavailable; manual review required.`)
+  } else {
+    if (ownership.videoJobIds.length === 0) {
+      console.warn(`Rehearsal cleanup retained video media for ${dealId}: no verified job ownership; manual review required.`)
+    } else {
+      await run("video frames", `DELETE FROM ${schema}.video_frames WHERE job_id = ANY($1)`, [ownership.videoJobIds])
+      await run(
+        "video retention policy",
+        `UPDATE ${schema}.video_jobs
+         SET original_retention_policy = 'OWNER_SCHEDULED_PURGE',
+             retention_decision_notes = 'Owner James Lake authorized rehearsal cleanup'
+         WHERE id = ANY($1) AND deal_id = $2 AND created_by = $3`,
+        [ownership.videoJobIds, dealId, operatorSubject]
+      )
+      await run("video jobs", `DELETE FROM ${schema}.video_jobs WHERE id = ANY($1) AND deal_id = $2 AND created_by = $3`, [ownership.videoJobIds, dealId, operatorSubject])
+    }
+  }
+
+  // 3. Child viewing entities only for explicitly recorded assessment IDs.
+  await run("viewing proposals", `DELETE FROM ${schema}.viewing_proposals WHERE assessment_id = ANY($1)`, [ownership.assessmentIds])
+  await run(
+    "evidence blobs",
+    `DELETE FROM ${schema}.viewing_evidence_blobs WHERE evidence_id = ANY($1)`,
+    [ownership.evidenceIds]
+  )
+  await run("viewing evidence", `DELETE FROM ${schema}.viewing_evidence WHERE id = ANY($1)`, [ownership.evidenceIds])
+  await run("analysis runs", `DELETE FROM ${schema}.viewing_analysis_runs WHERE assessment_id = ANY($1)`, [ownership.assessmentIds])
+  await run("viewing assets", `DELETE FROM ${schema}.viewing_assets WHERE assessment_id = ANY($1)`, [ownership.assessmentIds])
+  await run("refurb plans", `DELETE FROM ${schema}.refurb_plans WHERE id = ANY($1) AND assessment_id = ANY($2)`, [ownership.planIds, ownership.assessmentIds])
+  await run("financial proposals", `DELETE FROM ${schema}.financial_proposals WHERE id = ANY($1) AND assessment_id = ANY($2)`, [ownership.proposalIds, ownership.assessmentIds])
 
   // 4. Viewing assessments strictly for this deal
-  await client.query(`DELETE FROM ${schema}.viewing_assessments WHERE deal_id = $1`, [dealId]).catch(() => undefined)
+  await run("viewing assessments", `DELETE FROM ${schema}.viewing_assessments WHERE id = ANY($1) AND deal_id = $2`, [ownership.assessmentIds, dealId])
 
   // 5. Saved deal strictly for this deal ID (zero address-based deletion)
-  await client.query(`DELETE FROM ${schema}.saved_deals WHERE id = $1`, [dealId]).catch(() => undefined)
+  await run("saved deal", `DELETE FROM ${schema}.saved_deals WHERE id = $1`, [dealId])
 
   // 6. Test operator session strictly for the ephemeral subject
   if (operatorSubject) {
-    await client.query(`DELETE FROM ${schema}.operator_sessions WHERE subject = $1`, [operatorSubject]).catch(() => undefined)
+    await run("operator session", `DELETE FROM ${schema}.operator_sessions WHERE subject = $1`, [operatorSubject])
   }
 }

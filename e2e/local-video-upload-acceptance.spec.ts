@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test"
+import { test, expect, type Locator } from "@playwright/test"
 import { spawn, type ChildProcess } from "node:child_process"
 import { randomUUID } from "node:crypto"
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs"
@@ -7,6 +7,7 @@ import path from "node:path"
 import pg from "pg"
 import { inspectMedia } from "../lib/viewing-assessment/video/media-inspector"
 import { isQaEnvironment } from "../lib/qa-security"
+import { externalUploadServer, verifyExternalRuntimeIdentity } from "./local-upload-server-ownership"
 
 const root = path.resolve(__dirname, "..")
 const SCHEMA = "brik_by_brik_engine"
@@ -16,6 +17,14 @@ const DEAL_ADDRESS = `18 St Andrews Crescent, Harrogate HG2 8RE (${testRunId})`
 const INITIAL_PURCHASE = 320000
 const INITIAL_REFURB = 40000
 const INITIAL_GDV = 520000
+const lifecycleStartedAt = performance.now()
+
+function lifecycle(marker: string, details: Record<string, unknown> = {}) {
+  console.log(
+    `[Upload lifecycle ${marker} +${Math.round(performance.now() - lifecycleStartedAt)}ms] ${JSON.stringify(details)}`
+  )
+}
+lifecycle("T0 module-loaded")
 
 const fixtureVideoPath = path.join(root, "__tests__", "fixtures", "synthetic-video.mp4")
 const screenshotsDir = path.join(root, "docs", "option2", "screenshots", "upload-acceptance")
@@ -35,40 +44,19 @@ type SimHandle = {
 test.describe.serial("Local Browser Video Upload & Extraction Acceptance (Genuine Chrome)", () => {
   let sim: SimHandle | undefined
   let app: ChildProcess
+  let serverOwned = false
   let pool: pg.Pool
   let baseUrl: string
   let operatorPassword = ""
   let assessmentId = ""
 
-  async function cleanFixtures(client: pg.Pool) {
-    if (sim?.accounts?.["operator@qa.test"]?.subject) {
-      await client.query(`DELETE FROM ${SCHEMA}.operator_sessions WHERE subject = $1`, [sim.accounts["operator@qa.test"].subject]).catch(() => undefined)
-    }
-    await client.query(`DELETE FROM ${SCHEMA}.contractor_quote_overrides WHERE deal_id = $1`, [DEAL_ID]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.investor_shield_checks WHERE deal_id = $1`, [DEAL_ID]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.deal_evidence WHERE deal_id = $1`, [DEAL_ID]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.viewing_proposals WHERE assessment_id IN (SELECT id FROM ${SCHEMA}.viewing_assessments WHERE deal_id = $1)`, [DEAL_ID]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.viewing_evidence_blobs WHERE evidence_id IN (SELECT id FROM ${SCHEMA}.viewing_evidence WHERE assessment_id IN (SELECT id FROM ${SCHEMA}.viewing_assessments WHERE deal_id = $1))`, [DEAL_ID]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.viewing_evidence WHERE assessment_id IN (SELECT id FROM ${SCHEMA}.viewing_assessments WHERE deal_id = $1)`, [DEAL_ID]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.viewing_analysis_runs WHERE assessment_id IN (SELECT id FROM ${SCHEMA}.viewing_assessments WHERE deal_id = $1)`, [DEAL_ID]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.viewing_assets WHERE assessment_id IN (SELECT id FROM ${SCHEMA}.viewing_assessments WHERE deal_id = $1)`, [DEAL_ID]).catch(() => undefined)
-    await client.query(
-      `DELETE FROM ${SCHEMA}.video_frames WHERE job_id IN (SELECT id FROM ${SCHEMA}.video_jobs WHERE deal_id = $1)`,
-      [DEAL_ID]
-    ).catch(() => undefined)
-    await client.query(
-      `UPDATE ${SCHEMA}.video_jobs
-       SET original_retention_policy = 'OWNER_SCHEDULED_PURGE',
-           retention_decision_notes = 'Owner James Lake authorized upload acceptance cleanup'
-       WHERE deal_id = $1`,
-      [DEAL_ID]
-    ).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.video_jobs WHERE deal_id = $1`, [DEAL_ID]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.viewing_assessments WHERE deal_id = $1`, [DEAL_ID]).catch(() => undefined)
-    await client.query(`DELETE FROM ${SCHEMA}.saved_deals WHERE id = $1`, [DEAL_ID]).catch(() => undefined)
+  function cleanLocalFixtureStorage() {
+    const fixtureDirectory = path.join(root, ".qa-local", "evidence", "video", "deal-evidence", "video-evidence", DEAL_ID)
+    if (existsSync(fixtureDirectory)) rmSync(fixtureDirectory, { recursive: true, force: true })
   }
 
   test.beforeAll("setup isolated local development runtime, ephemeral IdP, and start Next.js dev", async () => {
+    lifecycle("T1 beforeAll-begin")
     test.setTimeout(120_000)
     const { assertLocalQaTarget, buildLocalQaUrl, LOCAL_QA, scrubbedEnv } = await import("../scripts/qa/local-qa-target.mjs")
     const { startIdentitySimulator } = await import("../scripts/qa/idp-simulator.mjs")
@@ -84,21 +72,28 @@ test.describe.serial("Local Browser Video Upload & Extraction Acceptance (Genuin
 
     const dbUrl = buildLocalQaUrl(password)
     assertLocalQaTarget(dbUrl)
-    process.env.DATABASE_URL = dbUrl
 
     pool = new pg.Pool({ connectionString: dbUrl, max: 2 })
     const dbCheck = await pool.query("SELECT current_database() AS db, inet_server_addr() AS ip")
     if (dbCheck.rows[0]?.db !== LOCAL_QA.database) {
       throw new Error(`Connected to unexpected database: ${dbCheck.rows[0]?.db}`)
     }
+    lifecycle("T2 database-ready", { database: dbCheck.rows[0]?.db })
+    const externalServer = externalUploadServer(process.env)
+    const externalIssuer = process.env.E2E_EXTERNAL_IDP_ISSUER
+    const externalRunIdentity = process.env.E2E_EXTERNAL_RUN_IDENTITY
+    const externalIssuerFingerprint = process.env.E2E_EXTERNAL_IDP_ISSUER_FINGERPRINT
+    if (externalServer && (!process.env.E2E_EXTERNAL_OPERATOR_PASSWORD || !externalIssuer || !externalRunIdentity || !externalIssuerFingerprint)) throw new Error("external server IdP handoff is required")
 
     // 2. Start ephemeral Identity Provider simulator
-    process.env.VIEWING_QA_CONFIRM_ISOLATED = "I_CONFIRM_THIS_IS_NOT_PRODUCTION"
-    sim = await startIdentitySimulator()
-    operatorPassword = sim.accounts["operator@qa.test"].password
+    if (!externalServer) {
+      sim = await startIdentitySimulator()
+      operatorPassword = sim.accounts["operator@qa.test"].password
+      lifecycle("T3 idp-ready")
+    } else operatorPassword = process.env.E2E_EXTERNAL_OPERATOR_PASSWORD!
 
-    // 3. Clean any existing fixtures & seed isolated test deal
-    await cleanFixtures(pool)
+    // 3. Each run has a random deal ID. Append-only records are cleared by the
+    // post-test isolated QA baseline recovery, not by row-level deletion.
 
     const engineResult = {
       deal: { purchasePrice: INITIAL_PURCHASE, refurbCost: INITIAL_REFURB, gdv: INITIAL_GDV, profit: 90000 },
@@ -112,6 +107,18 @@ test.describe.serial("Local Browser Video Upload & Extraction Acceptance (Genuin
       ) VALUES ($1, $2, $3, $4, $5, 'RESIDENTIAL', 'PENDING_REVIEW', 'ACTIVE', 'EVALUATION', $6, $7, NOW(), NOW())`,
       [DEAL_ID, DEAL_ADDRESS, INITIAL_PURCHASE, INITIAL_GDV, INITIAL_REFURB, JSON.stringify(engineResult), JSON.stringify(riskSummary)]
     )
+
+    if (externalServer) {
+      const readiness = await fetch(`${externalServer.baseUrl}/sign-in`)
+      if (readiness.status !== 200) throw new Error(`external upload server readiness failed: ${readiness.status}`)
+      const identity = await fetch(`${externalServer.baseUrl}/api/qa/runtime-identity`)
+      if (identity.status !== 200) throw new Error("external upload server identity probe failed")
+      const marker = await identity.json()
+      verifyExternalRuntimeIdentity({ runIdentity: externalRunIdentity!, idpIssuerFingerprint: externalIssuerFingerprint! }, marker)
+      baseUrl = externalServer.baseUrl
+      lifecycle("T4 external-server-reused", { baseUrl, issuer: externalIssuer })
+      return
+    }
 
     // 4. Allocate isolated local port and spawn Next.js under the supported local development runtime
     const appPort = await new Promise<number>((resolve) => {
@@ -149,6 +156,9 @@ test.describe.serial("Local Browser Video Upload & Extraction Acceptance (Genuin
         },
       }
     )
+    serverOwned = true
+    lifecycle("T4 next-spawned", { pid: app.pid ?? null, port: appPort })
+    app.once("exit", (code, signal) => lifecycle("T16 next-exit", { code, signal }))
 
     let ready = false
     for (let i = 0; i < 90; i++) {
@@ -164,18 +174,24 @@ test.describe.serial("Local Browser Video Upload & Extraction Acceptance (Genuin
       await new Promise((r) => setTimeout(r, 1000))
     }
     if (!ready) throw new Error("Next.js development server failed to respond within 90 seconds")
+    lifecycle("T5 next-ready", { port: appPort })
   })
 
   test.afterAll(async () => {
-    if (app) app.kill()
-    if (pool) {
-      await cleanFixtures(pool)
-      await pool.end()
-    }
+    lifecycle("T14 afterAll-begin", { appPid: app?.pid ?? null })
+    lifecycle("T15 next-kill-requested", { appPid: app?.pid ?? null, alreadyExited: app?.exitCode !== null })
+    if (serverOwned && app) app.kill()
+    if (pool) await pool.end()
     if (sim) await sim.close()
+    cleanLocalFixtureStorage()
+    console.log(`[Upload fixture cleanup requires isolated QA baseline recovery: ${DEAL_ID}]`)
+    lifecycle("T17 afterAll-complete")
   })
 
-  test("Genuine Chrome video upload, local-fs TUS storage, worker extraction, gallery and frame attachment", async ({ page }) => {
+  test.afterEach(() => lifecycle("T13 test-afterEach"))
+
+  test("Genuine Chrome video upload, local-fs TUS storage, worker extraction, gallery and frame attachment", async ({ page }, testInfo) => {
+    lifecycle("T6 test-begin")
     test.setTimeout(120_000)
 
     // =========================================================================
@@ -220,39 +236,107 @@ test.describe.serial("Local Browser Video Upload & Extraction Acceptance (Genuin
     const resJson = await res.json()
     assessmentId = resJson.assessment?.id || ""
     expect(assessmentId).toBeTruthy()
+    console.log("[Upload harness] STEP A - assessment created")
+    lifecycle("T7 assessment-created", { assessmentId })
+
+    let uploadStep = "STEP B - locating upload control"
+    const captureUploadStall = async () => {
+      const fileInput = page.getByLabel("Choose video file")
+      const state = {
+        step: uploadStep,
+        url: page.url(),
+        title: await page.title(),
+        heading: await page.locator("h1, h2, h3").first().textContent(),
+        dialogVisible: await page.getByRole("dialog").count().then((count) => count > 0),
+        fileInputCount: await fileInput.count(),
+        fileInputVisible: await fileInput.isVisible().catch(() => false),
+        fileInputDisabled: await fileInput.isDisabled().catch(() => null),
+      }
+      await page.screenshot({ path: testInfo.outputPath("upload-harness-stall.png") })
+      console.log(`[Upload harness stall] ${JSON.stringify(state)}`)
+    }
 
     // =========================================================================
     // 4. Negative validation: invalid file format rejected by client-side guard
     // =========================================================================
     const fileInput = page.getByLabel("Choose video file")
-    await expect(fileInput).toBeVisible()
+    let uploadBtn: Locator
+    try {
+      await expect(fileInput).toBeVisible({ timeout: 15_000 })
+      console.log("[Upload harness] STEP C - upload control located")
 
-    // Test rejection of non-video file
-    const invalidPath = path.join(root, "package.json")
-    await fileInput.setInputFiles(invalidPath)
-    await expect(page.getByText(/Unsupported file extension/i)).toBeVisible()
+      uploadStep = "STEP D - attaching invalid file"
+      const invalidPath = path.join(root, "package.json")
+      await fileInput.setInputFiles(invalidPath, { timeout: 15_000 })
+      await expect(page.getByText(/Unsupported file extension/i)).toBeVisible({ timeout: 15_000 })
 
-    // =========================================================================
-    // 5. Select 3-second synthetic MP4 fixture in genuine Chrome
-    // =========================================================================
-    await fileInput.setInputFiles(fixtureVideoPath)
-    await expect(page.getByText(/13\.9 KB|14\.3 KB|14 KB/i)).toBeVisible()
-    const uploadBtn = page.getByRole("button", { name: "Upload & Queue Extraction" })
-    await expect(uploadBtn).toBeVisible()
+      uploadStep = "STEP E - attaching synthetic video"
+      await fileInput.setInputFiles(fixtureVideoPath, { timeout: 15_000 })
+      await expect(page.getByText(/13\.9 KB|14\.3 KB|14 KB/i)).toBeVisible({ timeout: 15_000 })
+      uploadBtn = page.getByRole("button", { name: "Upload & Queue Extraction" })
+      await expect(uploadBtn).toBeVisible({ timeout: 15_000 })
+      console.log("[Upload harness] STEP F - file attached and upload action ready")
+      lifecycle("T8 upload-ready")
+    } catch (error) {
+      await captureUploadStall()
+      throw error
+    }
 
     // =========================================================================
     // 6. Execute genuine browser upload via local-fs TUS endpoint & confirm
     // =========================================================================
+    let preConfirmDiagnostic: Record<string, unknown> | undefined
+    await page.route("**/confirm", async (route) => {
+      const request = route.request()
+      const parts = new URL(request.url()).pathname.split("/")
+      const videosIndex = parts.lastIndexOf("videos")
+      const jobId = parts[videosIndex + 1]
+      const rowById = await pool.query(
+        `SELECT id, deal_id, viewing_id, state, created_at, updated_at
+         FROM ${SCHEMA}.video_jobs WHERE id = $1`,
+        [jobId]
+      )
+      const rowByScope = await pool.query(
+        `SELECT id FROM ${SCHEMA}.video_jobs WHERE deal_id = $1 AND viewing_id = $2 AND id = $3`,
+        [DEAL_ID, assessmentId, jobId]
+      )
+      const target = await pool.query(
+        "SELECT current_database() AS database, current_user AS username, inet_server_addr()::text AS host, inet_server_port() AS port"
+      )
+      preConfirmDiagnostic = {
+        method: request.method(),
+        path: new URL(request.url()).pathname,
+        dealId: DEAL_ID,
+        assessmentId,
+        jobId,
+        bodyShape: request.postDataJSON() && typeof request.postDataJSON() === "object" ? "object" : typeof request.postDataJSON(),
+        rowById: rowById.rows[0] ?? null,
+        scopedTripleFound: rowByScope.rowCount === 1,
+        databaseTarget: target.rows[0],
+      }
+      console.log(`[Upload diagnostic pre-confirm] ${JSON.stringify(preConfirmDiagnostic)}`)
+      await route.continue()
+    })
+
     const [intentResponse, confirmResponse] = await Promise.all([
       page.waitForResponse(
         (r) => r.url().includes("/videos") && !r.url().includes("/confirm") && r.request().method() === "POST" && (r.status() === 200 || r.status() === 201)
       ),
-      page.waitForResponse((r) => r.url().includes("/confirm") && (r.status() === 200 || r.status() === 201)),
-      uploadBtn.click(),
+      page.waitForResponse((r) => r.url().includes("/confirm") && r.request().method() === "POST"),
+      uploadBtn!.click(),
     ])
 
     const intentData = await intentResponse.json()
     const confirmData = await confirmResponse.json()
+    lifecycle("T9 upload-responses", { intentStatus: intentResponse.status(), confirmStatus: confirmResponse.status() })
+    console.log(`[Upload diagnostic intent] ${JSON.stringify({ status: intentResponse.status(), dealId: DEAL_ID, assessmentId, jobId: intentData.jobId, sourcePath: intentData.sourcePath })}`)
+    console.log(`[Upload diagnostic confirm] ${JSON.stringify({ status: confirmResponse.status(), body: confirmData })}`)
+    expect(preConfirmDiagnostic).toMatchObject({
+      dealId: DEAL_ID,
+      assessmentId,
+      jobId: intentData.jobId,
+      scopedTripleFound: true,
+    })
     expect(intentData.success).toBe(true)
     expect(confirmData.success).toBe(true)
     expect(confirmData.state).toBe("queued")
@@ -271,6 +355,7 @@ test.describe.serial("Local Browser Video Upload & Extraction Acceptance (Genuin
       workerBtn.click(),
     ])
     const workerData = await workerResponse.json()
+    lifecycle("T10 worker-complete", { frameCount: workerData.result?.frameCount ?? null })
     expect(workerData.success).toBe(true)
     expect(workerData.result.success).toBe(true)
     expect(workerData.result.frameCount).toBeGreaterThanOrEqual(1)
@@ -310,6 +395,7 @@ test.describe.serial("Local Browser Video Upload & Extraction Acceptance (Genuin
     // Verify modal closes and evidence is rendered in assessment checklist
     await expect(attachModal).not.toBeVisible({ timeout: 10_000 })
     await expect(page.getByText(/attached to check C01/i)).toBeVisible({ timeout: 10_000 })
+    lifecycle("T11 frame-attached")
 
     // =========================================================================
     // 10. Verify PostgreSQL persistence & storage objects on disk
@@ -326,5 +412,6 @@ test.describe.serial("Local Browser Video Upload & Extraction Acceptance (Genuin
     expect(framesInDb.rows[0].is_reviewed_evidence).toBe(true)
 
     console.log(`Verified genuine upload & extraction: ${framesInDb.rows.length} frames registered in PostgreSQL for job ${intentData.jobId}.`)
+    lifecycle("T12 assertions-complete", { frames: framesInDb.rows.length })
   })
 })

@@ -60,7 +60,6 @@ test.describe.serial("Viewing Assessment Complete Operator Walkthrough", () => {
     }
 
     // 2. Start ephemeral Identity Provider simulator
-    process.env.VIEWING_QA_CONFIRM_ISOLATED = "I_CONFIRM_THIS_IS_NOT_PRODUCTION"
     sim = await startIdentitySimulator()
     operatorPassword = sim.accounts["operator@qa.test"].password
 

@@ -73,7 +73,6 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
 
     const dbUrl = buildLocalQaUrl(password)
     assertLocalQaTarget(dbUrl)
-    process.env.DATABASE_URL = dbUrl
 
     pool = new pg.Pool({ connectionString: dbUrl, max: 2 })
     const dbCheck = await pool.query("SELECT current_database() AS db, inet_server_addr() AS ip")
@@ -82,7 +81,6 @@ test.describe.serial("November 6 Final Demonstration Rehearsal (Real Chrome & Po
     }
 
     // 2. Start ephemeral Identity Provider simulator
-    process.env.VIEWING_QA_CONFIRM_ISOLATED = "I_CONFIRM_THIS_IS_NOT_PRODUCTION"
     sim = await startIdentitySimulator()
     operatorPassword = sim.accounts["operator@qa.test"].password
 
