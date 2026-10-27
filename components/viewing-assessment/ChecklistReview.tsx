@@ -120,8 +120,9 @@ export default function ChecklistReview({ rows, meta, renderItems }: Props) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-xs font-semibold text-slate-700 whitespace-nowrap">Filter view:</label>
+          <label htmlFor="checklist-filter" className="text-xs font-semibold text-slate-700 whitespace-nowrap">Filter view:</label>
           <select
+            id="checklist-filter"
             value={filter}
             onChange={(e) => setFilter(e.target.value as CheckFilter)}
             className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 shadow-xs"

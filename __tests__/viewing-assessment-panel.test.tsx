@@ -132,6 +132,8 @@ describe("the 58-check list", () => {
   it("filters the list for the review workflow", async () => {
     panel(detail([suggestion("C08"), suggestion("C09", "CONCERN", [{ disposition: "ACCEPTED" }]), suggestion("C10", "SPECIALIST_REVIEW", [{ disposition: "ACCEPTED" }])]))
     const filter = q<HTMLSelectElement>("[data-testid=checklist-filter]")!
+    expect(filter.id).toBe("checklist-filter")
+    expect(container.querySelector(`label[for="${filter.id}"]`)?.textContent).toBe("Filter view:")
     const ids = () => qa("[data-testid=check-row]").map((r) => r.getAttribute("data-check-id"))
     await setValue(filter, "needs_review")
     expect(ids()).toEqual(["C08"])

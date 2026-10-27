@@ -1,4 +1,4 @@
-export default function InvestorDealSummaryUnavailable() {
+export default function InvestorDealSummaryUnavailable({ dealId }: { dealId: string }) {
   return (
     <main className="min-h-screen bg-gray-100 px-4 py-8 text-gray-950">
       <div className="mx-auto max-w-2xl">
@@ -18,6 +18,12 @@ export default function InvestorDealSummaryUnavailable() {
           <p className="mt-3 text-sm text-amber-950">
             Try again after the underlying data service is available.
           </p>
+          <a
+            href={`/saved-deals/${encodeURIComponent(dealId)}`}
+            className="mt-4 inline-block text-sm font-semibold text-amber-950 underline hover:text-amber-800"
+          >
+            Back to Saved Deal
+          </a>
         </section>
       </div>
     </main>

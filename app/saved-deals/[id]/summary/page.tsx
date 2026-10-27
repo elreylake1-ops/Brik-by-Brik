@@ -24,7 +24,7 @@ export default async function InvestorDealSummaryPage({ params }: RouteContext) 
   }
 
   if (result.status === "unavailable") {
-    return <InvestorDealSummaryUnavailable />
+    return <InvestorDealSummaryUnavailable dealId={dealId} />
   }
 
   const viewModel = mapInvestorReviewToDealSummary({
