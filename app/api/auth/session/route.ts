@@ -6,8 +6,8 @@ import { isSameOrigin } from "@/lib/auth/session"
 export const dynamic = "force-dynamic"
 
 export async function POST(request: Request) {
-  // CSRF verification on sign-in mutation if Origin header is present
-  if (request.headers.get("origin") && !isSameOrigin(request)) {
+  // Reject malformed, absent or untrusted origins for mutations
+  if (!isSameOrigin(request)) {
     return NextResponse.json(
       { success: false, error: "CROSS_ORIGIN_REJECTED" },
       { status: 403, headers: { "cache-control": "no-store" } }
@@ -49,13 +49,16 @@ export async function POST(request: Request) {
     const isAllowed = membership ? await membership.isActiveOperator(data.user.id) : false
 
     if (!isAllowed) {
-      // Sign out immediately if not in operator allowlist
-      await routeClient.supabase.auth.signOut()
-      const resp = NextResponse.json(
+      // Invalidate session on identity provider; forward NO session cookies to browser
+      try {
+        await routeClient.supabase.auth.signOut()
+      } catch {
+        // ignore signOut failure
+      }
+      return NextResponse.json(
         { success: false, error: "UNAUTHORIZED_OPERATOR" },
         { status: 403, headers: { "cache-control": "no-store" } }
       )
-      return routeClient.applyCookies(resp)
     }
 
     const resp = NextResponse.json(
@@ -72,7 +75,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (request.headers.get("origin") && !isSameOrigin(request)) {
+  if (!isSameOrigin(request)) {
     return NextResponse.json(
       { success: false, error: "CROSS_ORIGIN_REJECTED" },
       { status: 403, headers: { "cache-control": "no-store" } }

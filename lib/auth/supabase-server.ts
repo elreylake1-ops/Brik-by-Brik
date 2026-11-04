@@ -81,7 +81,14 @@ export function createRouteHandlerSupabaseClient(request: Request, env: Record<s
         return Object.entries(parsedCookies).map(([name, value]) => ({ name, value }))
       },
       setAll(cookiesToSet: CookieToSet[]) {
-        cookiesToSetList.push(...cookiesToSet)
+        cookiesToSet.forEach((newCookie) => {
+          const idx = cookiesToSetList.findIndex((c) => c.name === newCookie.name)
+          if (idx >= 0) {
+            cookiesToSetList[idx] = newCookie
+          } else {
+            cookiesToSetList.push(newCookie)
+          }
+        })
       },
     },
   })
@@ -92,7 +99,11 @@ export function createRouteHandlerSupabaseClient(request: Request, env: Record<s
       cookiesToSetList.forEach(({ name, value, options }) => {
         // Construct standard Set-Cookie string or append
         let cookieStr = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`
-        if (options?.maxAge !== undefined) cookieStr += `; Max-Age=${options.maxAge}`
+        if (options?.maxAge !== undefined) {
+          cookieStr += `; Max-Age=${options.maxAge}`
+        } else if (options?.expires) {
+          cookieStr += `; Expires=${options.expires.toUTCString()}`
+        }
         if (options?.path) cookieStr += `; Path=${options.path}`
         else cookieStr += "; Path=/"
         if (options?.httpOnly) cookieStr += "; HttpOnly"

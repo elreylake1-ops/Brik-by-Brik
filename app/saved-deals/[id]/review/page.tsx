@@ -6,6 +6,7 @@ import { requireServerOperator } from "@/lib/auth/operator-auth"
 import { isDevelopmentOpen } from "@/lib/operator-command/guard-saved-deal-api"
 
 export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 type RouteContext = {
   params: Promise<{ id?: string }> | { id?: string }

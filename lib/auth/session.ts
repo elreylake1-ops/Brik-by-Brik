@@ -55,29 +55,21 @@ export function isSameOrigin(request: Request, env: Record<string, string | unde
 
   let requestOrigin: string
   try {
-    requestOrigin = new URL(originHeader).origin.toLowerCase()
+    const parsed = new URL(originHeader)
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return false
+    }
+    requestOrigin = parsed.origin.toLowerCase()
   } catch {
     return false
   }
 
   const trustedOrigins = getTrustedOrigins(env)
-  if (trustedOrigins.size > 0) {
-    return trustedOrigins.has(requestOrigin)
-  }
-
-  // Fallback for local development if no explicit TRUSTED_ORIGINS configured
-  const isHosted = Boolean(env.VERCEL || env.VERCEL_ENV || env.NEXT_PUBLIC_VERCEL_ENV || env.NODE_ENV === "production")
-  if (isHosted) {
-    return false // Fail closed in hosted environments
-  }
-
-  try {
-    const host = request.headers.get("host")?.trim()
-    if (!host) return false
-    const hostOrigin = new URL(`http://${host}`).origin.toLowerCase()
-    return requestOrigin === hostOrigin
-  } catch {
+  if (trustedOrigins.size === 0) {
+    // Fail closed when trusted origins are missing or unconfigured
     return false
   }
+
+  return trustedOrigins.has(requestOrigin)
 }
 
