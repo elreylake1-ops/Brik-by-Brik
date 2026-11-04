@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
+import { guardSavedDealApi } from "@/lib/operator-command/guard-saved-deal-api"
 import { createSavedDeal, listSavedDeals } from "@/lib/operator-command/saved-deals-repository"
 import { createSafeRouteErrorDiagnostic } from "@/lib/http/safe-route-error"
+
+export const dynamic = "force-dynamic"
 
 type SavedDealPostBody = {
   address?: unknown
@@ -34,12 +37,16 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 export async function GET(request: Request) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const url = new URL(request.url)
     const includeArchived = url.searchParams.get("includeArchived") === "true"
 
     const deals = await listSavedDeals({ includeArchived })
-    return NextResponse.json({ success: true, deals }, { status: 200 })
+    const res = NextResponse.json({ success: true, deals }, { status: 200, headers: { "cache-control": "no-store" } })
+    return guard.applyCookies ? guard.applyCookies(res) : res
   } catch (error) {
     const diagnostic = createSafeRouteErrorDiagnostic("saved-deals.list", error)
     console.error("Saved deals list failed.", diagnostic)
@@ -51,71 +58,78 @@ export async function GET(request: Request) {
         traceId: diagnostic.traceId,
         diagnostic,
       },
-      { status: 500 }
+      { status: 500, headers: { "cache-control": "no-store" } }
     )
   }
 }
 
 export async function POST(request: Request) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const body = (await request.json()) as SavedDealPostBody
 
     if (!isRequiredString(body.address)) {
-      return NextResponse.json({ success: false, error: "Invalid input: address is required." }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Invalid input: address is required." }, { status: 400, headers: { "cache-control": "no-store" } })
     }
 
     if (!isRequiredString(body.classification)) {
-      return NextResponse.json({ success: false, error: "Invalid input: classification is required." }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Invalid input: classification is required." }, { status: 400, headers: { "cache-control": "no-store" } })
     }
 
     if (!isRequiredString(body.governance_state)) {
-      return NextResponse.json({ success: false, error: "Invalid input: governance_state is required." }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Invalid input: governance_state is required." }, { status: 400, headers: { "cache-control": "no-store" } })
     }
 
     if (!isRequiredString(body.capital_protection_state)) {
-      return NextResponse.json({ success: false, error: "Invalid input: capital_protection_state is required." }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Invalid input: capital_protection_state is required." }, { status: 400, headers: { "cache-control": "no-store" } })
     }
 
     if (!isRequiredString(body.pipeline_state)) {
-      return NextResponse.json({ success: false, error: "Invalid input: pipeline_state is required." }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Invalid input: pipeline_state is required." }, { status: 400, headers: { "cache-control": "no-store" } })
     }
 
     if (!isObject(body.engine_result_json)) {
-      return NextResponse.json({ success: false, error: "Invalid input: engine_result_json is required." }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Invalid input: engine_result_json is required." }, { status: 400, headers: { "cache-control": "no-store" } })
     }
 
     if (!isNullableNumber(body.purchase_price) || !isNullableNumber(body.gdv_realistic) || !isNullableNumber(body.refurb_cost)) {
-      return NextResponse.json({ success: false, error: "Invalid input: numeric fields must be number or null." }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Invalid input: numeric fields must be number or null." }, { status: 400, headers: { "cache-control": "no-store" } })
     }
 
     if (!isNullableString(body.listing_url) || !isNullableString(body.next_action)) {
-      return NextResponse.json({ success: false, error: "Invalid input: optional text fields must be string or null." }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Invalid input: optional text fields must be string or null." }, { status: 400, headers: { "cache-control": "no-store" } })
     }
 
     if (body.risk_summary_json !== undefined && body.risk_summary_json !== null && !isObject(body.risk_summary_json)) {
-      return NextResponse.json({ success: false, error: "Invalid input: risk_summary_json must be object or null." }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Invalid input: risk_summary_json must be object or null." }, { status: 400, headers: { "cache-control": "no-store" } })
     }
 
     const deal = await createSavedDeal({
       address: body.address,
-      listing_url: body.listing_url ?? null,
-      purchase_price: body.purchase_price ?? null,
-      gdv_realistic: body.gdv_realistic ?? null,
-      refurb_cost: body.refurb_cost ?? null,
-      classification: body.classification,
-      governance_state: body.governance_state,
-      capital_protection_state: body.capital_protection_state,
-      pipeline_state: body.pipeline_state,
-      engine_result_json: body.engine_result_json,
-      risk_summary_json: isObject(body.risk_summary_json) ? body.risk_summary_json : {},
+      listing_url: body.listing_url,
+      purchase_price: body.purchase_price,
+      gdv_realistic: body.gdv_realistic,
+      refurb_cost: body.refurb_cost,
+      classification: body.classification as any,
+      governance_state: body.governance_state as any,
+      capital_protection_state: body.capital_protection_state as any,
+      pipeline_state: body.pipeline_state as any,
+      engine_result_json: body.engine_result_json as any,
+      risk_summary_json: (body.risk_summary_json ?? {}) as any,
       next_action: body.next_action ?? null,
     })
 
-    return NextResponse.json({ success: true, deal }, { status: 201 })
-  } catch {
+    const res = NextResponse.json({ success: true, deal }, { status: 201, headers: { "cache-control": "no-store" } })
+    return guard.applyCookies ? guard.applyCookies(res) : res
+  } catch (error) {
+    const diagnostic = createSafeRouteErrorDiagnostic("saved-deals.create", error)
+    console.error("Saved deals create failed.", diagnostic)
+
     return NextResponse.json(
       { success: false, error: "Unable to save deal at this time." },
-      { status: 500 }
+      { status: 500, headers: { "cache-control": "no-store" } }
     )
   }
 }

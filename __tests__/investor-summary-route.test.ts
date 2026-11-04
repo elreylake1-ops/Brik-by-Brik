@@ -11,10 +11,14 @@ vi.mock("@/lib/investor-summary/investor-summary-repository", () => ({
 }))
 
 import { GET } from "@/app/api/saved-deals/[id]/investor-summary/route"
+import { operatorHeaders, registerTestOperator } from "./fixtures/operator-session"
+
+registerTestOperator()
 
 function makeRequest() {
   return new Request("http://localhost/api/saved-deals/deal-1/investor-summary", {
     method: "GET",
+    headers: operatorHeaders(),
   })
 }
 

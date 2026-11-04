@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server"
+import { guardSavedDealApi } from "@/lib/operator-command/guard-saved-deal-api"
 import { createOffer, listOffersForDeal } from "@/lib/operator-command/deal-offers-repository"
+
+export const dynamic = "force-dynamic"
 
 type RouteContext = {
   params: Promise<{ id?: string }> | { id?: string }
@@ -9,7 +12,10 @@ function isValidOfferAmount(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value)
 }
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const dealId = params?.id?.trim()
@@ -17,21 +23,25 @@ export async function GET(_request: Request, context: RouteContext) {
     if (!dealId) {
       return NextResponse.json(
         { success: false, error: "Invalid saved deal id." },
-        { status: 400 }
+        { status: 400, headers: { "cache-control": "no-store" } }
       )
     }
 
     const offers = await listOffersForDeal(dealId)
-    return NextResponse.json({ success: true, offers }, { status: 200 })
+    const res = NextResponse.json({ success: true, offers }, { status: 200, headers: { "cache-control": "no-store" } })
+    return guard.applyCookies ? guard.applyCookies(res) : res
   } catch {
     return NextResponse.json(
       { success: false, error: "Unable to load deal offers at this time." },
-      { status: 500 }
+      { status: 500, headers: { "cache-control": "no-store" } }
     )
   }
 }
 
 export async function POST(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const dealId = params?.id?.trim()
@@ -39,7 +49,7 @@ export async function POST(request: Request, context: RouteContext) {
     if (!dealId) {
       return NextResponse.json(
         { success: false, error: "Invalid saved deal id." },
-        { status: 400 }
+        { status: 400, headers: { "cache-control": "no-store" } }
       )
     }
 
@@ -48,21 +58,21 @@ export async function POST(request: Request, context: RouteContext) {
     if (!isValidOfferAmount(body?.offer_amount)) {
       return NextResponse.json(
         { success: false, error: "Invalid offer_amount." },
-        { status: 400 }
+        { status: 400, headers: { "cache-control": "no-store" } }
       )
     }
 
     if (body?.offer_type !== undefined && typeof body.offer_type !== "string") {
       return NextResponse.json(
         { success: false, error: "Invalid offer_type." },
-        { status: 400 }
+        { status: 400, headers: { "cache-control": "no-store" } }
       )
     }
 
     if (body?.offer_status !== undefined && typeof body.offer_status !== "string") {
       return NextResponse.json(
         { success: false, error: "Invalid offer_status." },
-        { status: 400 }
+        { status: 400, headers: { "cache-control": "no-store" } }
       )
     }
 
@@ -73,7 +83,7 @@ export async function POST(request: Request, context: RouteContext) {
     ) {
       return NextResponse.json(
         { success: false, error: "Invalid offer_rationale." },
-        { status: 400 }
+        { status: 400, headers: { "cache-control": "no-store" } }
       )
     }
 
@@ -84,7 +94,7 @@ export async function POST(request: Request, context: RouteContext) {
     ) {
       return NextResponse.json(
         { success: false, error: "Invalid seller_response." },
-        { status: 400 }
+        { status: 400, headers: { "cache-control": "no-store" } }
       )
     }
 
@@ -96,11 +106,12 @@ export async function POST(request: Request, context: RouteContext) {
       seller_response: body.seller_response ?? null,
     })
 
-    return NextResponse.json({ success: true, offer }, { status: 201 })
+    const res = NextResponse.json({ success: true, offer }, { status: 201, headers: { "cache-control": "no-store" } })
+    return guard.applyCookies ? guard.applyCookies(res) : res
   } catch {
     return NextResponse.json(
       { success: false, error: "Unable to create deal offer at this time." },
-      { status: 500 }
+      { status: 500, headers: { "cache-control": "no-store" } }
     )
   }
 }

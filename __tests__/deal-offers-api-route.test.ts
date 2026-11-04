@@ -13,15 +13,18 @@ vi.mock("@/lib/operator-command/deal-offers-repository", () => ({
 }))
 
 import { GET, POST } from "@/app/api/saved-deals/[id]/offers/route"
+import { operatorHeaders, registerTestOperator } from "./fixtures/operator-session"
+
+registerTestOperator()
 
 function makeGetRequest() {
-  return new Request("http://localhost/api/saved-deals/deal-1/offers", { method: "GET" })
+  return new Request("http://localhost/api/saved-deals/deal-1/offers", { method: "GET", headers: operatorHeaders() })
 }
 
 function makePostRequest(body: unknown) {
   return new Request("http://localhost/api/saved-deals/deal-1/offers", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: operatorHeaders({ "content-type": "application/json" }),
     body: JSON.stringify(body),
   })
 }
