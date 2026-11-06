@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { guardSavedDealApi } from "@/lib/operator-command/guard-saved-deal-api"
 import {
   guardInvestorShieldPipelineMovement,
   isInvestorShieldProtectedStage,
@@ -32,6 +33,9 @@ function isPipelineState(value: unknown): value is PipelineState {
 }
 
 export async function POST(request: Request, context: RouteContext) {
+  const guardResult = await guardSavedDealApi(request)
+  if (!guardResult.ok) return guardResult.response
+
   try {
     const params = await context.params
     const id = params?.id?.trim()

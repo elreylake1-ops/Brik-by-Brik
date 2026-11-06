@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { guardSavedDealApi } from "@/lib/operator-command/guard-saved-deal-api"
 import { createSafeRouteErrorDiagnostic } from "@/lib/http/safe-route-error"
 import { getSavedDealById } from "@/lib/operator-command/saved-deals-repository"
 import {
@@ -13,6 +14,8 @@ import {
   EVIDENCE_LITE_EVIDENCE_TYPES,
   type EvidenceLiteEvidenceType,
 } from "@/types/evidence-lite"
+
+export const dynamic = "force-dynamic"
 
 type RouteContext = {
   params: Promise<{ id?: string }> | { id?: string }
@@ -70,7 +73,9 @@ function isEvidenceCommandPayload(body: Record<string, unknown>): boolean {
   )
 }
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
   try {
     const params = await context.params
     const id = params?.id?.trim()
@@ -86,7 +91,8 @@ export async function GET(_request: Request, context: RouteContext) {
 
     const evidence = await listEvidenceLiteForDeal(id)
 
-    return NextResponse.json({ success: true, evidence }, { status: 200 })
+    const res = NextResponse.json({ success: true, evidence }, { status: 200, headers: { "cache-control": "no-store" } })
+    return guard.applyCookies ? guard.applyCookies(res) : res
   } catch (error) {
     const diagnostic = createSafeRouteErrorDiagnostic("saved-deals.evidence", error)
     console.error("Evidence Lite list failed.", diagnostic)
@@ -98,12 +104,14 @@ export async function GET(_request: Request, context: RouteContext) {
         traceId: diagnostic.traceId,
         diagnostic,
       },
-      { status: 500 }
+      { status: 500, headers: { "cache-control": "no-store" } }
     )
   }
 }
 
 export async function POST(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
   try {
     const params = await context.params
     const id = params?.id?.trim()
@@ -168,7 +176,8 @@ export async function POST(request: Request, context: RouteContext) {
 
       const evidence = await createEvidenceLite({ ...validation.value, dealId: id })
 
-      return NextResponse.json({ success: true, evidence }, { status: 201 })
+      const res = NextResponse.json({ success: true, evidence }, { status: 201, headers: { "cache-control": "no-store" } })
+      return guard.applyCookies ? guard.applyCookies(res) : res
     }
 
     const validation = validateCreateEvidenceLiteInput({
@@ -192,7 +201,8 @@ export async function POST(request: Request, context: RouteContext) {
 
     const evidence = await createEvidenceLite(validation.value)
 
-    return NextResponse.json({ success: true, evidence }, { status: 201 })
+    const res = NextResponse.json({ success: true, evidence }, { status: 201, headers: { "cache-control": "no-store" } })
+    return guard.applyCookies ? guard.applyCookies(res) : res
   } catch (error) {
     const diagnostic = createSafeRouteErrorDiagnostic("saved-deals.evidence", error)
     console.error("Evidence Lite create failed.", diagnostic)
@@ -204,7 +214,7 @@ export async function POST(request: Request, context: RouteContext) {
         traceId: diagnostic.traceId,
         diagnostic,
       },
-      { status: 500 }
+      { status: 500, headers: { "cache-control": "no-store" } }
     )
   }
 }

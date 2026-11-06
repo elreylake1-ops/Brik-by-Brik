@@ -16,10 +16,14 @@ vi.mock("@/lib/investor-shield/load-investor-shield-ui-model", () => ({
 }))
 
 import { GET } from "@/app/api/saved-deals/[id]/investor-shield-ui/route"
+import { operatorHeaders, registerTestOperator } from "./fixtures/operator-session"
+
+registerTestOperator()
 
 function makeRequest() {
   return new Request("http://localhost/api/saved-deals/deal-1/investor-shield-ui", {
     method: "GET",
+    headers: operatorHeaders(),
   })
 }
 

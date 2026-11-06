@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { guardSavedDealApi } from "@/lib/operator-command/guard-saved-deal-api"
 import { createSafeRouteErrorDiagnostic } from "@/lib/http/safe-route-error"
 import { getSavedDealById } from "@/lib/operator-command/saved-deals-repository"
 import {
@@ -14,6 +15,8 @@ import {
   type EvidenceLiteEvidenceType,
   type NormalizedEvidenceCommandInput,
 } from "@/types/evidence-lite"
+
+export const dynamic = "force-dynamic"
 
 type RouteContext = {
   params: Promise<{ id?: string; evidenceId?: string }> | { id?: string; evidenceId?: string }
@@ -142,24 +145,27 @@ function buildCommandPatchInput(
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
+  const guard = await guardSavedDealApi(request)
+  if (!guard.ok) return guard.response
+
   try {
     const params = await context.params
     const dealId = params?.id?.trim()
     const evidenceId = params?.evidenceId?.trim()
 
     if (!dealId) {
-      return NextResponse.json({ success: false, error: SAFE_INVALID_DEAL_ID }, { status: 400 })
+      return NextResponse.json({ success: false, error: SAFE_INVALID_DEAL_ID }, { status: 400, headers: { "cache-control": "no-store" } })
     }
 
     if (!evidenceId) {
-      return NextResponse.json({ success: false, error: SAFE_INVALID_EVIDENCE_ID }, { status: 400 })
+      return NextResponse.json({ success: false, error: SAFE_INVALID_EVIDENCE_ID }, { status: 400, headers: { "cache-control": "no-store" } })
     }
 
     let body: unknown
     try {
       body = await request.json()
     } catch {
-      return NextResponse.json({ success: false, error: SAFE_INVALID_JSON }, { status: 400 })
+      return NextResponse.json({ success: false, error: SAFE_INVALID_JSON }, { status: 400, headers: { "cache-control": "no-store" } })
     }
 
     if (!isPlainObject(body)) {
@@ -169,7 +175,7 @@ export async function PATCH(request: Request, context: RouteContext) {
           error: SAFE_INVALID_INPUT,
           validation: buildValidationError("root", "body must be a JSON object"),
         },
-        { status: 400 }
+        { status: 400, headers: { "cache-control": "no-store" } }
       )
     }
 
@@ -183,7 +189,7 @@ export async function PATCH(request: Request, context: RouteContext) {
             "dealId is supplied by the route and must not be included in the body"
           ),
         },
-        { status: 400 }
+        { status: 400, headers: { "cache-control": "no-store" } }
       )
     }
 
@@ -192,12 +198,12 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (useCommandValidation) {
       const deal = await getSavedDealById(dealId)
       if (!deal) {
-        return NextResponse.json({ success: false, error: SAFE_NOT_FOUND }, { status: 404 })
+        return NextResponse.json({ success: false, error: SAFE_NOT_FOUND }, { status: 404, headers: { "cache-control": "no-store" } })
       }
 
       const evidence = await getEvidenceLiteById(dealId, evidenceId)
       if (!evidence) {
-        return NextResponse.json({ success: false, error: SAFE_EVIDENCE_NOT_FOUND }, { status: 404 })
+        return NextResponse.json({ success: false, error: SAFE_EVIDENCE_NOT_FOUND }, { status: 404, headers: { "cache-control": "no-store" } })
       }
 
       const validation = validateEvidenceCommandInput({
@@ -214,7 +220,7 @@ export async function PATCH(request: Request, context: RouteContext) {
               warnings: validation.warnings,
             },
           },
-          { status: 400 }
+          { status: 400, headers: { "cache-control": "no-store" } }
         )
       }
 
@@ -225,10 +231,11 @@ export async function PATCH(request: Request, context: RouteContext) {
       )
 
       if (!updatedEvidence) {
-        return NextResponse.json({ success: false, error: SAFE_EVIDENCE_NOT_FOUND }, { status: 404 })
+        return NextResponse.json({ success: false, error: SAFE_EVIDENCE_NOT_FOUND }, { status: 404, headers: { "cache-control": "no-store" } })
       }
 
-      return NextResponse.json({ success: true, evidence: updatedEvidence }, { status: 200 })
+      const res = NextResponse.json({ success: true, evidence: updatedEvidence }, { status: 200, headers: { "cache-control": "no-store" } })
+      return guard.applyCookies ? guard.applyCookies(res) : res
     }
 
     const validation = validateUpdateEvidenceLiteInput(body)
@@ -242,26 +249,27 @@ export async function PATCH(request: Request, context: RouteContext) {
             warnings: validation.warnings,
           },
         },
-        { status: 400 }
+        { status: 400, headers: { "cache-control": "no-store" } }
       )
     }
 
     const deal = await getSavedDealById(dealId)
     if (!deal) {
-      return NextResponse.json({ success: false, error: SAFE_NOT_FOUND }, { status: 404 })
+      return NextResponse.json({ success: false, error: SAFE_NOT_FOUND }, { status: 404, headers: { "cache-control": "no-store" } })
     }
 
     const evidence = await getEvidenceLiteById(dealId, evidenceId)
     if (!evidence) {
-      return NextResponse.json({ success: false, error: SAFE_EVIDENCE_NOT_FOUND }, { status: 404 })
+      return NextResponse.json({ success: false, error: SAFE_EVIDENCE_NOT_FOUND }, { status: 404, headers: { "cache-control": "no-store" } })
     }
 
     const updatedEvidence = await updateEvidenceLite(dealId, evidenceId, validation.value)
     if (!updatedEvidence) {
-      return NextResponse.json({ success: false, error: SAFE_EVIDENCE_NOT_FOUND }, { status: 404 })
+      return NextResponse.json({ success: false, error: SAFE_EVIDENCE_NOT_FOUND }, { status: 404, headers: { "cache-control": "no-store" } })
     }
 
-    return NextResponse.json({ success: true, evidence: updatedEvidence }, { status: 200 })
+    const res = NextResponse.json({ success: true, evidence: updatedEvidence }, { status: 200, headers: { "cache-control": "no-store" } })
+    return guard.applyCookies ? guard.applyCookies(res) : res
   } catch (error) {
     const diagnostic = createSafeRouteErrorDiagnostic("saved-deals.evidence.item", error)
     console.error("Evidence Lite item update failed.", diagnostic)
@@ -273,7 +281,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         traceId: diagnostic.traceId,
         diagnostic,
       },
-      { status: 500 }
+      { status: 500, headers: { "cache-control": "no-store" } }
     )
   }
 }

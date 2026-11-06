@@ -11,9 +11,12 @@ vi.mock("@/lib/operator-command/saved-deals-repository", () => ({
 }))
 
 import { GET } from "@/app/api/saved-deals/[id]/route"
+import { operatorHeaders, registerTestOperator } from "./fixtures/operator-session"
+
+registerTestOperator()
 
 function makeRequest() {
-  return new Request("http://localhost/api/saved-deals/deal-1", { method: "GET" })
+  return new Request("http://localhost/api/saved-deals/deal-1", { method: "GET", headers: operatorHeaders() })
 }
 
 describe("phase 4a saved deal detail route", () => {

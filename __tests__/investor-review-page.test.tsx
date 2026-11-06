@@ -21,11 +21,15 @@ vi.mock("@/lib/investor-review/load-investor-review-page-model", () => ({
 
 vi.mock("next/navigation", () => ({
   notFound: notFoundMock,
+  redirect: vi.fn(),
 }))
 
 import InvestorReviewPage from "../app/saved-deals/[id]/review/page"
 import InvestorReviewLoading from "../app/saved-deals/[id]/review/loading"
 import InvestorReviewNotFoundDocument from "../app/saved-deals/[id]/review/not-found"
+import { registerTestOperator } from "./fixtures/operator-session"
+
+registerTestOperator()
 
 function makeSavedDealRecord(overrides: Partial<SavedDealRecord> = {}): SavedDealRecord {
   return {
